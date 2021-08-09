@@ -1,0 +1,23 @@
+body, canvas {
+    touch-action: none;
+}
+
+#player {
+    position: absolute;
+    width: 100%; height: 100%;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    padding-bottom: 0;
+    gap: 1em;
+}
+
+#player-container {
+    flex: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

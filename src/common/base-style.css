@@ -1,0 +1,39 @@
+
+/* prevent weird highlights https://stackoverflow.com/questions/21003535/ */
+.no-select {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* hidden elements should be hidden regardless of their display style */
+[hidden] { display: none !important; }
+
+/* default to width/height including padding and border */
+* { box-sizing: border-box; }
+
+/* used dynamically to prevent or cancel smooth transitions */
+.skip-transition { transition: none !important; }
+
+/* make buttons and select inherit font */ 
+button, select { font-family: inherit; font-size: inherit; }
+
+/* clickable things should use this cursor imo */
+button, a, input[type="radio"], input[type="checkbox"], select, option, label, summary { cursor: pointer; }
+
+/* crisp pixelart for images and backgrounds */
+* {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* prevent pull down to refresh page (and lose data rip) */
+body {
+    overscroll-behavior-y: contain;
+}
