@@ -850,10 +850,10 @@ bipsi.EventEditor = class {
     resetDialoguePreview() {
         const { field } = this.getSelections();
 
-        const page = this.editor.dialoguePreviewPlayer.active ? this.editor.dialoguePreviewPlayer.pagesSeen : 0;
-        this.editor.dialoguePreviewPlayer.restart();
+        const page = !this.editor.dialoguePreviewPlayer.empty ? this.editor.dialoguePreviewPlayer.pagesSeen : 0;
+        this.editor.dialoguePreviewPlayer.clear();
         if (field && field.type === "dialogue") {
-            this.editor.dialoguePreviewPlayer.queueScript(this.valueEditors.dialogue.value);
+            this.editor.dialoguePreviewPlayer.queue(this.valueEditors.dialogue.value, { font: this.editor.font });
             for (let i = 0; i < page-1; ++i) {
                 this.editor.dialoguePreviewPlayer.moveToNextPage();
             }
@@ -1405,7 +1405,8 @@ bipsi.Editor = class extends EventTarget {
         this.paletteEditor = new bipsi.PaletteEditor(this);
         this.eventEditor = new bipsi.EventEditor(this);
 
-        this.dialoguePreviewPlayer = new DialoguePlayer(font);
+        this.font = font;
+        this.dialoguePreviewPlayer = new DialogueManager(256, 256);
 
         let prev;
         const timer = (next) => {
@@ -1727,7 +1728,7 @@ bipsi.Editor = class extends EventTarget {
 
             if (this.eventEditor.showDialoguePreview) {
                 this.dialoguePreviewPlayer.skip();
-                if (!this.dialoguePreviewPlayer.active) this.eventEditor.resetDialoguePreview();
+                if (this.dialoguePreviewPlayer.empty) this.eventEditor.resetDialoguePreview();
                 this.redraw();
                 return;
             }
@@ -1809,8 +1810,8 @@ bipsi.Editor = class extends EventTarget {
         this.WALL_TILE = await loadImage(bipsi.constants.wallTile);
 
         this.playtestSplash = createRendering2D(256, 256);
-        this.dialoguePreviewPlayer.restart();
-        this.dialoguePreviewPlayer.queueScript("click here to playtest");
+        this.dialoguePreviewPlayer.clear();
+        this.dialoguePreviewPlayer.queue("click here to playtest", { font: this.font });
         this.dialoguePreviewPlayer.skip();
         this.dialoguePreviewPlayer.render();
         this.playtestSplash.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 24, 109);
@@ -1831,10 +1832,12 @@ bipsi.Editor = class extends EventTarget {
         const tile = data.tiles[tileIndex];
         const room = data.rooms[roomIndex];
 
+        const tileFrame = tile?.frames[frameIndex] ?? tile?.frames[0];
+
         const { x, y } = this.selectedEventCell;
         const event = getEventsAt(room.events, x, y)[0];
 
-        return { data, tileset, room, roomIndex, frameIndex, tileIndex, tileSize, event, tile };
+        return { data, tileset, room, roomIndex, frameIndex, tileIndex, tileSize, event, tile, tileFrame };
     }
 
     /**
@@ -1888,6 +1891,7 @@ bipsi.Editor = class extends EventTarget {
 
         if (this.roomPaintTool.value === "wall") {
             const rendering = this.renderings.tileMapPaint;
+            rendering.globalAlpha = .75;
             room.wallmap.forEach((row, y) => {
                 row.forEach((wall, x) => {
                     if (wall > 0) {
@@ -1898,6 +1902,7 @@ bipsi.Editor = class extends EventTarget {
                     }
                 });
             });
+            rendering.globalAlpha = 1;
         }
 
         this.roomThumbs.forEach((thumbnail, roomIndex) => {
@@ -1925,16 +1930,16 @@ bipsi.Editor = class extends EventTarget {
             TEMP_256.fillRect(0, y * 16 + 6, 256, 4);
             TEMP_256.fillRect(x * 16 + 6, 0, 4, 256);
 
-            //this.renderings.eventsRoom.globalCompositeOperation = "difference";
+            this.renderings.eventsRoom.globalAlpha = .5;
             this.renderings.eventsRoom.drawImage(TEMP_256.canvas, 0, 0);
-            //this.renderings.eventsRoom.globalCompositeOperation = "source-over";
+            this.renderings.eventsRoom.globalAlpha = 1;
         }
 
         const events = getEventsAt(room.events, x, y);
         this.actions.copyEvent.disabled = events.length === 0;
         this.actions.deleteEvent.disabled = events.length === 0;
 
-        if (this.eventEditor.showDialoguePreview && this.dialoguePreviewPlayer.active) {
+        if (this.eventEditor.showDialoguePreview && !this.dialoguePreviewPlayer.empty) {
             const t = 24;
             const m = 109;
             const b = 194;
@@ -2026,36 +2031,36 @@ bipsi.Editor = class extends EventTarget {
      */
     async processSelectedTile(process) {
         return this.stateManager.makeChange(async (data) => {
-            const { frameIndex, tile } = this.getSelections(data);
+            const { tileFrame } = this.getSelections(data);
             const tileset = await this.forkTileset();
 
-            const frame = copyTile(tileset, tile.frames[frameIndex]);
+            const frame = copyTile(tileset, tileFrame);
             process(frame);
-            drawTile(tileset, tile.frames[frameIndex], frame);
+            drawTile(tileset, tileFrame, frame);
         });
     }
 
     async copySelectedTileFrame() {
-        const { tileset, frameIndex, tile } = this.getSelections();
-        this.copiedTileFrame = copyTile(tileset, tile.frames[frameIndex]);
+        const { tileset, tileFrame } = this.getSelections();
+        this.copiedTileFrame = copyTile(tileset, tileFrame);
         this.actions.pasteTileFrame.disabled = false;
     }
 
     async pasteSelectedTileFrame() {
         return this.stateManager.makeChange(async (data) => {
-            const { frameIndex, tile } = this.getSelections(data);
+            const { tileFrame } = this.getSelections(data);
             const tileset = await this.forkTileset();
 
-            drawTile(tileset, tile.frames[frameIndex], this.copiedTileFrame);
+            drawTile(tileset, tileFrame, this.copiedTileFrame);
         });
     }
     
     async clearSelectedTileFrame() {
         return this.stateManager.makeChange(async (data) => {
-            const { frameIndex, tile } = this.getSelections(data);
+            const { tileFrame } = this.getSelections(data);
             const tileset = await this.forkTileset();
 
-            const { x, y, size } = getTileCoords(tileset.canvas, tile.frames[frameIndex]);
+            const { x, y, size } = getTileCoords(tileset.canvas, tileFrame);
             tileset.clearRect(x, y, size, size);
         });
     }
@@ -2370,7 +2375,7 @@ async function makePlayer(font) {
     timer();
 
     function down(key, code) {
-        if (player.dialoguePlayer.active) {
+        if (!player.dialoguePlayer.empty) {
             player.proceed();
         } else {
             heldKeys.add(key);

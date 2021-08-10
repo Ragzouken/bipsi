@@ -85,7 +85,8 @@ bipsi.Player = class extends EventTarget {
         // final composite of any graphics
         this.rendering = createRendering2D(256, 256);
 
-        this.dialoguePlayer = new DialoguePlayer(font);
+        this.font = font;
+        this.dialoguePlayer = new DialogueManager(256, 256);
 
         this.time = 0;
         this.ready = false;
@@ -98,10 +99,10 @@ bipsi.Player = class extends EventTarget {
         /** @type {PromiseLike<void>} */
         this.dialogueWaiter = {
             then: (resolve, reject) => {
-                if (!this.dialoguePlayer.active) {
+                if (this.dialoguePlayer.empty) {
                     resolve();
                 } else {
-                    return wait(this.dialoguePlayer, "done").then(resolve, reject);
+                    return wait(this.dialoguePlayer, "empty").then(resolve, reject);
                 }
             },
         };
@@ -168,7 +169,7 @@ bipsi.Player = class extends EventTarget {
         this.ready = false;
         this.error = false;
         this.title = false;
-        this.dialoguePlayer.restart();
+        this.dialoguePlayer.clear();
     }
 
     update(dt) {
@@ -207,18 +208,33 @@ bipsi.Player = class extends EventTarget {
 
         this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
 
-        // render dialogue box if necessary
-        if (this.dialoguePlayer.active) {
-            const t = 24;
-            const m = 109;
-            const b = 194;
+        const displayWidth = 256;
+        const displayHeight = 256; 
 
+        // render dialogue box if necessary
+        if (!this.dialoguePlayer.empty) {
             const top = avatar.position[1] >= 8;
 
-            const x = 24;
-            const y = this.title ? m : top ? t : b;
-
             this.dialoguePlayer.render();
+            
+            const { width, height } = this.dialoguePlayer.dialogueRendering.canvas;
+
+            const spaceX = displayWidth - width;
+            const spaceY = displayHeight - height;
+            const margin = Math.ceil(Math.min(spaceX, spaceY) / 2);
+
+            const minX = margin;
+            const maxX = displayWidth - margin;
+
+            const minY = margin;
+            const maxY = displayHeight - margin;
+
+            const xA = 0.5;
+            const yA = this.title ? 0.5 : top ? 0 : 1;
+
+            const x = Math.floor(minX + (maxX - minX - width) * xA);
+            const y = Math.floor(minY + (maxY - minY - height) * yA);
+
             this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, x, y);
         }
 
@@ -228,8 +244,8 @@ bipsi.Player = class extends EventTarget {
 
     showError(text) {
         this.error = true;
-        this.dialoguePlayer.restart();
-        this.dialoguePlayer.queueScript(text);
+        this.dialoguePlayer.clear();
+        this.dialoguePlayer.queue(text, { font: this.font, glyphRevealDelay: 0 });
         this.dialoguePlayer.skip();
         this.dialoguePlayer.render();
         this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 24, 109);
@@ -239,19 +255,17 @@ bipsi.Player = class extends EventTarget {
     async proceed() {
         if (!this.ready) return;
 
-        if (this.dialoguePlayer.active) {
-            this.dialoguePlayer.skip();
-        } 
+        this.dialoguePlayer.skip();
     }
 
     async say(script, title=false) {
         this.title = title;
-        await this.dialoguePlayer.queueScript(script);
+        await this.dialoguePlayer.queue(script, { font: this.font, glyphRevealDelay: 0.05 });
         this.title = false;
     }
 
     async move(dx, dy) {
-        if (!this.ready || this.dialoguePlayer.active || this.busy) return;
+        if (!this.ready || !this.dialoguePlayer.empty || this.busy) return;
 
         this.busy = true;
 
@@ -324,9 +338,7 @@ async function runEventDialogue(player, event) {
     const title = oneField(event, "title", "dialogue")?.data ?? oneField(event, "game-title", "dialogue")?.data;
     
     if (title !== undefined) {
-        player.title = true;
-        await player.dialoguePlayer.queueScript(title);
-        player.title = false;
+        await player.say(title, true);
     }
 
     const says = allFields(event, "say", "dialogue");
@@ -341,7 +353,7 @@ async function runEventDialogue(player, event) {
     if (event.says.length > 0) {
         event.sayProgress = event.sayProgress ?? 0;
         const say = event.says[event.sayProgress];
-        player.dialoguePlayer.queueScript(say);
+        player.say(say);
         event.sayProgress += 1;
 
         if (event.sayProgress >= event.says.length) {
@@ -394,10 +406,7 @@ async function runEventRemove(player, event) {
     const ending = oneField(event, "ending", "dialogue")?.data;
 
     if (ending !== undefined) {
-        player.title = true;
-        player.dialoguePlayer.queueScript(ending);
-        await player.dialogueWaiter;
-        player.title = false; 
+        await player.say(ending, true);
         player.restart();
     }
 }
@@ -429,20 +438,34 @@ function parseFakedown(text) {
     return text;
 }
 
-class DialoguePlayer extends EventTarget {
-    get active() {
-        return this.currentPage !== undefined;
+/**
+ * @typedef {Object} DialoguePage
+ * @property {BlitsyPage} glyphs
+ * @property {DialogueOptions} options
+ */
+
+/**
+ * @typedef {Object} DialogueOptions
+ * @property {*} font
+ * @property {number} anchorX
+ * @property {number} anchorY
+ * @property {number} glyphRevealDelay
+ */
+
+class DialogueManager extends EventTarget {
+    constructor(width, height) {
+        super();
+        this.dialogueRendering = createRendering2D(width, height);
+
+        /** @type {DialoguePage[]} */
+        this.queuedPages = [];
+        this.pagesSeen = 0;
+
+        this.clear();
     }
 
-    get currentGlyph() {
-        return this.currentPage ? this.currentPage[this.showGlyphCount] : undefined;
-    } 
-
-    constructor(font) {
-        super();
-        this.font = font;
-        this.dialogueRendering = createRendering2D(8, 8);
-        this.restart();
+    get empty() {
+        return this.currentPage === undefined;
     }
 
     async load() {
@@ -450,79 +473,118 @@ class DialoguePlayer extends EventTarget {
         this.stopIcon = await loadImage(STOP_ICON_DATA);
     }
 
-    restart() {
-        this.showCharTime = .05;
-        /** @type {BlitsyPage[]} */
+    clear() {
         this.queuedPages = [];
         this.pagesSeen = 0;
 
         this.setPage(undefined);
     }
 
-    /** @param {BlitsyPage} page */
+    /** @param {DialoguePage} page */
     setPage(page) {
+        const prev = this.currentPage;
         this.currentPage = page;
         this.pageTime = 0;
         this.showGlyphCount = 0;
         this.showGlyphElapsed = 0;
-        this.pageGlyphCount = page ? page.length : 0;
+        this.pageGlyphCount = page ? page.glyphs.length : 0;
 
-        if (page !== undefined) {
-            this.dispatchEvent(new CustomEvent("next-page", { detail: page }));
-        } else {
-            this.dispatchEvent(new CustomEvent("done"));
+        this.dispatchEvent(new CustomEvent("next-page", { detail: { prev, next: page } }));
+
+        if (page === undefined) {
+            this.dispatchEvent(new CustomEvent("empty"));
         }
+    }
+
+    /**
+     * @param {string} script 
+     * @param {DialogueOptions} options 
+     * @returns {Promise}
+     */
+    async queue(script, options) {
+        const { font } = options;
+        const lineWidth = 192;
+        const lineCount = 2;
+
+        if (!font) throw Error("shit")
+
+        script = parseFakedown(script);
+        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount });
+        const pages = glyphPages.map((glyphs) => ({ glyphs, options }));
+        this.queuedPages.push(...pages);
+        
+        if (this.empty) this.moveToNextPage();
+    
+        const last = pages[pages.length - 1];
+        return new Promise((resolve) => {
+            const onNextPage = (event) => {
+                const { prev, next } = event.detail;
+                if (prev === last) {
+                    this.removeEventListener("next-page", onNextPage);
+                    resolve();
+                }
+            };
+
+            this.addEventListener("next-page", onNextPage);
+        });
     }
 
     /** @param {number} dt */
     update(dt) {
-        if (!this.active) return;
+        if (this.empty) return;
 
         this.pageTime += dt;
         this.showGlyphElapsed += dt;
 
         this.applyStyle();
 
-        while (this.showGlyphElapsed > this.showCharTime && this.showGlyphCount < this.pageGlyphCount) {
-            this.showGlyphElapsed -= this.showCharTime;
+        const delay = this.currentPage.options.glyphRevealDelay;
+        
+        while (this.showGlyphElapsed > delay && this.showGlyphCount < this.pageGlyphCount) {
+            this.showGlyphElapsed -= delay;
             this.revealNextChar();
             this.applyStyle();
         }
     }
 
     render() {
+        const { glyphs, options } = this.currentPage;
+
+        const promptHeight = 6;
+        const charHeight = options.font.lineHeight;
+        const lineGap = 4;
         const padding = 8;
         const lines = 2;
-        const height = ((lines + 1) * 4) + this.font.lineHeight * lines + 15;
+
+        const height = padding * 2 + (charHeight + lineGap) * lines;
         const width = 208;
 
         resizeRendering2D(this.dialogueRendering, width, height);
         fillRendering2D(this.dialogueRendering, "#000000");
-        const render = renderPage(this.currentPage, width, height, padding, padding);
+        const render = renderPage(glyphs, width, height, padding, padding);
         this.dialogueRendering.drawImage(render.canvas, 0, 0);
 
         if (this.showGlyphCount === this.pageGlyphCount) {
             const prompt = this.queuedPages.length > 0 
                          ? this.contIcon 
                          : this.stopIcon;
-            this.dialogueRendering.drawImage(prompt, width-padding-prompt.width, height-4-prompt.height);
+            this.dialogueRendering.drawImage(prompt, width-padding-prompt.width, height-lineGap-prompt.height);
         }
     }
 
     revealNextChar() {
-        this.showGlyphCount = Math.min(this.showGlyphCount + 1, this.pageGlyphCount);
-        
-        if (!this.currentPage) return;
+        if (this.empty) return;
 
-        this.currentPage.forEach((glyph, i) => {
+        this.showGlyphCount = Math.min(this.showGlyphCount + 1, this.pageGlyphCount);
+        this.currentPage.glyphs.forEach((glyph, i) => {
             if (i < this.showGlyphCount) glyph.hidden = false;
         });
     }
 
     revealAll() {
-        if (!this.currentPage) return;
+        if (this.empty) return;
 
-        this.showGlyphCount = this.currentPage.length;
+        this.showGlyphCount = this.currentPage.glyphs.length;
         this.revealNextChar();
     }
 
@@ -532,13 +594,13 @@ class DialoguePlayer extends EventTarget {
     }
 
     skip() {
+        if (this.empty) return;
+        
         if (this.showGlyphCount === this.pageGlyphCount) {
             this.moveToNextPage();
         } else {
             this.showGlyphCount = this.pageGlyphCount;
-
-            if (this.currentPage)
-                this.currentPage.forEach((glyph) => glyph.hidden = false);
+            this.currentPage.glyphs.forEach((glyph) => glyph.hidden = false);
         }
     }
 
@@ -548,42 +610,20 @@ class DialoguePlayer extends EventTarget {
         this.setPage(nextPage);
     }
 
-    queueScript(script) {
-        script = parseFakedown(script);
-        const pages = scriptToPages(script, { font: this.font, lineWidth: 192, lineCount: 2 });
-        this.queuedPages.push(...pages);
-        
-        if (!this.currentPage)
-            this.moveToNextPage();
-    
-        const last = pages[pages.length - 1];
-        return new Promise((resolve) => {
-            const onNextPage = (event) => {
-                const page = event.detail;
-                if (page !== last && !this.queuedPages.includes(last)) {
-                    this.removeEventListener("next-page", onNextPage);
-                    this.removeEventListener("done", onNextPage);
-                    resolve();
-                }
-            };
-
-            this.addEventListener("next-page", onNextPage);
-            this.addEventListener("done", onNextPage);
-        });
-    }
-
     applyStyle() {
-        if (!this.currentPage) return;
+        if (this.empty) return;
 
-        if (this.currentGlyph) {
-            if (this.currentGlyph.styles.has("delay")) {
-                this.showCharTime = parseFloat(this.currentGlyph.styles.get("delay"));
+        const currentGlyph = this.currentPage.glyphs[this.showGlyphCount];
+
+        if (currentGlyph) {
+            if (currentGlyph.styles.has("delay")) {
+                this.showCharTime = parseFloat(currentGlyph.styles.get("delay"));
             } else {
-                this.showCharTime = .05;
+                this.showCharTime = this.currentPage.options.glyphRevealDelay;
             }
         }
 
-        this.currentPage.forEach((glyph, i) => {
+        this.currentPage.glyphs.forEach((glyph, i) => {
             if (glyph.styles.has("r"))
                 glyph.hidden = false;
             if (glyph.styles.has("clr"))
