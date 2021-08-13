@@ -1065,7 +1065,7 @@ bipsi.TileBrowser = class {
 
     set selectedTileIndex(value) { 
         this.select.setValueSilent(value);
-        this.select.inputs[this.select.selectedIndex].scrollIntoView({ block: "center" }); 
+        this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
     }
 
     redraw(tileset0 = undefined) {
@@ -1214,7 +1214,7 @@ bipsi.EventTileBrowser = class {
 
     set selectedTileIndex(value) { 
         this.select.setValueSilent(value);
-        this.select.inputs[this.select.selectedIndex].scrollIntoView({ block: "center" }); 
+        this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
     }
 
     redraw() {
@@ -1406,7 +1406,8 @@ bipsi.Editor = class extends EventTarget {
         this.eventEditor = new bipsi.EventEditor(this);
 
         this.font = font;
-        this.dialoguePreviewPlayer = new DialogueManager(256, 256);
+        this.dialoguePreviewPlayer = new DialoguePlayer(256, 256);
+        this.dialoguePreviewPlayer.options.font = font;
 
         let prev;
         const timer = (next) => {
@@ -1809,12 +1810,11 @@ bipsi.Editor = class extends EventTarget {
         this.EVENT_TILE = await loadImage(bipsi.constants.eventTile);
         this.WALL_TILE = await loadImage(bipsi.constants.wallTile);
 
-        this.playtestSplash = createRendering2D(256, 256);
         this.dialoguePreviewPlayer.clear();
-        this.dialoguePreviewPlayer.queue("click here to playtest", { font: this.font });
+        this.dialoguePreviewPlayer.queue("click here to playtest", { panelColor: "#ffd800", textColor: "#000000" });
         this.dialoguePreviewPlayer.skip();
         this.dialoguePreviewPlayer.render();
-        this.playtestSplash.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 24, 109);
+        this.playtestSplash = copyRendering2D(this.dialoguePreviewPlayer.dialogueRendering);
     }
 
     /**
@@ -1940,17 +1940,11 @@ bipsi.Editor = class extends EventTarget {
         this.actions.deleteEvent.disabled = events.length === 0;
 
         if (this.eventEditor.showDialoguePreview && !this.dialoguePreviewPlayer.empty) {
-            const t = 24;
-            const m = 109;
-            const b = 194;
-
             const top = this.selectedEventCell.y >= 8;
 
-            const x = 24;
-            const y = false ? m : top ? t : b;
-
+            this.dialoguePreviewPlayer.options.anchorY = top ? 0 : 1;
             this.dialoguePreviewPlayer.render();
-            this.renderings.eventsRoom.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, x, y);
+            this.renderings.eventsRoom.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 0, 0);
         }
 
         if (!bipsi.player.ready && !bipsi.player.error) {

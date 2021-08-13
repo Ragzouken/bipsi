@@ -86,11 +86,11 @@ bipsi.Player = class extends EventTarget {
         this.rendering = createRendering2D(256, 256);
 
         this.font = font;
-        this.dialoguePlayer = new DialogueManager(256, 256);
+        this.dialoguePlayer = new DialoguePlayer(256, 256);
+        this.dialoguePlayer.options.font = font;
 
         this.time = 0;
         this.ready = false;
-        this.title = false;
         this.frameCount = 0;
         this.busy = false;
         this.error = false;
@@ -148,6 +148,7 @@ bipsi.Player = class extends EventTarget {
     }
 
     async start() {
+        // player avatar is event tagged "is-player" at the beginning of the game
         const avatar = allEvents(this.data).find((event) => eventIsTagged(event, "is-player"));
         if (avatar === undefined) {
             this.showError("NO EVENT WITH is-player TAG FOUND");
@@ -168,7 +169,6 @@ bipsi.Player = class extends EventTarget {
     clear() {
         this.ready = false;
         this.error = false;
-        this.title = false;
         this.dialoguePlayer.clear();
     }
 
@@ -186,69 +186,43 @@ bipsi.Player = class extends EventTarget {
     }
 
     render() {
+        // find avatar, current room, current palette
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
-        const palette = this.data.palettes[room.palette];
-        const [background, foreground, highlight] = palette;
+        const [background, foreground, highlight] = this.getActivePalette();
 
+        // recolor tileset according to palette
         const tileset = this.stateManager.resources.get(this.data.tileset);
         const tilesetFG = recolorMask(tileset, foreground, TEMP_TILESET0);
         const tilesetHI = recolorMask(tileset, highlight, TEMP_TILESET1);
 
+        // clear to background color
         fillRendering2D(TEMP_128, background);
 
-        if (!this.title) {
-            const frame = this.frameCount % 2;
-            const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
+        // find current animation frame for each tile
+        const frame = this.frameCount % 2;
+        const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
-            drawTilemap(TEMP_128, tilesetFG, tileToFrame, room.tilemap, background);
-            drawTilemap(TEMP_128, tilesetHI, tileToFrame, room.highmap, background);
-            drawEvents(TEMP_128, tilesetHI, tileToFrame, room.events, background);
-        }
+        // draw current animation frame for each tile in each layer of tilemaps
+        drawTilemap(TEMP_128, tilesetFG, tileToFrame, room.tilemap, background);
+        drawTilemap(TEMP_128, tilesetHI, tileToFrame, room.highmap, background);
+        drawEvents(TEMP_128, tilesetHI, tileToFrame, room.events, background);
 
+        // upscale tilemaps to display area
         this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
-
-        const displayWidth = 256;
-        const displayHeight = 256; 
 
         // render dialogue box if necessary
         if (!this.dialoguePlayer.empty) {
+            // change default dialogue position based on avatar position
             const top = avatar.position[1] >= 8;
+            this.dialoguePlayer.options.anchorY = top ? 0 : 1;
 
+            // redraw dialogue and copy to display area
             this.dialoguePlayer.render();
-            
-            const { width, height } = this.dialoguePlayer.dialogueRendering.canvas;
-
-            const spaceX = displayWidth - width;
-            const spaceY = displayHeight - height;
-            const margin = Math.ceil(Math.min(spaceX, spaceY) / 2);
-
-            const minX = margin;
-            const maxX = displayWidth - margin;
-
-            const minY = margin;
-            const maxY = displayHeight - margin;
-
-            const xA = 0.5;
-            const yA = this.title ? 0.5 : top ? 0 : 1;
-
-            const x = Math.floor(minX + (maxX - minX - width) * xA);
-            const y = Math.floor(minY + (maxY - minY - height) * yA);
-
-            this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, x, y);
+            this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 0, 0);
         }
 
         // signal, to anyone listening, that rendering happened
-        this.dispatchEvent(new CustomEvent("render"));
-    }
-
-    showError(text) {
-        this.error = true;
-        this.dialoguePlayer.clear();
-        this.dialoguePlayer.queue(text, { font: this.font, glyphRevealDelay: 0 });
-        this.dialoguePlayer.skip();
-        this.dialoguePlayer.render();
-        this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 24, 109);
         this.dispatchEvent(new CustomEvent("render"));
     }
 
@@ -258,10 +232,8 @@ bipsi.Player = class extends EventTarget {
         this.dialoguePlayer.skip();
     }
 
-    async say(script, title=false) {
-        this.title = title;
-        await this.dialoguePlayer.queue(script, { font: this.font, glyphRevealDelay: 0.05 });
-        this.title = false;
+    async say(script, options) {
+        await this.dialoguePlayer.queue(script, options);
     }
 
     async move(dx, dy) {
@@ -309,6 +281,29 @@ bipsi.Player = class extends EventTarget {
             return standardEventTouch(this, event);
         }
     }
+
+    showError(text) {
+        const options = {
+            glyphRevealDelay: 0,
+            panelColor: "#FF0000",
+            textColor: "#FFFFFF",
+        }
+
+        this.error = true;
+        this.dialoguePlayer.clear();
+        this.dialoguePlayer.queue(text, options);
+        this.dialoguePlayer.skip();
+        this.dialoguePlayer.render();
+        this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 0, 0);
+        this.dispatchEvent(new CustomEvent("render"));
+    }
+
+    getActivePalette() {
+        const avatar = getEventById(this.data, this.avatarId);
+        const room = roomFromEvent(this.data, avatar);
+        const palette = this.data.palettes[room.palette];
+        return palette;
+    }
 }
 
 /**
@@ -335,14 +330,16 @@ async function standardEventTouch(player, event) {
  * @returns {Promise}
  */
 async function runEventDialogue(player, event) {
-    const title = oneField(event, "title", "dialogue")?.data ?? oneField(event, "game-title", "dialogue")?.data;
+    const title = oneField(event, "title", "dialogue")?.data;
     
     if (title !== undefined) {
-        await player.say(title, true);
+        const [background] = player.getActivePalette();
+        await player.say(title, { anchorY: .5, backgroundColor: background });
     }
 
     const says = allFields(event, "say", "dialogue");
     const sayMode = oneField(event, "say-mode", "text")?.data;
+    const sayStyle = oneField(event, "say-style", "json")?.data;
     
     if (event.says === undefined) {
         event.says = says.map((say) => say.data);
@@ -353,7 +350,7 @@ async function runEventDialogue(player, event) {
     if (event.says.length > 0) {
         event.sayProgress = event.sayProgress ?? 0;
         const say = event.says[event.sayProgress];
-        player.say(say);
+        player.say(say, sayStyle);
         event.sayProgress += 1;
 
         if (event.sayProgress >= event.says.length) {
@@ -441,7 +438,7 @@ function parseFakedown(text) {
 /**
  * @typedef {Object} DialoguePage
  * @property {BlitsyPage} glyphs
- * @property {DialogueOptions} options
+ * @property {Partial<DialogueOptions>} options
  */
 
 /**
@@ -449,10 +446,28 @@ function parseFakedown(text) {
  * @property {*} font
  * @property {number} anchorX
  * @property {number} anchorY
+ * @property {number} lines
+ * @property {number} lineGap
+ * @property {number} padding
  * @property {number} glyphRevealDelay
  */
 
-class DialogueManager extends EventTarget {
+const DIALOGUE_DEFAULTS = {
+    anchorX: 0.5,
+    anchorY: 0.5,
+
+    lines: 2,
+    lineGap: 4,
+    padding: 8,
+
+    glyphRevealDelay: .05,
+
+    backgroundColor: undefined,
+    panelColor: "#000000",
+    textColor: "#FFFFFF",
+};
+
+class DialoguePlayer extends EventTarget {
     constructor(width, height) {
         super();
         this.dialogueRendering = createRendering2D(width, height);
@@ -460,6 +475,8 @@ class DialogueManager extends EventTarget {
         /** @type {DialoguePage[]} */
         this.queuedPages = [];
         this.pagesSeen = 0;
+        
+        this.options = {};
 
         this.clear();
     }
@@ -469,8 +486,8 @@ class DialogueManager extends EventTarget {
     }
 
     async load() {
-        this.contIcon = await loadImage(CONT_ICON_DATA);
-        this.stopIcon = await loadImage(STOP_ICON_DATA);
+        this.contIcon = imageToRendering2D(await loadImage(CONT_ICON_DATA));
+        this.stopIcon = imageToRendering2D(await loadImage(STOP_ICON_DATA));
     }
 
     clear() {
@@ -498,18 +515,15 @@ class DialogueManager extends EventTarget {
 
     /**
      * @param {string} script 
-     * @param {DialogueOptions} options 
+     * @param {Partial<DialogueOptions>} options 
      * @returns {Promise}
      */
-    async queue(script, options) {
-        const { font } = options;
+    async queue(script, options={}) {
+        const { font, lines } = this.getOptions(options);
         const lineWidth = 192;
-        const lineCount = 2;
-
-        if (!font) throw Error("shit")
 
         script = parseFakedown(script);
-        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount });
+        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines });
         const pages = glyphPages.map((glyphs) => ({ glyphs, options }));
         this.queuedPages.push(...pages);
         
@@ -538,38 +552,62 @@ class DialogueManager extends EventTarget {
 
         this.applyStyle();
 
-        const delay = this.currentPage.options.glyphRevealDelay;
-        
-        while (this.showGlyphElapsed > delay && this.showGlyphCount < this.pageGlyphCount) {
-            this.showGlyphElapsed -= delay;
+        const options = this.getOptions(this.currentPage.options);
+
+        while (this.showGlyphElapsed > options.glyphRevealDelay && this.showGlyphCount < this.pageGlyphCount) {
+            this.showGlyphElapsed -= options.glyphRevealDelay;
             this.revealNextChar();
             this.applyStyle();
         }
     }
 
     render() {
-        const { glyphs, options } = this.currentPage;
-
-        const promptHeight = 6;
-        const charHeight = options.font.lineHeight;
-        const lineGap = 4;
-        const padding = 8;
-        const lines = 2;
-
-        const height = padding * 2 + (charHeight + lineGap) * lines;
+        const options = this.getOptions(this.currentPage.options);
+        const height = options.padding * 2 
+                     + (options.font.lineHeight + options.lineGap) * options.lines;
         const width = 208;
 
-        resizeRendering2D(this.dialogueRendering, width, height);
-        fillRendering2D(this.dialogueRendering, "#000000");
-        const render = renderPage(glyphs, width, height, padding, padding);
-        this.dialogueRendering.drawImage(render.canvas, 0, 0);
+        fillRendering2D(this.dialogueRendering, options.backgroundColor);
+        
+        const { width: displayWidth, height: displayHeight } = this.dialogueRendering.canvas;
+        const spaceX = displayWidth - width;
+        const spaceY = displayHeight - height;
+        const margin = Math.ceil(Math.min(spaceX, spaceY) / 2);
+
+        const minX = margin;
+        const maxX = displayWidth - margin;
+
+        const minY = margin;
+        const maxY = displayHeight - margin;
+
+        const x = Math.floor(minX + (maxX - minX - width ) * options.anchorX);
+        const y = Math.floor(minY + (maxY - minY - height) * options.anchorY);
+
+        this.dialogueRendering.fillStyle = options.panelColor;
+        this.dialogueRendering.fillRect(x, y, width, height);
+        
+        this.applyStyle();
+        const render = renderPage(
+            this.currentPage.glyphs, 
+            width, height, 
+            options.padding, options.padding,
+        );
+        this.dialogueRendering.drawImage(render.canvas, x, y);
 
         if (this.showGlyphCount === this.pageGlyphCount) {
             const prompt = this.queuedPages.length > 0 
                          ? this.contIcon 
                          : this.stopIcon;
-            this.dialogueRendering.drawImage(prompt, width-padding-prompt.width, height-lineGap-prompt.height);
+            this.dialogueRendering.drawImage(
+                recolorMask(prompt, options.textColor).canvas, 
+                x+width-options.padding-prompt.canvas.width, 
+                y+height-options.lineGap-prompt.canvas.height,
+            );
         }
+    }
+
+    getOptions(options) {
+        return Object.assign({}, DIALOGUE_DEFAULTS, this.options, options);
     }
 
     revealNextChar() {
@@ -614,6 +652,7 @@ class DialogueManager extends EventTarget {
         if (this.empty) return;
 
         const currentGlyph = this.currentPage.glyphs[this.showGlyphCount];
+        const options = this.getOptions(this.currentPage.options);
 
         if (currentGlyph) {
             if (currentGlyph.styles.has("delay")) {
@@ -624,10 +663,10 @@ class DialogueManager extends EventTarget {
         }
 
         this.currentPage.glyphs.forEach((glyph, i) => {
+            glyph.fillStyle = glyph.styles.get("clr") ?? options.textColor;
+
             if (glyph.styles.has("r"))
                 glyph.hidden = false;
-            if (glyph.styles.has("clr"))
-                glyph.fillStyle = glyph.styles.get("clr");
             if (glyph.styles.has("shk")) 
                 glyph.offset = { x: getRandomInt(-1, 2), y: getRandomInt(-1, 2) };
             if (glyph.styles.has("wvy"))
