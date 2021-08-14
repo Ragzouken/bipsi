@@ -1072,6 +1072,8 @@ bipsi.TileBrowser = class {
         const { data, tileset, room, tile } = this.editor.getSelections();
         if (!tile) return;
 
+        this.updateTileCount(data.tiles.length);
+
         this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
 
         const [bg, fg, hi] = data.palettes[room.palette];
@@ -1114,10 +1116,11 @@ bipsi.TileBrowser = class {
         const prev = [...this.thumbnailURIs];
         const blobs = await Promise.all(canvases.map(canvasToBlob));
         const uris = blobs.map(URL.createObjectURL);
-        await Promise.all(uris.map(loadImage)); // preload against flicker
-        this.thumbnailURIs = uris;
-        this.updateCSS();
-        prev.map(URL.revokeObjectURL);
+        await Promise.all(uris.map(loadImage)).then(() => {
+            this.thumbnailURIs = uris;
+            this.updateCSS();
+            prev.map(URL.revokeObjectURL);
+        });
 
         const root = ONE(":root");
         const scale = 5;
@@ -1141,7 +1144,6 @@ bipsi.TileBrowser = class {
             "--tileset-background-image", 
             `url("${this.thumbnailURIs[this.frame]}")`,
         );
-        
     }
 
     updateTileCount(count) {
@@ -1725,6 +1727,7 @@ bipsi.Editor = class extends EventTarget {
 
         this.renderings.eventsRoom.canvas.addEventListener("pointerdown", async (event) => {
             // hack bc race condition rn
+            const drag = ui.drag(event);
             await sleep(1);
 
             if (this.eventEditor.showDialoguePreview) {
@@ -1748,7 +1751,6 @@ bipsi.Editor = class extends EventTarget {
                 this.redraw();
             };
 
-            const drag = ui.drag(event);
             const positions = trackCanvasStroke(this.renderings.eventsRoom.canvas, drag);
             let started = false;
 
@@ -2060,6 +2062,9 @@ bipsi.Editor = class extends EventTarget {
     }
 
     async swapSelectedTileFrames() {
+        const { tile } = this.getSelections();
+        if (tile.frames.length === 1) return;
+
         return this.stateManager.makeChange(async (data) => {
             const { tile } = this.getSelections(data);
             [tile.frames[1], tile.frames[0]] = [tile.frames[0], tile.frames[1]];
@@ -2067,18 +2072,18 @@ bipsi.Editor = class extends EventTarget {
     }
 
     async newTile() {
-        return this.stateManager.makeChange(async (data) => {
+        await this.stateManager.makeChange(async (data) => {
             const { tileIndex, tileset } = this.getSelections(data);
             const id = nextTileId(data);
             const frames = [findFreeFrame(data.tiles)];
             data.tiles.splice(tileIndex+1, 0, { id, frames });
             resizeTileset(tileset, data.tiles);
-            this.tileBrowser.selectedTileIndex += 1;
         });
+        this.tileBrowser.selectedTileIndex += 1;
     }
 
     async duplicateTile() {
-        return this.stateManager.makeChange(async (data) => {
+        await this.stateManager.makeChange(async (data) => {
             const { tileIndex, tile, tileset } = this.getSelections(data);
             const id = nextTileId(data);
             const frames = [];
@@ -2090,8 +2095,8 @@ bipsi.Editor = class extends EventTarget {
                 const frame = copyTile(tileset, tile.frames[i]);
                 drawTile(tileset, frames[i], frame);
             });
-            this.tileBrowser.selectedTileIndex += 1;
         });
+        this.tileBrowser.selectedTileIndex += 1;
     }
 
     async toggleTileAnimated() {

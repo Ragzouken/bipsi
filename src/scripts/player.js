@@ -90,8 +90,9 @@ bipsi.Player = class extends EventTarget {
         this.dialoguePlayer.options.font = font;
 
         this.time = 0;
-        this.ready = false;
         this.frameCount = 0;
+        
+        this.ready = false;
         this.busy = false;
         this.error = false;
 
@@ -163,6 +164,7 @@ bipsi.Player = class extends EventTarget {
         this.avatarId = avatar.id;
         this.ready = true;
 
+        // game starts by running the touch behaviour of the player avatar
         await this.touch(avatar);
     }
 
@@ -175,13 +177,17 @@ bipsi.Player = class extends EventTarget {
     update(dt) {
         if (!this.ready) return;
 
+        // tile animation
         this.time += dt;
         while (this.time >= .400) {
             this.frameCount += 1;
             this.time -= .4;
         }
 
+        // dialogue animation
         this.dialoguePlayer.update(dt);
+        
+        // rerender
         this.render();
     }
 
@@ -244,19 +250,26 @@ bipsi.Player = class extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
 
+        // determine move destination
         const [px, py] = avatar.position;
         const [tx, ty] = [px+dx, py+dy];
 
-        const blocked = cellIsSolid(room, tx, ty);
+        // is the movement stopped by the room edge or solid cells?
         const confined = tx < 0 || tx >= 16 || ty < 0 || ty >= 16;
+        const blocked = confined ? false : cellIsSolid(room, tx, ty);
 
+        // if not, then update avatar position
         if (!blocked && !confined) avatar.position = [tx, ty];
 
+        // find if there's an event that should be touched. prefer an event at
+        // the cell the avatar tried to move into but settle for the cell 
+        // they're already standing on otherwise
         const [fx, fy] = avatar.position;
         const [event0] = getEventsAt(room.events, tx, ty, avatar);
         const [event1] = getEventsAt(room.events, fx, fy, avatar);
         const event = event0 ?? event1;
 
+        // if there was such an event, touch it
         if (event) await this.touch(event);
 
         this.busy = false;
@@ -330,6 +343,7 @@ async function standardEventTouch(player, event) {
  * @returns {Promise}
  */
 async function runEventDialogue(player, event) {
+    // show title first, if any
     const title = oneField(event, "title", "dialogue")?.data;
     
     if (title !== undefined) {
@@ -340,19 +354,23 @@ async function runEventDialogue(player, event) {
     const says = allFields(event, "say", "dialogue");
     const sayMode = oneField(event, "say-mode", "text")?.data;
     const sayStyle = oneField(event, "say-style", "json")?.data;
-    
+
+    // if we haven't already, decide in advance which order to show say dialogue
     if (event.says === undefined) {
         event.says = says.map((say) => say.data);
         event.sayProgress = 0;
         if (sayMode === "shuffle") shuffleArray(event.says);
     }
 
+    // if there are any say dialogues
     if (event.says.length > 0) {
-        event.sayProgress = event.sayProgress ?? 0;
+        // show the next say dialogue and advance
         const say = event.says[event.sayProgress];
         player.say(say, sayStyle);
         event.sayProgress += 1;
 
+        // if we've now used all the dialogues, reset the progress according to
+        // the say mode
         if (event.sayProgress >= event.says.length) {
             if (sayMode === "shuffle" || sayMode === "cycle") {
                 event.says = undefined;
@@ -403,7 +421,8 @@ async function runEventRemove(player, event) {
     const ending = oneField(event, "ending", "dialogue")?.data;
 
     if (ending !== undefined) {
-        await player.say(ending, true);
+        const [background] = player.getActivePalette();
+        await player.say(ending, { anchorY: .5, backgroundColor: background });
         player.restart();
     }
 }
