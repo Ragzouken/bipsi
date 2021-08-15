@@ -50,6 +50,12 @@ bipsi.storage = new maker.ProjectStorage("bipsi");
  */
 
 /**
+ * @typedef {Object} BipsiDataLocation 
+ * @property {number} room
+ * @property {number[]} position
+ */
+
+/**
  * Return a list of resource ids that a particular bipsi project depends on. 
  * @param {BipsiDataProject} data 
  * @returns {string[]}
@@ -210,7 +216,6 @@ function drawTileFromTileset(rendering, tileset, tileIndex, dx, dy) {
  * @param {CanvasRenderingContext2D} tileset 
  * @param {number} tileIndex
  * @param {CanvasRenderingContext2D} tile 
- * @returns 
  */
 function drawTile(tileset, tileIndex, tile) {
     const { x, y, size } = getTileCoords(tileset.canvas, tileIndex);
@@ -281,7 +286,6 @@ function drawEvents(rendering, tileset, tileToFrame, events, background = undefi
 }
 
 /**
- * 
  * @param {CanvasRenderingContext2D} rendering 
  * @param {string[]} palette 
  * @param {BipsiDataRoom} room 
@@ -2078,6 +2082,9 @@ bipsi.Editor = class extends EventTarget {
             const frames = [findFreeFrame(data.tiles)];
             data.tiles.splice(tileIndex+1, 0, { id, frames });
             resizeTileset(tileset, data.tiles);
+            
+            const { x, y, size } = getTileCoords(tileset.canvas, frames[0]);
+            tileset.clearRect(x, y, size, size);
         });
         this.tileBrowser.selectedTileIndex += 1;
     }

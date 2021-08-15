@@ -1,6 +1,3 @@
-const CONT_ICON_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAYAAAD68A/GAAAAAXNSR0IArs4c6QAAADNJREFUCJmNzrENACAMA0E/++/8NAhRBEg6yyc5SePUoNqwDICnWP04ww1tWOHfUqqf1UwGcw4T9WFhtgAAAABJRU5ErkJggg==";
-const STOP_ICON_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAYAAAD68A/GAAAAAXNSR0IArs4c6QAAACJJREFUCJljZICC/////2fAAhgZGRn////PwIRNEhsYCgoBIkQHCf7H+yAAAAAASUVORK5CYII="
-
 // async equivalent of Function constructor
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
@@ -39,7 +36,7 @@ function allFields(event, name, type=undefined) {
  * @param {string} name 
  * @param {string} type 
  */
- function oneField(event, name, type=undefined) {
+function oneField(event, name, type=undefined) {
     return event.fields.find((field) => field.key === name && field.type === (type ?? field.type));
 }
 
@@ -58,6 +55,50 @@ function roomFromEvent(data, event) {
     return data.rooms.find((room) => room.events.includes(event));
 }
 
+/**
+ * @param {BipsiDataProject} data 
+ * @param {BipsiDataLocation} location 
+ * @returns {BipsiDataEvent?}
+ */
+function getEventAtLocation(data, location) {
+    const room = data.rooms[location.room];
+    const [x, y] = location.position;
+    const [event] = getEventsAt(room.events, x, y);
+    return event;
+} 
+
+/**
+ * @param {BipsiDataProject} data 
+ * @param {BipsiDataEvent} event 
+ * @returns {BipsiDataLocation}
+ */
+function getLocationOfEvent(data, event) {
+    const room = roomFromEvent(data, event);
+    const index = data.rooms.indexOf(room);
+    return { room: index, position: [...event.position] };
+}
+
+/**
+ * @param {BipsiDataProject} data 
+ * @param {BipsiDataEvent} event 
+ * @param {{ room: number, position: number[] }} location
+ */
+function moveEvent(data, event, location) {
+    removeEvent(data, event);
+    const room = data.rooms[location.room];
+    room.events.push(event);
+    event.position = [...location.position];
+}
+
+/**
+ * @param {BipsiDataProject} data 
+ * @param {BipsiDataEvent} event
+ */
+function removeEvent(data, event) {
+    const prevRoom = roomFromEvent(data, event);
+    arrayDiscard(prevRoom.events, event);
+}
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -74,6 +115,12 @@ async function wait(target, event) {
     return new Promise((resolve) => {
         target.addEventListener(event, resolve, { once: true });
     });
+}
+
+const ERROR_STYLE = {
+    glyphRevealDelay: 0,
+    panelColor: "#FF0000",
+    textColor: "#FFFFFF",
 }
 
 bipsi.Player = class extends EventTarget {
@@ -158,8 +205,8 @@ bipsi.Player = class extends EventTarget {
 
         // move avatar to last event (render on top)
         const room = roomFromEvent(this.data, avatar);
-        arrayDiscard(room.events, avatar);
-        room.events.push(avatar);
+        const index = this.data.rooms.indexOf(room);
+        moveEvent(this.data, avatar, { room: index, position: [...avatar.position] });
 
         this.avatarId = avatar.id;
         this.ready = true;
@@ -238,6 +285,11 @@ bipsi.Player = class extends EventTarget {
         this.dialoguePlayer.skip();
     }
 
+    async title(script) {
+        const [background] = this.getActivePalette();
+        return this.say(script, { anchorY: .5, backgroundColor: background });
+    }
+
     async say(script, options) {
         await this.dialoguePlayer.queue(script, options);
     }
@@ -255,11 +307,11 @@ bipsi.Player = class extends EventTarget {
         const [tx, ty] = [px+dx, py+dy];
 
         // is the movement stopped by the room edge or solid cells?
-        const confined = tx < 0 || tx >= 16 || ty < 0 || ty >= 16;
-        const blocked = confined ? false : cellIsSolid(room, tx, ty);
+        const bounded = tx < 0 || tx >= 16 || ty < 0 || ty >= 16;
+        const blocked = bounded ? false : cellIsSolid(room, tx, ty);
 
         // if not, then update avatar position
-        if (!blocked && !confined) avatar.position = [tx, ty];
+        if (!blocked && !bounded) avatar.position = [tx, ty];
 
         // find if there's an event that should be touched. prefer an event at
         // the cell the avatar tried to move into but settle for the cell 
@@ -296,15 +348,9 @@ bipsi.Player = class extends EventTarget {
     }
 
     showError(text) {
-        const options = {
-            glyphRevealDelay: 0,
-            panelColor: "#FF0000",
-            textColor: "#FFFFFF",
-        }
-
         this.error = true;
         this.dialoguePlayer.clear();
-        this.dialoguePlayer.queue(text, options);
+        this.dialoguePlayer.queue(text, ERROR_STYLE);
         this.dialoguePlayer.skip();
         this.dialoguePlayer.render();
         this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 0, 0);
@@ -347,8 +393,7 @@ async function runEventDialogue(player, event) {
     const title = oneField(event, "title", "dialogue")?.data;
     
     if (title !== undefined) {
-        const [background] = player.getActivePalette();
-        await player.say(title, { anchorY: .5, backgroundColor: background });
+        await player.title(title);
     }
 
     const says = allFields(event, "say", "dialogue");
@@ -390,14 +435,10 @@ async function runEventDialogue(player, event) {
  */
 async function runEventExit(player, event) {
     const avatar = getEventById(player.data, player.avatarId);
-    const room = roomFromEvent(player.data, avatar);
     const exit = oneField(event, "exit", "location")?.data;
 
     if (exit !== undefined) {
-        const nextRoom = player.data.rooms[exit.room];
-        arrayDiscard(room.events, avatar);
-        nextRoom.events.push(avatar);
-        avatar.position = [...exit.position];
+        moveEvent(player.data, avatar, exit);
     }
 }
 
@@ -408,7 +449,7 @@ async function runEventExit(player, event) {
  */
 async function runEventRemove(player, event) {
     if (eventIsTagged(event, "one-time")) {
-        arrayDiscard(roomFromEvent(player.data, event).events, event);
+        removeEvent(player.data, event);
     }
 }
 
@@ -455,250 +496,6 @@ function parseFakedown(text) {
 }
 
 /**
- * @typedef {Object} DialoguePage
- * @property {BlitsyPage} glyphs
- * @property {Partial<DialogueOptions>} options
- */
-
-/**
- * @typedef {Object} DialogueOptions
- * @property {*} font
- * @property {number} anchorX
- * @property {number} anchorY
- * @property {number} lines
- * @property {number} lineGap
- * @property {number} padding
- * @property {number} glyphRevealDelay
- */
-
-const DIALOGUE_DEFAULTS = {
-    anchorX: 0.5,
-    anchorY: 0.5,
-
-    lines: 2,
-    lineGap: 4,
-    padding: 8,
-
-    glyphRevealDelay: .05,
-
-    backgroundColor: undefined,
-    panelColor: "#000000",
-    textColor: "#FFFFFF",
-};
-
-class DialoguePlayer extends EventTarget {
-    constructor(width, height) {
-        super();
-        this.dialogueRendering = createRendering2D(width, height);
-
-        /** @type {DialoguePage[]} */
-        this.queuedPages = [];
-        this.pagesSeen = 0;
-        
-        this.options = {};
-
-        this.clear();
-    }
-
-    get empty() {
-        return this.currentPage === undefined;
-    }
-
-    async load() {
-        this.contIcon = imageToRendering2D(await loadImage(CONT_ICON_DATA));
-        this.stopIcon = imageToRendering2D(await loadImage(STOP_ICON_DATA));
-    }
-
-    clear() {
-        this.queuedPages = [];
-        this.pagesSeen = 0;
-
-        this.setPage(undefined);
-    }
-
-    /** @param {DialoguePage} page */
-    setPage(page) {
-        const prev = this.currentPage;
-        this.currentPage = page;
-        this.pageTime = 0;
-        this.showGlyphCount = 0;
-        this.showGlyphElapsed = 0;
-        this.pageGlyphCount = page ? page.glyphs.length : 0;
-
-        this.dispatchEvent(new CustomEvent("next-page", { detail: { prev, next: page } }));
-
-        if (page === undefined) {
-            this.dispatchEvent(new CustomEvent("empty"));
-        }
-    }
-
-    /**
-     * @param {string} script 
-     * @param {Partial<DialogueOptions>} options 
-     * @returns {Promise}
-     */
-    async queue(script, options={}) {
-        const { font, lines } = this.getOptions(options);
-        const lineWidth = 192;
-
-        script = parseFakedown(script);
-        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines });
-        const pages = glyphPages.map((glyphs) => ({ glyphs, options }));
-        this.queuedPages.push(...pages);
-        
-        if (this.empty) this.moveToNextPage();
-    
-        const last = pages[pages.length - 1];
-        return new Promise((resolve) => {
-            const onNextPage = (event) => {
-                const { prev, next } = event.detail;
-                if (prev === last) {
-                    this.removeEventListener("next-page", onNextPage);
-                    resolve();
-                }
-            };
-
-            this.addEventListener("next-page", onNextPage);
-        });
-    }
-
-    /** @param {number} dt */
-    update(dt) {
-        if (this.empty) return;
-
-        this.pageTime += dt;
-        this.showGlyphElapsed += dt;
-
-        this.applyStyle();
-
-        const options = this.getOptions(this.currentPage.options);
-
-        while (this.showGlyphElapsed > options.glyphRevealDelay && this.showGlyphCount < this.pageGlyphCount) {
-            this.showGlyphElapsed -= options.glyphRevealDelay;
-            this.revealNextChar();
-            this.applyStyle();
-        }
-    }
-
-    render() {
-        const options = this.getOptions(this.currentPage.options);
-        const height = options.padding * 2 
-                     + (options.font.lineHeight + options.lineGap) * options.lines;
-        const width = 208;
-
-        fillRendering2D(this.dialogueRendering, options.backgroundColor);
-        
-        const { width: displayWidth, height: displayHeight } = this.dialogueRendering.canvas;
-        const spaceX = displayWidth - width;
-        const spaceY = displayHeight - height;
-        const margin = Math.ceil(Math.min(spaceX, spaceY) / 2);
-
-        const minX = margin;
-        const maxX = displayWidth - margin;
-
-        const minY = margin;
-        const maxY = displayHeight - margin;
-
-        const x = Math.floor(minX + (maxX - minX - width ) * options.anchorX);
-        const y = Math.floor(minY + (maxY - minY - height) * options.anchorY);
-
-        this.dialogueRendering.fillStyle = options.panelColor;
-        this.dialogueRendering.fillRect(x, y, width, height);
-        
-        this.applyStyle();
-        const render = renderPage(
-            this.currentPage.glyphs, 
-            width, height, 
-            options.padding, options.padding,
-        );
-        this.dialogueRendering.drawImage(render.canvas, x, y);
-
-        if (this.showGlyphCount === this.pageGlyphCount) {
-            const prompt = this.queuedPages.length > 0 
-                         ? this.contIcon 
-                         : this.stopIcon;
-            this.dialogueRendering.drawImage(
-                recolorMask(prompt, options.textColor).canvas, 
-                x+width-options.padding-prompt.canvas.width, 
-                y+height-options.lineGap-prompt.canvas.height,
-            );
-        }
-    }
-
-    getOptions(options) {
-        return Object.assign({}, DIALOGUE_DEFAULTS, this.options, options);
-    }
-
-    revealNextChar() {
-        if (this.empty) return;
-
-        this.showGlyphCount = Math.min(this.showGlyphCount + 1, this.pageGlyphCount);
-        this.currentPage.glyphs.forEach((glyph, i) => {
-            if (i < this.showGlyphCount) glyph.hidden = false;
-        });
-    }
-
-    revealAll() {
-        if (this.empty) return;
-
-        this.showGlyphCount = this.currentPage.glyphs.length;
-        this.revealNextChar();
-    }
-
-    cancel() {
-        this.queuedPages.length = 0;
-        this.currentPage = undefined;
-    }
-
-    skip() {
-        if (this.empty) return;
-        
-        if (this.showGlyphCount === this.pageGlyphCount) {
-            this.moveToNextPage();
-        } else {
-            this.showGlyphCount = this.pageGlyphCount;
-            this.currentPage.glyphs.forEach((glyph) => glyph.hidden = false);
-        }
-    }
-
-    moveToNextPage() {
-        const nextPage = this.queuedPages.shift();
-        this.pagesSeen += 1;
-        this.setPage(nextPage);
-    }
-
-    applyStyle() {
-        if (this.empty) return;
-
-        const currentGlyph = this.currentPage.glyphs[this.showGlyphCount];
-        const options = this.getOptions(this.currentPage.options);
-
-        if (currentGlyph) {
-            if (currentGlyph.styles.has("delay")) {
-                this.showCharTime = parseFloat(currentGlyph.styles.get("delay"));
-            } else {
-                this.showCharTime = this.currentPage.options.glyphRevealDelay;
-            }
-        }
-
-        this.currentPage.glyphs.forEach((glyph, i) => {
-            glyph.fillStyle = glyph.styles.get("clr") ?? options.textColor;
-
-            if (glyph.styles.has("r"))
-                glyph.hidden = false;
-            if (glyph.styles.has("shk")) 
-                glyph.offset = { x: getRandomInt(-1, 2), y: getRandomInt(-1, 2) };
-            if (glyph.styles.has("wvy"))
-                glyph.offset.y = (Math.sin(i + this.pageTime * 5) * 3) | 0;
-            if (glyph.styles.has("rbw")) {
-                const h = Math.abs(Math.sin(performance.now() / 600 - i / 8));
-                glyph.fillStyle = rgbToHex(HSVToRGB({ h, s: 1, v: 1 }));
-            }
-        });
-    }
-}
-
-/**
  * @param {BipsiDataEvent} event 
  * @param {string} name 
  * @param {string?} type 
@@ -736,18 +533,27 @@ function generateScriptingDefines(player, event) {
     defines.PLAYER = player;
     defines.AVATAR = getEventById(player.data, player.avatarId);
     defines.EVENT = event;
+    defines.PALETTE = player.getActivePalette();
 
     defines.SET_FIELDS = (event, name, type, ...values) => replaceFields(event, name, type, ...values);
 
     defines.FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
     defines.FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
 
-    defines.LOG = (text) => console.log(text);
+    defines.MOVE = (event, location) => moveEvent(player.data, event, location);
+    defines.REMOVE = (event) => removeEvent(player.data, event);
+
+    defines.TOUCH = (event) => player.touch(event);
+    defines.EVENT_AT = (location) => getEventAtLocation(player.data, location);
+    defines.LOCATION_OF = (event) => getLocationOfEvent(player.data, event);
+
     defines.SAY = async (dialogue) => player.say(dialogue);
-    defines.TITLE = async (dialogue) => player.say(dialogue, true);
-    defines.DELAY = async (seconds) => sleep(seconds * 1000);
+    defines.TITLE = async (dialogue) => player.title(dialogue);
     defines.DIALOGUE = player.dialogueWaiter;
     defines.DIALOG = defines.DIALOGUE;
+
+    defines.LOG = (text) => console.log(text);
+    defines.DELAY = async (seconds) => sleep(seconds * 1000);
 
     return defines;
 }
