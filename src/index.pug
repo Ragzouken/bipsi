@@ -1,6 +1,6 @@
 - var now = new Date();
-- var date = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
-- var version = "alpha";
+- var date = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+- var version = "release";
 
 <!DOCTYPE html>
 html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bipsi" data-app-mode="editor")
@@ -21,14 +21,14 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bi
         script
             include scripts/bipsi.js
         script
-            include scripts/player.js
+            include scripts/playback.js
         // styles
         style#base-style
             include /common/base-style.css
         style#main-style
             include /common/main-style.css
         style
-            include styles/player-style.css
+            include styles/playback-style.css
         style(data-editor-only)
             include styles/bipsi-style.css
     body(onload="bipsi.start()").no-select
@@ -190,11 +190,11 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bi
                             h2 project
                             p
                                 .button-row
-                                    button(name="playtest" title="start playtest") playtest
+                                    //button(name="playtest" title="start playtest") playtest
                                     button(name="export" title="export as webpage") export
                                     button(name="update" title="open this flickgame study in the latest version" data-remix-only) update
                                     button(name="import" title="import from webpage" data-original-only) import
-                                    button(name="reset" title="reset to blank") reset
+                                    button(name="reset" title="reset project to default") new project
                             h2= `bipsi -- ${version} (${date})`
                             p bipsi is a tool for making small games where a character explores a world and interacts with its inhabitants. it is a clone of adam ledoux's <a href="http://www.bitsy.org/">bitsy game maker</a>
                             p if you're new to bipsi, and especially if you're new to bitsy, you should read the <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi user guide</a>

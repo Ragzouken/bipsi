@@ -81,7 +81,7 @@ function getLocationOfEvent(data, event) {
 /**
  * @param {BipsiDataProject} data 
  * @param {BipsiDataEvent} event 
- * @param {{ room: number, position: number[] }} location
+ * @param {BipsiDataLocation} location
  */
 function moveEvent(data, event, location) {
     removeEvent(data, event);
@@ -123,7 +123,7 @@ const ERROR_STYLE = {
     textColor: "#FFFFFF",
 }
 
-bipsi.Player = class extends EventTarget {
+class BipsiPlayback extends EventTarget {
     constructor(font) {
         super();
         // home for data of the project we're playing
@@ -133,8 +133,8 @@ bipsi.Player = class extends EventTarget {
         this.rendering = createRendering2D(256, 256);
 
         this.font = font;
-        this.dialoguePlayer = new DialoguePlayer(256, 256);
-        this.dialoguePlayer.options.font = font;
+        this.dialoguePlayback = new DialoguePlayback(256, 256);
+        this.dialoguePlayback.options.font = font;
 
         this.time = 0;
         this.frameCount = 0;
@@ -143,21 +143,23 @@ bipsi.Player = class extends EventTarget {
         this.busy = false;
         this.error = false;
 
+        this.variables = new Map();
+
         // an awaitable that generates a new promise that resolves once no dialogue is active
         /** @type {PromiseLike<void>} */
         this.dialogueWaiter = {
             then: (resolve, reject) => {
-                if (this.dialoguePlayer.empty) {
+                if (this.dialoguePlayback.empty) {
                     resolve();
                 } else {
-                    return wait(this.dialoguePlayer, "empty").then(resolve, reject);
+                    return wait(this.dialoguePlayback, "empty").then(resolve, reject);
                 }
             },
         };
     }
 
     async init() {
-        await this.dialoguePlayer.load();
+        await this.dialoguePlayback.load();
     }
 
     /** @type {BipsiDataProject} */
@@ -218,7 +220,8 @@ bipsi.Player = class extends EventTarget {
     clear() {
         this.ready = false;
         this.error = false;
-        this.dialoguePlayer.clear();
+        this.dialoguePlayback.clear();
+        this.variables.clear();
     }
 
     update(dt) {
@@ -232,7 +235,7 @@ bipsi.Player = class extends EventTarget {
         }
 
         // dialogue animation
-        this.dialoguePlayer.update(dt);
+        this.dialoguePlayback.update(dt);
         
         // rerender
         this.render();
@@ -265,14 +268,14 @@ bipsi.Player = class extends EventTarget {
         this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
 
         // render dialogue box if necessary
-        if (!this.dialoguePlayer.empty) {
+        if (!this.dialoguePlayback.empty) {
             // change default dialogue position based on avatar position
             const top = avatar.position[1] >= 8;
-            this.dialoguePlayer.options.anchorY = top ? 0 : 1;
+            this.dialoguePlayback.options.anchorY = top ? 0 : 1;
 
             // redraw dialogue and copy to display area
-            this.dialoguePlayer.render();
-            this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 0, 0);
+            this.dialoguePlayback.render();
+            this.rendering.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0);
         }
 
         // signal, to anyone listening, that rendering happened
@@ -282,7 +285,7 @@ bipsi.Player = class extends EventTarget {
     async proceed() {
         if (!this.ready) return;
 
-        this.dialoguePlayer.skip();
+        this.dialoguePlayback.skip();
     }
 
     async title(script) {
@@ -291,11 +294,11 @@ bipsi.Player = class extends EventTarget {
     }
 
     async say(script, options) {
-        await this.dialoguePlayer.queue(script, options);
+        await this.dialoguePlayback.queue(script, options);
     }
 
     async move(dx, dy) {
-        if (!this.ready || !this.dialoguePlayer.empty || this.busy) return;
+        if (!this.ready || !this.dialoguePlayback.empty || this.busy) return;
 
         this.busy = true;
 
@@ -349,11 +352,11 @@ bipsi.Player = class extends EventTarget {
 
     showError(text) {
         this.error = true;
-        this.dialoguePlayer.clear();
-        this.dialoguePlayer.queue(text, ERROR_STYLE);
-        this.dialoguePlayer.skip();
-        this.dialoguePlayer.render();
-        this.rendering.drawImage(this.dialoguePlayer.dialogueRendering.canvas, 0, 0);
+        this.dialoguePlayback.clear();
+        this.dialoguePlayback.queue(text, ERROR_STYLE);
+        this.dialoguePlayback.skip();
+        this.dialoguePlayback.render();
+        this.rendering.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0);
         this.dispatchEvent(new CustomEvent("render"));
     }
 
@@ -366,34 +369,34 @@ bipsi.Player = class extends EventTarget {
 }
 
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  * @returns {Promise}
  */
-async function standardEventTouch(player, event) {
+async function standardEventTouch(playback, event) {
     const background = oneField(event, "page-color", "text")?.data;
     if (background !== undefined) {
         ONE(":root").style.setProperty("--page-color", background);
     }
 
-    await runEventDialogue(player, event);
-    await runEventExit(player, event);
-    await runEventRemove(player, event);
-    await runEventEnding(player, event);
-    await runEventMisc(player, event);
+    await runEventDialogue(playback, event);
+    await runEventExit(playback, event);
+    await runEventRemove(playback, event);
+    await runEventEnding(playback, event);
+    await runEventMisc(playback, event);
 }
 
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  * @returns {Promise}
  */
-async function runEventDialogue(player, event) {
+async function runEventDialogue(playback, event) {
     // show title first, if any
     const title = oneField(event, "title", "dialogue")?.data;
     
     if (title !== undefined) {
-        await player.title(title);
+        await playback.title(title);
     }
 
     const says = allFields(event, "say", "dialogue");
@@ -411,7 +414,7 @@ async function runEventDialogue(player, event) {
     if (event.says.length > 0) {
         // show the next say dialogue and advance
         const say = event.says[event.sayProgress];
-        player.say(say, sayStyle);
+        playback.say(say, sayStyle);
         event.sayProgress += 1;
 
         // if we've now used all the dialogues, reset the progress according to
@@ -425,57 +428,57 @@ async function runEventDialogue(player, event) {
         }
     }
 
-    return player.dialogueWaiter;
+    return playback.dialogueWaiter;
 }
 
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  * @returns {Promise}
  */
-async function runEventExit(player, event) {
-    const avatar = getEventById(player.data, player.avatarId);
+async function runEventExit(playback, event) {
+    const avatar = getEventById(playback.data, playback.avatarId);
     const exit = oneField(event, "exit", "location")?.data;
 
     if (exit !== undefined) {
-        moveEvent(player.data, avatar, exit);
+        moveEvent(playback.data, avatar, exit);
     }
 }
 
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  * @returns {Promise}
  */
-async function runEventRemove(player, event) {
+async function runEventRemove(playback, event) {
     if (eventIsTagged(event, "one-time")) {
-        removeEvent(player.data, event);
+        removeEvent(playback.data, event);
     }
 }
 
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  * @returns {Promise}
  */
- async function runEventEnding(player, event) {
+ async function runEventEnding(playback, event) {
     const ending = oneField(event, "ending", "dialogue")?.data;
 
     if (ending !== undefined) {
-        const [background] = player.getActivePalette();
-        await player.say(ending, { anchorY: .5, backgroundColor: background });
-        player.restart();
+        const [background] = playback.getActivePalette();
+        await playback.say(ending, { anchorY: .5, backgroundColor: background });
+        playback.restart();
     }
 }
 
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  * @returns {Promise}
  */
- async function runEventMisc(player, event) {
+ async function runEventMisc(playback, event) {
     const setAvatar = oneField(event, "set-avatar", "tile")?.data;
-    const avatar = getEventById(player.data, player.avatarId);
+    const avatar = getEventById(playback.data, playback.avatarId);
 
     if (setAvatar !== undefined) {
         replaceFields(avatar, "graphic", "tile", setAvatar);
@@ -522,34 +525,84 @@ function replaceFields(event, name, type, ...values) {
     });
 }
 
+function replace(format) {
+    const values = Array.prototype.slice.call(arguments, 1);
+    return format.replace(/\[\s*(\d+)\s*\]/g, (match, index) => values[index] ?? match);
+};
+
+const WALK_DIRECTIONS = {
+    "L": [-1,  0],
+    "R": [ 1,  0],
+    "U": [ 0, -1],
+    "D": [ 0,  1],
+    "<": [-1,  0],
+    ">": [ 1,  0],
+    "^": [ 0, -1],
+    "v": [ 0,  1],
+}
+
 /**
- * @param {bipsi.Player} player 
+ * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
  */
-function generateScriptingDefines(player, event) {
+function generateScriptingDefines(playback, event) {
     // edit here to add new scripting functions
     const defines = {};
     
-    defines.PLAYER = player;
-    defines.AVATAR = getEventById(player.data, player.avatarId);
+    defines.PLAYBACK = playback;
+    defines.AVATAR = getEventById(playback.data, playback.avatarId);
     defines.EVENT = event;
-    defines.PALETTE = player.getActivePalette();
+    defines.PALETTE = playback.getActivePalette();
+
+    defines.DO_STANDARD = () => standardEventTouch(playback, event);
 
     defines.SET_FIELDS = (event, name, type, ...values) => replaceFields(event, name, type, ...values);
-
     defines.FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
     defines.FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
+    
+    defines.IS_TAGGED = (event, name) => eventIsTagged(event, name);
+    defines.TAG = (event, name) => replaceFields(event, name, "tag", true);
+    defines.UNTAG = (event, name) => clearFields(event, name, "tag");
 
-    defines.MOVE = (event, location) => moveEvent(player.data, event, location);
-    defines.REMOVE = (event) => removeEvent(player.data, event);
+    defines.SET_GRAPHIC = (event, tile) => replaceFields(event, "graphic", "tile", tile);
 
-    defines.TOUCH = (event) => player.touch(event);
-    defines.EVENT_AT = (location) => getEventAtLocation(player.data, location);
-    defines.LOCATION_OF = (event) => getLocationOfEvent(player.data, event);
+    defines.WALK = async (event, sequence, delay=.4, wait=.4) => {
+        const dirs = Array.from(sequence);
+        for (const dir of dirs) {
+            if (dir === ".") {
+                await sleep(wait * 1000);
+            } else {
+                let [x, y] = event.position;
+                const [dx, dy] = WALK_DIRECTIONS[dir];
+                x = Math.max(0, Math.min(15, x + dx));
+                y = Math.max(0, Math.min(15, y + dy));
+                event.position = [x, y];
+                await sleep(delay * 1000);
+            }
+        }
+    };
+    defines.MOVE = (event, location) => moveEvent(playback.data, event, location);
+    defines.REMOVE = (event) => removeEvent(playback.data, event);
 
-    defines.SAY = async (dialogue) => player.say(dialogue);
-    defines.TITLE = async (dialogue) => player.title(dialogue);
-    defines.DIALOGUE = player.dialogueWaiter;
+    defines.TOUCH = (event) => playback.touch(event);
+    defines.EVENT_AT = (location) => getEventAtLocation(playback.data, location);
+    defines.LOCATION_OF = (event) => getLocationOfEvent(playback.data, event);
+    defines.FIND_EVENTS = (tag) => allEvents(playback.data).filter((event) => eventIsTagged(event, tag)); 
+    defines.FIND_EVENT = (tag) => defines.FIND_EVENTS(tag)[0];
+
+    defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
+    defines.SET = (key, value) => playback.variables.set(key, value);
+
+    defines.TEXT_REPLACE = (text, ...values) => replace(text, ...values);
+
+    defines.SAY = async (dialogue) => playback.say(dialogue);
+    defines.SAY_FIELD = async (name) => {
+        let text = oneField(event, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
+        await playback.say(text);
+    }
+
+    defines.TITLE = async (dialogue) => playback.title(dialogue);
+    defines.DIALOGUE = playback.dialogueWaiter;
     defines.DIALOG = defines.DIALOGUE;
 
     defines.LOG = (text) => console.log(text);

@@ -404,7 +404,7 @@ function findFreeFrame(tiles) {
  * @returns {number}
  */
 function nextId(items) {
-    const max = Math.max(...items.map((item) => item.id));
+    const max = Math.max(0, ...items.map((item) => item.id));
     return max + 1;
 }
 
@@ -645,7 +645,7 @@ const FIELD_DEFAULTS = {
     tile: 0,
     dialogue: "",
     location: { room: 0, position: [0, 0] },
-    javascript: "await runEventDialogue(PLAYER, EVENT);\nawait runEventExit(PLAYER, EVENT);\nawait runEventRemove(PLAYER, EVENT);\nawait runEventEnding(PLAYER, EVENT);",
+    javascript: "",
     json: "",
     text: "",
 };
@@ -722,7 +722,7 @@ const EVENT_TEMPLATES = {
         { key: "page-color", type: "text", data: "black" },
     ],
     code: [
-        { key: "touch", type: "javascript", data: "await standardEventTouch(PLAYER, EVENT);" },
+        { key: "touch", type: "javascript", data: "await DO_STANDARD();" },
     ],
 };
 
@@ -1412,7 +1412,7 @@ bipsi.Editor = class extends EventTarget {
         this.eventEditor = new bipsi.EventEditor(this);
 
         this.font = font;
-        this.dialoguePreviewPlayer = new DialoguePlayer(256, 256);
+        this.dialoguePreviewPlayer = new DialoguePlayback(256, 256);
         this.dialoguePreviewPlayer.options.font = font;
 
         let prev;
@@ -1538,8 +1538,8 @@ bipsi.Editor = class extends EventTarget {
             const textedit = targetTag === "input" || targetTag === "textarea";
 
             if (event.ctrlKey) {
-                if (event.key === "z") this.actions.undo.invoke();
-                if (event.key === "y") this.actions.redo.invoke();
+                if (event.key === "z" && !textedit) this.actions.undo.invoke();
+                if (event.key === "y" && !textedit) this.actions.redo.invoke();
                 if (event.key === "s") {
                     event.preventDefault();
                     this.actions.save.invoke();
@@ -2143,6 +2143,13 @@ bipsi.Editor = class extends EventTarget {
         return this.stateManager.makeChange(async (data) => {
             const { tile } = this.getSelections(data);
             arrayDiscard(data.tiles, tile);
+            data.rooms.forEach((room) => {
+                room.tilemap.forEach((row, y) => {
+                    row.forEach((id, x) => {
+                        if (id === tile.id) row[x] = 0;
+                    });
+                });
+            });
         });
     }
 
@@ -2320,8 +2327,8 @@ bipsi.Editor = class extends EventTarget {
     canvas.style.setProperty("height", `${canvas.height * scale}px`);
 }
 
-async function makePlayer(font) {
-    const player = new bipsi.Player(font);
+async function makePlayback(font) {
+    const player = new BipsiPlayback(font);
     await player.init();
 
     const playCanvas = /** @type {HTMLCanvasElement} */ (ONE("#player-canvas"));
@@ -2381,7 +2388,7 @@ async function makePlayer(font) {
     timer();
 
     function down(key, code) {
-        if (!player.dialoguePlayer.empty) {
+        if (!player.dialoguePlayback.empty) {
             player.proceed();
         } else {
             heldKeys.add(key);
@@ -2446,7 +2453,7 @@ async function makePlayer(font) {
 bipsi.start = async function () {
     const font = await loadBasicFont(ONE("#font-embed"));
 
-    bipsi.player = await makePlayer(font);
+    bipsi.player = await makePlayback(font);
     bipsi.editor = new bipsi.Editor(font);
     await bipsi.editor.init();
 
