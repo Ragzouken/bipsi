@@ -112,6 +112,43 @@ const ERROR_STYLE = {
     textColor: "#FFFFFF",
 }
 
+const BEHAVIOUR_TITLE = `
+const title = FIELD(EVENT, "title", "dialogue");
+if (title) {
+    await TITLE(title);
+}
+`;
+
+const BEHAVIOUR_EXIT = `
+const destination = FIELD(EVENT, "exit", "location");
+if (destination) {
+    MOVE(AVATAR, destination);
+}
+`;
+
+const BEHAVIOUR_REMOVE = `
+if (IS_TAGGED(EVENT, "one-time")) {
+    REMOVE(EVENT);
+}
+`;
+
+const BEHAVIOUR_ENDING = `
+const ending = FIELD(EVENT, "ending", "dialogue");
+if (ending !== undefined) {
+    if (ending.length > 0) {
+        await TITLE(ending);
+    }
+    RESTART();
+}
+`;
+
+const BEHAVIOUR_SET_AVATAR = `
+const graphic = FIELD(EVENT, "set-avatar", "tile");
+if (graphic) {
+    SET_GRAPHIC(AVATAR, graphic);
+}
+`;
+
 class BipsiPlayback extends EventTarget {
     constructor(font) {
         super();
@@ -265,12 +302,13 @@ class BipsiPlayback extends EventTarget {
         this.dialoguePlayback.skip();
     }
 
-    async title(script) {
+    async title(script, options={}) {
         const [background] = this.getActivePalette();
-        return this.say(script, { anchorY: .5, backgroundColor: background });
+        options = { anchorY: .5, backgroundColor: background, ...options };
+        return this.say(script, options);
     }
 
-    async say(script, options) {
+    async say(script, options={}) {
         await this.dialoguePlayback.queue(script, options);
     }
 
@@ -311,19 +349,23 @@ class BipsiPlayback extends EventTarget {
         const touch = oneField(event, "touch", "javascript")?.data;
 
         if (touch !== undefined) {
-            const defines = generateScriptingDefines(this, event);
-            const names = Object.keys(defines).join(", ");
-            const preamble = `const { ${names} } = COMMANDS;\n`;
-
-            try {
-                const script = new AsyncFunction("COMMANDS", preamble + touch);
-                await script(defines);
-            } catch (e) {
-                const error = `SCRIPT ERROR:\n${e}`;
-                this.showError(error);
-            }
+            this.runJS(event, touch);
         } else {
             return standardEventTouch(this, event);
+        }
+    }
+
+    async runJS(event, js) {
+        const defines = generateScriptingDefines(this, event);
+        const names = Object.keys(defines).join(", ");
+        const preamble = `const { ${names} } = COMMANDS;\n`;
+
+        try {
+            const script = new AsyncFunction("COMMANDS", preamble + js);
+            await script(defines);
+        } catch (e) {
+            const error = `SCRIPT ERROR:\n${e}`;
+            this.showError(error);
         }
     }
 
@@ -356,11 +398,12 @@ async function standardEventTouch(playback, event) {
         ONE(":root").style.setProperty("--page-color", background);
     }
 
+    await playback.runJS(event, BEHAVIOUR_TITLE);
     await runEventDialogue(playback, event);
-    await runEventExit(playback, event);
-    await runEventRemove(playback, event);
-    await runEventEnding(playback, event);
-    await runEventMisc(playback, event);
+    await playback.runJS(event, BEHAVIOUR_EXIT);
+    await playback.runJS(event, BEHAVIOUR_REMOVE);
+    await playback.runJS(event, BEHAVIOUR_ENDING);
+    await playback.runJS(event, BEHAVIOUR_SET_AVATAR);
 }
 
 /**
@@ -369,39 +412,33 @@ async function standardEventTouch(playback, event) {
  * @returns {Promise}
  */
 async function runEventDialogue(playback, event) {
-    // show title first, if any
-    const title = oneField(event, "title", "dialogue")?.data;
-    
-    if (title !== undefined) {
-        await playback.title(title);
-    }
-
-    // find or setup say iterator
     const id = oneField(event, "say-shared-id", "text")?.data 
-            ?? "SAY-ITERATORS/" + event.id;
-    let iterator = playback.variables.get(id);
-    
-    if (iterator === undefined) {
-        const sayMode = oneField(event, "say-mode", "text")?.data;
-        const says = allFields(event, "say", "dialogue").map((say) => say.data);
-        if (sayMode === "shuffle") {
-            iterator = makeShuffleIterator(says);
-        } else if (sayMode === "sequence") {
-            iterator = makeSequenceIterator(says);
-        } else {
-            iterator = makeCycleIterator(says);
-        }
-        playback.variables.set(id, iterator);
-    }
+            ?? "SAY-ITERATORS/" + event.id;    
+    const sayMode = oneField(event, "say-mode", "text")?.data ?? "cycle";
+    const says = allFields(event, "say", "dialogue").map((say) => say.data);
+    const say = sample(playback, id, sayMode, says);
 
-    // if there's anything to say
-    const say = iterator.next()?.value;
     if (say !== undefined) {
         const style = oneField(event, "say-style", "json")?.data;
         await playback.say(say, style);
     }
+}
 
-    return playback.dialoguePlayback.waiter;
+function sample(playback, id, type, values) {
+    let iterator = playback.variables.get(id);
+
+    if (iterator === undefined) {
+        iterator = ITERATOR_FUNCS[type](values);
+        playback.variables.set(id, iterator);
+    }
+
+    return iterator.next()?.value;
+}
+
+const ITERATOR_FUNCS = {
+    "shuffle": makeShuffleIterator,
+    "cycle": makeCycleIterator,
+    "sequence": makeSequenceIterator,
 }
 
 function* makeShuffleIterator(values) {
@@ -429,21 +466,7 @@ function* makeSequenceIterator(values) {
         yield value;
     }
     while (values.length > 0) {
-        yield values[values.length];
-    }
-}
-
-/**
- * @param {BipsiPlayback} playback 
- * @param {BipsiDataEvent} event 
- * @returns {Promise}
- */
-async function runEventExit(playback, event) {
-    const avatar = getEventById(playback.data, playback.avatarId);
-    const exit = oneField(event, "exit", "location")?.data;
-
-    if (exit !== undefined) {
-        moveEvent(playback.data, avatar, exit);
+        yield values[values.length - 1];
     }
 }
 
@@ -455,35 +478,6 @@ async function runEventExit(playback, event) {
 async function runEventRemove(playback, event) {
     if (eventIsTagged(event, "one-time")) {
         removeEvent(playback.data, event);
-    }
-}
-
-/**
- * @param {BipsiPlayback} playback 
- * @param {BipsiDataEvent} event 
- * @returns {Promise}
- */
- async function runEventEnding(playback, event) {
-    const ending = oneField(event, "ending", "dialogue")?.data;
-
-    if (ending !== undefined) {
-        const [background] = playback.getActivePalette();
-        await playback.say(ending, { anchorY: .5, backgroundColor: background });
-        playback.restart();
-    }
-}
-
-/**
- * @param {BipsiPlayback} playback 
- * @param {BipsiDataEvent} event 
- * @returns {Promise}
- */
- async function runEventMisc(playback, event) {
-    const setAvatar = oneField(event, "set-avatar", "tile")?.data;
-    const avatar = getEventById(playback.data, playback.avatarId);
-
-    if (setAvatar !== undefined) {
-        replaceFields(avatar, "graphic", "tile", setAvatar);
     }
 }
 
@@ -597,18 +591,20 @@ function generateScriptingDefines(playback, event) {
 
     defines.TEXT_REPLACE = (text, ...values) => replace(text, ...values);
 
-    defines.SAY = async (dialogue) => playback.say(dialogue);
-    defines.SAY_FIELD = async (name) => {
+    defines.SAY = async (dialogue, options) => playback.say(dialogue, options);
+    defines.SAY_FIELD = async (name, options) => {
         let text = oneField(event, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
-        await playback.say(text);
+        await playback.say(text, options);
     }
 
-    defines.TITLE = async (dialogue) => playback.title(dialogue);
+    defines.TITLE = async (dialogue, options) => playback.title(dialogue, options);
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
 
     defines.LOG = (text) => console.log(text);
     defines.DELAY = async (seconds) => sleep(seconds * 1000);
+
+    defines.RESTART = () => playback.restart();
 
     return defines;
 }

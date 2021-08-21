@@ -1450,13 +1450,6 @@ bipsi.Editor = class extends EventTarget {
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.redraw());
 
-        this.tilePaintFrameSelect.addEventListener("change", () => {
-            const { tile } = this.getSelections();
-            if (this.tilePaintFrameSelect.selectedIndex === 1 && tile.frames.length === 1) {
-                this.toggleTileAnimated();
-            }
-        });
-
         // initial selections
         this.modeSelect.selectedIndex = 0;
         this.roomSelect.selectedIndex = 0;
@@ -1468,6 +1461,13 @@ bipsi.Editor = class extends EventTarget {
 
         this.roomThumbs = ZEROES(24).map(() => createRendering2D(16, 16));
         this.roomThumbs2 = ZEROES(24).map(() => createRendering2D(16, 16));
+
+        this.tilePaintFrameSelect.addEventListener("change", () => {
+            const { tile } = this.getSelections();
+            if (this.tilePaintFrameSelect.selectedIndex === 1 && tile.frames.length === 1) {
+                this.toggleTileAnimated();
+            }
+        });
 
         // add thumbnails to the room select bar
         ALL("#room-select input").forEach((input, index) => {
@@ -1671,8 +1671,10 @@ bipsi.Editor = class extends EventTarget {
 
             if (tool === "pick" || forcePick) {
                 const pick = prevHigh != 0 ? prevHigh : prevTile;
-                this.tileBrowser.selectedTileIndex = Math.max(0, data.tiles.findIndex((tile) => tile.id === pick));
-                this.tileBrowser.redraw();
+                if (pick !== 0) {
+                    this.tileBrowser.selectedTileIndex = Math.max(0, data.tiles.findIndex((tile) => tile.id === pick));
+                    this.tileBrowser.redraw();
+                }
             } else if (tool === "wall" || tool === "tile" || tool === "high") {    
                 this.stateManager.makeCheckpoint();
 
@@ -1801,7 +1803,6 @@ bipsi.Editor = class extends EventTarget {
 
                 cycleEvents(events, dx, dy);
                 this.selectedEventCell = { x: (x1 + 16) % 16, y: (y1 + 16) % 16 };
-                redraw();
 
                 if (move) {
                     this.stateManager.changed();
@@ -2517,13 +2518,21 @@ bipsi.start = async function () {
 
     // if there's an opener window, tell it we're open to messages (e.g message
     // telling us to load a bundle from the "update" button of another bipsi)
-    if (window.opener) {
+    const parent = window.parent !== window ? window.parent : undefined;
+    const opener = window.opener ?? parent;
+    if (opener) {
         const channel = new MessageChannel();
+
         channel.port1.onmessage = async (event) => {
             if (event.data.bundle) {
                 return bipsi.editor.loadBundle(event.data.bundle);
             }
+
+            if (event.data.requestBundle) {
+                const bundle = await bipsi.editor.stateManager.makeBundle();
+                channel.port1.postMessage({ bundle });
+            }
         };
-        window.opener.postMessage({ port: channel.port2 }, "*", [channel.port2]);
+        opener.postMessage({ port: channel.port2 }, "*", [channel.port2]);
     }
 }
