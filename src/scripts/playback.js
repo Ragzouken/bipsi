@@ -106,17 +106,6 @@ function shuffleArray(array) {
     }
 }
 
-/**
- * @param {EventTarget} target 
- * @param {string} event 
- * @returns 
- */
-async function wait(target, event) {
-    return new Promise((resolve) => {
-        target.addEventListener(event, resolve, { once: true });
-    });
-}
-
 const ERROR_STYLE = {
     glyphRevealDelay: 0,
     panelColor: "#FF0000",
@@ -144,18 +133,6 @@ class BipsiPlayback extends EventTarget {
         this.error = false;
 
         this.variables = new Map();
-
-        // an awaitable that generates a new promise that resolves once no dialogue is active
-        /** @type {PromiseLike<void>} */
-        this.dialogueWaiter = {
-            then: (resolve, reject) => {
-                if (this.dialoguePlayback.empty) {
-                    resolve();
-                } else {
-                    return wait(this.dialoguePlayback, "empty").then(resolve, reject);
-                }
-            },
-        };
     }
 
     async init() {
@@ -399,36 +376,61 @@ async function runEventDialogue(playback, event) {
         await playback.title(title);
     }
 
-    const says = allFields(event, "say", "dialogue");
-    const sayMode = oneField(event, "say-mode", "text")?.data;
-    const sayStyle = oneField(event, "say-style", "json")?.data;
-
-    // if we haven't already, decide in advance which order to show say dialogue
-    if (event.says === undefined) {
-        event.says = says.map((say) => say.data);
-        event.sayProgress = 0;
-        if (sayMode === "shuffle") shuffleArray(event.says);
+    // find or setup say iterator
+    const id = oneField(event, "say-shared-id", "text")?.data 
+            ?? "SAY-ITERATORS/" + event.id;
+    let iterator = playback.variables.get(id);
+    
+    if (iterator === undefined) {
+        const sayMode = oneField(event, "say-mode", "text")?.data;
+        const says = allFields(event, "say", "dialogue").map((say) => say.data);
+        if (sayMode === "shuffle") {
+            iterator = makeShuffleIterator(says);
+        } else if (sayMode === "sequence") {
+            iterator = makeSequenceIterator(says);
+        } else {
+            iterator = makeCycleIterator(says);
+        }
+        playback.variables.set(id, iterator);
     }
 
-    // if there are any say dialogues
-    if (event.says.length > 0) {
-        // show the next say dialogue and advance
-        const say = event.says[event.sayProgress];
-        playback.say(say, sayStyle);
-        event.sayProgress += 1;
+    // if there's anything to say
+    const say = iterator.next()?.value;
+    if (say !== undefined) {
+        const style = oneField(event, "say-style", "json")?.data;
+        await playback.say(say, style);
+    }
 
-        // if we've now used all the dialogues, reset the progress according to
-        // the say mode
-        if (event.sayProgress >= event.says.length) {
-            if (sayMode === "shuffle" || sayMode === "cycle") {
-                event.says = undefined;
-            } else {
-                event.sayProgress = event.says.length - 1;
-            }
+    return playback.dialoguePlayback.waiter;
+}
+
+function* makeShuffleIterator(values) {
+    values = [...values];
+    while (values.length > 0) {
+        shuffleArray(values);
+        for (let value of values) {
+            yield value;
         }
     }
+}
 
-    return playback.dialogueWaiter;
+function* makeCycleIterator(values) {
+    values = [...values];
+    while (values.length > 0) {
+        for (let value of values) {
+            yield value;
+        }
+    }
+}
+
+function* makeSequenceIterator(values) {
+    values = [...values];
+    for (let value of values) {
+        yield value;
+    }
+    while (values.length > 0) {
+        yield values[values.length];
+    }
 }
 
 /**
@@ -602,7 +604,7 @@ function generateScriptingDefines(playback, event) {
     }
 
     defines.TITLE = async (dialogue) => playback.title(dialogue);
-    defines.DIALOGUE = playback.dialogueWaiter;
+    defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
 
     defines.LOG = (text) => console.log(text);

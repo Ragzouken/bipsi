@@ -200,19 +200,6 @@ function copyTile(tileset, tileIndex, destination = undefined) {
 }
 
 /**
- * 
- * @param {CanvasRenderingContext2D} rendering 
- * @param {CanvasRenderingContext2D} tileset 
- * @param {number} tileIndex 
- * @param {number} dx 
- * @param {number} dy 
- */
-function drawTileFromTileset(rendering, tileset, tileIndex, dx, dy) {
-    const { x, y, size } = getTileCoords(tileset.canvas, tileIndex);
-    rendering.drawImage(tileset.canvas, x, y, size, size, dx, dy, size, size);
-}
-
-/**
  * @param {CanvasRenderingContext2D} tileset 
  * @param {number} tileIndex
  * @param {CanvasRenderingContext2D} tile 
@@ -271,15 +258,17 @@ function drawEvents(rendering, tileset, tileToFrame, events, background = undefi
     rendering.save();
     rendering.fillStyle = background;
     events.forEach((event) => {
-        const [x, y] = event.position;
+        const [ex, ey] = event.position;
         const graphicField = oneField(event, "graphic", "tile");
         if (graphicField) {
+            const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
+            const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+
             if (background && !eventIsTagged(event, "transparent")) {
                 rendering.fillStyle = background;
-                rendering.fillRect(x * 8, y * 8, 8, 8);
+                rendering.fillRect(ex * size, ey * size, size, size);
             }
-            const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
-            drawTileFromTileset(rendering, tileset, frameIndex, x * 8, y * 8);
+            rendering.drawImage(tileset.canvas, x, y, size, size, ex * size, ey * size, size, size);
         }
     });
     rendering.restore();
@@ -1072,45 +1061,13 @@ bipsi.TileBrowser = class {
         this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
     }
 
-    redraw(tileset0 = undefined) {
-        const { data, tileset, room, tile } = this.editor.getSelections();
+    redraw() {
+        const { data, tile } = this.editor.getSelections();
         if (!tile) return;
 
         this.updateTileCount(data.tiles.length);
 
         this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
-
-        const [bg, fg, hi] = data.palettes[room.palette];
-
-        const color = this.editor.roomPaintTool.selectedIndex === 1 ? hi : fg;
-        const tilesetC = recolorMask(tileset0 ?? tileset, color);
-
-        {
-            const frameIndex = tile.frames[0];
-            const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
-            fillRendering2D(this.editor.renderings.tilePaint0, bg);
-            this.editor.renderings.tilePaint0.drawImage(
-                tilesetC.canvas,
-                x, y, size, size,
-                0, 0, size, size,
-            );
-        }
-
-        {
-            const frameIndex = tile.frames[1] ?? tile.frames[0];
-            const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
-            fillRendering2D(this.editor.renderings.tilePaint1, bg);
-            this.editor.renderings.tilePaint1.drawImage(
-                tilesetC.canvas,
-                x, y, size, size,
-                0, 0, size, size,
-            );
-        }
-
-        this.editor.renderings.tilePaintA.drawImage(
-            [this.editor.renderings.tilePaint0, this.editor.renderings.tilePaint1][this.frame].canvas,
-            0, 0,
-        );
 
         this.editor.actions.reorderTileBefore.disabled = this.selectedTileIndex <= 0;
         this.editor.actions.reorderTileAfter.disabled = this.selectedTileIndex >= data.tiles.length - 1;
@@ -1318,8 +1275,7 @@ bipsi.TileEditor = class {
 
         const redraw = () => {
             drawTile(tileset, index, temp);
-            this.editor.redraw();
-            this.editor.tileBrowser.redraw(tileset);
+            this.redraw();
         };
 
         const drag = ui.drag(event);
@@ -1352,6 +1308,45 @@ bipsi.TileEditor = class {
             redraw();
             this.editor.stateManager.changed();
         });
+    }
+
+    redraw() {
+        const { data, tileset, room, tile } = this.editor.getSelections();
+        if (!tile) return;
+
+        this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
+
+        const [bg, fg, hi] = data.palettes[room.palette];
+
+        const color = this.editor.roomPaintTool.selectedIndex === 1 ? hi : fg;
+        const tilesetC = recolorMask(tileset, color);
+
+        {
+            const frameIndex = tile.frames[0];
+            const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+            fillRendering2D(this.editor.renderings.tilePaint0, bg);
+            this.editor.renderings.tilePaint0.drawImage(
+                tilesetC.canvas,
+                x, y, size, size,
+                0, 0, size, size,
+            );
+        }
+
+        {
+            const frameIndex = tile.frames[1] ?? tile.frames[0];
+            const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+            fillRendering2D(this.editor.renderings.tilePaint1, bg);
+            this.editor.renderings.tilePaint1.drawImage(
+                tilesetC.canvas,
+                x, y, size, size,
+                0, 0, size, size,
+            );
+        }
+
+        this.editor.renderings.tilePaintA.drawImage(
+            [this.editor.renderings.tilePaint0, this.editor.renderings.tilePaint1][this.editor.frame].canvas,
+            0, 0,
+        );
     }
 }
 
@@ -1425,7 +1420,7 @@ bipsi.Editor = class extends EventTarget {
             const dt = Math.max(0, (next - prev) / 1000.);
             prev = next;
             this.dialoguePreviewPlayer.update(dt);
-            this.redraw();
+            this.redrawDialoguePreview();
         }
         timer();
 
@@ -1438,7 +1433,6 @@ bipsi.Editor = class extends EventTarget {
 
         this.modeSelect.tab(ONE("#event-edit"), "events");
         this.modeSelect.tab(ONE("#room-events-tab"), "events");
-        this.modeSelect.tab(ONE("#game-fields-edit"), "extras");
 
         this.modeSelect.tab(ONE("#palette-edit"), "palettes");
         
@@ -1453,6 +1447,16 @@ bipsi.Editor = class extends EventTarget {
         this.modeSelect.tab(ONE("#play-tab-body"), "playtest");
         this.modeSelect.tab(ONE("#play-tab-view"), "playtest");
 
+        this.roomGrid = ui.toggle("room-grid");
+        this.roomGrid.addEventListener("change", () => this.redraw());
+
+        this.tilePaintFrameSelect.addEventListener("change", () => {
+            const { tile } = this.getSelections();
+            if (this.tilePaintFrameSelect.selectedIndex === 1 && tile.frames.length === 1) {
+                this.toggleTileAnimated();
+            }
+        });
+
         // initial selections
         this.modeSelect.selectedIndex = 0;
         this.roomSelect.selectedIndex = 0;
@@ -1460,6 +1464,7 @@ bipsi.Editor = class extends EventTarget {
         this.tilePaintFrameSelect.selectedIndex = 0;
 
         this.selectedEventCell = { x: 0, y: 0 };
+        this.selectedEventId = undefined;
 
         this.roomThumbs = ZEROES(24).map(() => createRendering2D(16, 16));
         this.roomThumbs2 = ZEROES(24).map(() => createRendering2D(16, 16));
@@ -1547,10 +1552,11 @@ bipsi.Editor = class extends EventTarget {
             } else if (!textedit) {
                 const topkeys = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT"]; 
                 topkeys.forEach((code, i) => {
-                    if (event.code === code) this.modeSelect.selectedIndex = i;
+                    if (event.code === code) {
+                        this.modeSelect.selectedIndex = i;
+                        event.preventDefault();
+                    }
                 });
-                
-                event.preventDefault();
             }
 
             if (event.altKey && this.heldColorPick === undefined) {
@@ -1600,6 +1606,8 @@ bipsi.Editor = class extends EventTarget {
             if (this.roomPaintTool.selectedIndex > 1) {
                 this.roomPaintTool.selectedIndex = 0;
             }
+
+            this.tilePaintFrameSelect.selectedIndex = 0;
         })
 
         this.roomPaletteSelect.addEventListener("change", () => {
@@ -1771,7 +1779,9 @@ bipsi.Editor = class extends EventTarget {
             this.selectedEventCell = { x, y };
             redraw();
 
-            const event_ = getEventsAt(room.events, x, y)[0];
+            const events_ = getEventsAt(room.events, x, y);
+            const event_ = events_[events_.length - 1];
+            this.selectedEventId = event_?.id;
             const events = event_ === undefined ? room.events : [event_];
             
             this.eventEditor.showEvent(event_);
@@ -1840,8 +1850,7 @@ bipsi.Editor = class extends EventTarget {
 
         const tileFrame = tile?.frames[frameIndex] ?? tile?.frames[0];
 
-        const { x, y } = this.selectedEventCell;
-        const event = getEventsAt(room.events, x, y)[0];
+        const event = getEventById(data, this.selectedEventId);
 
         return { data, tileset, room, roomIndex, frameIndex, tileIndex, tileSize, event, tile, tileFrame };
     }
@@ -1880,6 +1889,8 @@ bipsi.Editor = class extends EventTarget {
     }
 
     redraw() {
+        this.tileEditor.redraw();
+
         const { data, room, tileSize, roomIndex, tileset } = this.getSelections();
         const palette = this.modeSelect.value === "palettes" 
                       ? this.paletteEditor.getPreviewPalette()  
@@ -1894,6 +1905,18 @@ bipsi.Editor = class extends EventTarget {
         this.renderings.tileMapPaint.globalAlpha = .75;
         this.renderings.tileMapPaint.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
         this.renderings.tileMapPaint.globalAlpha = 1;
+
+        if (this.roomGrid.checked) {
+            const rendering = this.renderings.tileMapPaint;
+            rendering.globalAlpha = .25;
+            for (let y = 0; y < 17; ++y) {
+                rendering.fillRect(0, y * 16 - 1, 256, 2);
+            }
+            for (let x = 0; x < 17; ++x) {
+                rendering.fillRect(x * 16 - 1, 0, 2, 256);
+            }
+            rendering.globalAlpha = 1;
+        }
 
         if (this.roomPaintTool.value === "wall") {
             const rendering = this.renderings.tileMapPaint;
@@ -1941,10 +1964,18 @@ bipsi.Editor = class extends EventTarget {
             this.renderings.eventsRoom.globalAlpha = 1;
         }
 
-        const events = getEventsAt(room.events, x, y);
-        this.actions.copyEvent.disabled = events.length === 0;
-        this.actions.deleteEvent.disabled = events.length === 0;
+        this.actions.copyEvent.disabled = this.selectedEventId === undefined;
+        this.actions.deleteEvent.disabled = this.selectedEventId === undefined;
 
+        this.redrawDialoguePreview();
+
+        if (!bipsi.player.ready && !bipsi.player.error) {
+            fillRendering2D(this.renderings.playtest);
+            this.renderings.playtest.drawImage(this.playtestSplash.canvas, 0, 0);
+        }
+    } 
+
+    redrawDialoguePreview() {
         if (this.eventEditor.showDialoguePreview && !this.dialoguePreviewPlayer.empty) {
             const top = this.selectedEventCell.y >= 8;
 
@@ -1952,12 +1983,7 @@ bipsi.Editor = class extends EventTarget {
             this.dialoguePreviewPlayer.render();
             this.renderings.eventsRoom.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 0, 0);
         }
-
-        if (!bipsi.player.ready && !bipsi.player.error) {
-            fillRendering2D(this.renderings.playtest);
-            this.renderings.playtest.drawImage(this.playtestSplash.canvas, 0, 0);
-        }
-    } 
+    }
 
     redrawTileBrowser() {
         const { data, room, tileset } = this.getSelections();
@@ -2163,14 +2189,14 @@ bipsi.Editor = class extends EventTarget {
                 fields: COPY(fieldsTemplate ?? []),
             }
             room.events.push(event);
+            this.selectedEventId = event.id;
         });
     }
 
     copySelectedEvent() {
-        const { room } = this.getSelections();
-        const { x, y } = this.selectedEventCell;
-        const events = getEventsAt(room.events, x, y);
-        this.copiedEvent = COPY(events[0]);
+        const { data } = this.getSelections();
+        const event = getEventById(data, this.selectedEventId);
+        this.copiedEvent = COPY(event);
         this.actions.pasteEvent.disabled = false;
     }
 
@@ -2182,15 +2208,16 @@ bipsi.Editor = class extends EventTarget {
             event.id = nextEventId(data);
             event.position = [x, y];
             room.events.push(event);
+            this.selectedEventId = event.id;
         });
     }
 
     deleteSelectedEvent() {
         this.stateManager.makeChange(async (data) => {
             const { room } = this.getSelections(data);
-            const { x, y } = this.selectedEventCell;
-            const events = getEventsAt(room.events, x, y);
-            arrayDiscard(room.events, events[0]);
+            const event = getEventById(data, this.selectedEventId);
+            arrayDiscard(room.events, event);
+            this.selectedEventId = undefined;
         });
     }
 
@@ -2415,7 +2442,7 @@ async function makePlayback(font) {
 
     document.addEventListener("keydown", (event) => {
         if (!event.repeat) down(event.key, event.code);
-        if (eatKeyboard || !bipsi.editor.editorMode) {
+        if ((eatKeyboard || !bipsi.editor.editorMode) && event.key !== "Tab") {
             event.stopPropagation();
             event.preventDefault();
         }

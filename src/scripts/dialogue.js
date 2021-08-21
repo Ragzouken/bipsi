@@ -47,6 +47,18 @@ class DialoguePlayback extends EventTarget {
         
         this.options = {};
 
+        // an awaitable that generates a new promise that resolves once no dialogue is active
+        /** @type {PromiseLike<void>} */
+        this.waiter = {
+            then: (resolve, reject) => {
+                if (this.empty) {
+                    resolve();
+                } else {
+                    return wait(this, "empty").then(resolve, reject);
+                }
+            },
+        }
+
         this.clear();
     }
 
@@ -246,4 +258,15 @@ class DialoguePlayback extends EventTarget {
             }
         });
     }
+}
+
+/**
+ * @param {EventTarget} target 
+ * @param {string} event 
+ * @returns 
+ */
+ async function wait(target, event) {
+    return new Promise((resolve) => {
+        target.addEventListener(event, resolve, { once: true });
+    });
 }
