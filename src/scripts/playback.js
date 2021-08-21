@@ -112,15 +112,31 @@ const ERROR_STYLE = {
     textColor: "#FFFFFF",
 }
 
+const BEHAVIOUR_PAGE_COLOR = `
+let color = FIELD(EVENT, "page-color", "text");
+if (color) {
+    SET_CSS("--page-color", color);
+}
+`;
+
 const BEHAVIOUR_TITLE = `
-const title = FIELD(EVENT, "title", "dialogue");
+let title = FIELD(EVENT, "title", "dialogue");
 if (title) {
     await TITLE(title);
 }
 `;
 
+const BEHAVIOUR_DIALOGUE = `
+let id = FIELD(EVENT, "say-shared-id", "text") ?? "SAY-ITERATORS/" + EVENT.id;
+let mode = FIELD(EVENT, "say-mode", "text") ?? "cycle";
+let say = SAMPLE(id, mode, FIELDS(EVENT, "say", "dialogue"));
+if (say) {
+    await SAY(say, FIELD(EVENT, "say-style", "json"));
+}
+`;
+
 const BEHAVIOUR_EXIT = `
-const destination = FIELD(EVENT, "exit", "location");
+let destination = FIELD(EVENT, "exit", "location");
 if (destination) {
     MOVE(AVATAR, destination);
 }
@@ -133,7 +149,7 @@ if (IS_TAGGED(EVENT, "one-time")) {
 `;
 
 const BEHAVIOUR_ENDING = `
-const ending = FIELD(EVENT, "ending", "dialogue");
+let ending = FIELD(EVENT, "ending", "dialogue");
 if (ending !== undefined) {
     if (ending.length > 0) {
         await TITLE(ending);
@@ -143,11 +159,21 @@ if (ending !== undefined) {
 `;
 
 const BEHAVIOUR_SET_AVATAR = `
-const graphic = FIELD(EVENT, "set-avatar", "tile");
+let graphic = FIELD(EVENT, "set-avatar", "tile");
 if (graphic) {
     SET_GRAPHIC(AVATAR, graphic);
 }
 `;
+
+const STANDARD_SCRIPTS = [
+    BEHAVIOUR_PAGE_COLOR,
+    BEHAVIOUR_TITLE,
+    BEHAVIOUR_DIALOGUE,
+    BEHAVIOUR_EXIT, 
+    BEHAVIOUR_REMOVE, 
+    BEHAVIOUR_ENDING, 
+    BEHAVIOUR_SET_AVATAR,
+];
 
 class BipsiPlayback extends EventTarget {
     constructor(font) {
@@ -393,34 +419,8 @@ class BipsiPlayback extends EventTarget {
  * @returns {Promise}
  */
 async function standardEventTouch(playback, event) {
-    const background = oneField(event, "page-color", "text")?.data;
-    if (background !== undefined) {
-        ONE(":root").style.setProperty("--page-color", background);
-    }
-
-    await playback.runJS(event, BEHAVIOUR_TITLE);
-    await runEventDialogue(playback, event);
-    await playback.runJS(event, BEHAVIOUR_EXIT);
-    await playback.runJS(event, BEHAVIOUR_REMOVE);
-    await playback.runJS(event, BEHAVIOUR_ENDING);
-    await playback.runJS(event, BEHAVIOUR_SET_AVATAR);
-}
-
-/**
- * @param {BipsiPlayback} playback 
- * @param {BipsiDataEvent} event 
- * @returns {Promise}
- */
-async function runEventDialogue(playback, event) {
-    const id = oneField(event, "say-shared-id", "text")?.data 
-            ?? "SAY-ITERATORS/" + event.id;    
-    const sayMode = oneField(event, "say-mode", "text")?.data ?? "cycle";
-    const says = allFields(event, "say", "dialogue").map((say) => say.data);
-    const say = sample(playback, id, sayMode, says);
-
-    if (say !== undefined) {
-        const style = oneField(event, "say-style", "json")?.data;
-        await playback.say(say, style);
+    for (let script of STANDARD_SCRIPTS) {
+        await playback.runJS(event, script);
     }
 }
 
@@ -605,6 +605,9 @@ function generateScriptingDefines(playback, event) {
     defines.DELAY = async (seconds) => sleep(seconds * 1000);
 
     defines.RESTART = () => playback.restart();
+
+    defines.SAMPLE = (...args) => sample(playback, ...args);
+    defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
 
     return defines;
 }
