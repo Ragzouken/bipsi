@@ -196,6 +196,9 @@ class BipsiPlayback extends EventTarget {
         this.error = false;
 
         this.variables = new Map();
+
+        this.music = document.createElement("audio");
+        this.autoplay = false;
     }
 
     async init() {
@@ -231,6 +234,14 @@ class BipsiPlayback extends EventTarget {
         this.start();
     }
 
+    clear() {
+        this.ready = false;
+        this.error = false;
+        this.dialoguePlayback.clear();
+        this.variables.clear();
+        this.music.pause();
+    }
+
     async restart() {
         this.clear();
         await this.stateManager.copyFrom(this.stateBackup);
@@ -245,6 +256,13 @@ class BipsiPlayback extends EventTarget {
             return;
         }
 
+        const music = oneField(avatar, "music", "file");
+        if (music) {
+            const file = this.stateManager.resources.get(music.data);
+            this.music.src = URL.createObjectURL(file);
+            this.autoplay = true;
+        }
+
         // move avatar to last event (render on top)
         const room = roomFromEvent(this.data, avatar);
         const index = this.data.rooms.indexOf(room);
@@ -255,13 +273,6 @@ class BipsiPlayback extends EventTarget {
 
         // game starts by running the touch behaviour of the player avatar
         await this.touch(avatar);
-    }
-
-    clear() {
-        this.ready = false;
-        this.error = false;
-        this.dialoguePlayback.clear();
-        this.variables.clear();
     }
 
     update(dt) {
@@ -326,6 +337,11 @@ class BipsiPlayback extends EventTarget {
         if (!this.ready) return;
 
         this.dialoguePlayback.skip();
+
+        if (this.autoplay) {
+            this.music.play();
+            this.autoplay = false;
+        }
     }
 
     async title(script, options={}) {
@@ -375,9 +391,9 @@ class BipsiPlayback extends EventTarget {
         const touch = oneField(event, "touch", "javascript")?.data;
 
         if (touch !== undefined) {
-            this.runJS(event, touch);
+            await this.runJS(event, touch);
         } else {
-            return standardEventTouch(this, event);
+            await standardEventTouch(this, event);
         }
     }
 
@@ -608,6 +624,8 @@ function generateScriptingDefines(playback, event) {
 
     defines.SAMPLE = (...args) => sample(playback, ...args);
     defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
+
+    defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
 
     return defines;
 }

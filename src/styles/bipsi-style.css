@@ -452,18 +452,18 @@ select {
     grid-template-columns: repeat(2, 1fr);
 }
 
-#event-properties, #game-fields {
+#event-properties {
     display: flex; flex-direction: column;
     gap: 1rem;
 
     overflow: hidden;
 }
 
-#event-properties > .row, #game-fields > .row {
+#event-properties > .row {
     overflow: hidden;
 }
 
-#event-properties textarea, #game-fields textarea {
+#event-properties textarea {
     flex: 1;
     resize: none;
     border-radius: 1rem;
@@ -549,6 +549,27 @@ select {
     display: flex;
 }
 
+#field-file-editor {
+    display: flex;
+    flex-direction: row;
+    gap: .5rem;
+}
+
+#field-file-editor button {
+    height: 40px;
+    border-radius: .75rem;
+    padding-left: .75rem;
+    padding-right: .75rem;
+}
+
+#field-file-sidebar {
+    width: 128px;
+
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
 #field-dialogue-editor {
     height: 96px;
 
@@ -573,6 +594,7 @@ select {
 #dialogue-editor-toolbar .toggle {
     border-radius: .5rem;
 }
+
 
 #event-edit, #game-fields-edit {
     gap: 1rem;

@@ -26,21 +26,26 @@
     #event-properties
         .row
             datalist#field-names
+                option(value="one-time")
+                option(value="solid")
+                option(value="ending")
+                option(value="title")
                 option(value="graphic")
-                option(value="dialogue")
+                option(value="say")
                 option(value="exit")
-                option(value="script")
+                option(value="touch")
             .event-sheet.column
                 .event-line#event-field-template(hidden)
                     input(type="text" name="field-name" list="field-names" autocomplete="off")
                     select(name="field-type")
+                        option tag
                         option tile
                         option dialogue
                         option location
                         option javascript
-                        option tag
-                        option json
                         option text
+                        option json
+                        option file
             .event-lines-toolbar
                 button(name="add-event-field")
                     include /common/icons/plus.svg
@@ -74,3 +79,6 @@
                     label
                         input(type="radio" name="field-room-select" value=`${index}` title=`select room ${index}`)
             canvas#field-position-select(width="128" height="128" title="select position")
+        #field-file-editor(hidden)
+            button(name="field-file-select") select file
+            input#field-file-info(type="text" readonly value="test")

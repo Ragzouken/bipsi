@@ -61,8 +61,14 @@ bipsi.storage = new maker.ProjectStorage("bipsi");
  * @returns {string[]}
  */
 bipsi.getManifest = function (data) {
-     // only resource is the tileset image
-     return [data.tileset];
+    // all embedded files
+    const files = allEvents(data)
+        .flatMap((event) => event.fields)
+        .filter((field) => field.type === "file")
+        .map((field) => field.data);
+
+    // + tileset
+    return [data.tileset, ...files];
 }
 
 bipsi.constants = {
@@ -741,6 +747,17 @@ bipsi.EventEditor = class {
 
         this.selectedIndex = 0;
 
+        ui.action("field-file-select", async () => {
+            const [file] = await maker.pickFiles();
+            if (file) {
+                await this.editor.stateManager.makeChange(async (data) => {
+                    const { field } = this.getSelections(data);
+                    field.data = this.editor.stateManager.resources.add(file, "file-datauri");
+                });
+            }
+        });
+        this.fileInfo = ONE("#field-file-info");
+
         ui.action("create-event-empty", () => this.editor.createEvent(EVENT_TEMPLATES.empty));
         ui.action("create-event-code", () => this.editor.createEvent(EVENT_TEMPLATES.code));
         ui.action("create-event-exit", () => this.editor.createEvent(EVENT_TEMPLATES.exit));
@@ -890,9 +907,19 @@ bipsi.EventEditor = class {
             ONE("#field-dialogue-editor").hidden = true;
             ONE("#field-tile-editor").hidden = true;
             ONE("#field-location-editor").hidden = true;
+            ONE("#field-file-editor").hidden = true;
 
             if (field) {
                 if (field.type === "tag") {
+                } else if (field.type === "file") {
+                    ONE("#field-file-editor").hidden = false;
+
+                    if (field.data) {
+                        const file = this.editor.stateManager.resources.get(field.data);
+                        this.fileInfo.value = `${file.name} (${file.type})`;
+                    } else {
+                        this.fileInfo.value = "[ NO FILE ]";
+                    }
                 } else if (field.type === "dialogue") {
                     this.valueEditors.dialogue.value = field.data;
                     ONE("#field-dialogue-editor").hidden = false;

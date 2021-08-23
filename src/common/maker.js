@@ -46,6 +46,12 @@ maker.resourceHandlers.set("canvas-datauri", {
     save: async (instance) => instance.canvas.toDataURL("image/png", 1),
 });
 
+maker.resourceHandlers.set("file-datauri", {
+    load: async (data) => new File([await fetch(data.uri).then((r) => r.blob())], data.name),
+    copy: async (instance) => new File([await instance.arrayBuffer()], instance.name, { type: instance.type }),
+    save: async (instance) => ({ name: instance.name, uri: await maker.dataURIFromFile(instance) }),
+});
+
 maker.ResourceManager = class {
     constructor() {
         this.lastId = 0;
