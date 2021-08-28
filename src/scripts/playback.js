@@ -119,6 +119,20 @@ if (color) {
 }
 `;
 
+const BEHAVIOUR_MUSIC_FILE = `
+let music_file = FIELD(EVENT, "music", "file");
+let music_name = FIELD(EVENT, "music", "text");
+
+if (!music_file && music_name) {
+    let library = FIND_EVENT("is-library");
+    music_file = FIELD(library, music_name, "file");
+}
+
+if (music_file) {
+    PLAY_MUSIC(music_file);
+}
+`;
+
 const BEHAVIOUR_TITLE = `
 let title = FIELD(EVENT, "title", "dialogue");
 if (title) {
@@ -127,7 +141,7 @@ if (title) {
 `;
 
 const BEHAVIOUR_DIALOGUE = `
-let id = FIELD(EVENT, "say-shared-id", "text") ?? "SAY-ITERATORS/" + EVENT.id;
+let id = FIELD(EVENT, "say-shared-id", "text") ?? "SAY-ITERATORS/" + EVENT_ID(EVENT);
 let mode = FIELD(EVENT, "say-mode", "text") ?? "cycle";
 let say = SAMPLE(id, mode, FIELDS(EVENT, "say", "dialogue"));
 if (say) {
@@ -167,6 +181,7 @@ if (graphic) {
 
 const STANDARD_SCRIPTS = [
     BEHAVIOUR_PAGE_COLOR,
+    BEHAVIOUR_MUSIC_FILE,
     BEHAVIOUR_TITLE,
     BEHAVIOUR_DIALOGUE,
     BEHAVIOUR_EXIT, 
@@ -174,6 +189,24 @@ const STANDARD_SCRIPTS = [
     BEHAVIOUR_ENDING, 
     BEHAVIOUR_SET_AVATAR,
 ];
+
+const BACKG_PAGE = createRendering2D(128, 128); 
+const COLOR_PAGE = createRendering2D(128, 128);
+const TILES_PAGE = createRendering2D(128, 128);
+
+function drawRecolorLayer(destination, render) {
+    fillRendering2D(BACKG_PAGE);
+    fillRendering2D(COLOR_PAGE);
+    fillRendering2D(TILES_PAGE);
+
+    render(BACKG_PAGE, COLOR_PAGE, TILES_PAGE);
+
+    COLOR_PAGE.globalCompositeOperation = "destination-in";
+    COLOR_PAGE.drawImage(TILES_PAGE.canvas, 0, 0);
+    COLOR_PAGE.globalCompositeOperation = "source-over";
+    destination.drawImage(BACKG_PAGE.canvas, 0, 0);
+    destination.drawImage(COLOR_PAGE.canvas, 0, 0);
+}
 
 class BipsiPlayback extends EventTarget {
     constructor(font) {
@@ -197,6 +230,7 @@ class BipsiPlayback extends EventTarget {
 
         this.variables = new Map();
 
+        this.objectURLs = new Map();
         this.music = document.createElement("audio");
         this.autoplay = false;
     }
@@ -211,7 +245,7 @@ class BipsiPlayback extends EventTarget {
     }
 
     async backup() {
-        this.stateBackup.copyFrom(this.stateManager);
+        await this.stateBackup.copyFrom(this.stateManager);
     }
 
     /**
@@ -221,7 +255,6 @@ class BipsiPlayback extends EventTarget {
         this.clear();
         await this.stateManager.copyFrom(stateManager);
         await this.backup();
-        this.start();
     }
 
     /**
@@ -231,7 +264,6 @@ class BipsiPlayback extends EventTarget {
         this.clear();
         await this.stateManager.loadBundle(bundle);
         await this.backup();
-        this.start();
     }
 
     clear() {
@@ -239,8 +271,18 @@ class BipsiPlayback extends EventTarget {
         this.error = false;
         this.dialoguePlayback.clear();
         this.variables.clear();
+
+        this.music.removeAttribute("src");
         this.music.pause();
+        this.objectURLs.forEach((url) => URL.revokeObjectURL(url));
     }
+
+    getFileObjectURL(id) {
+        const url = this.objectURLs.get(id) 
+                 ?? URL.createObjectURL(this.stateManager.resources.get(id));
+        this.objectURLs.set(id, url);
+        return url;
+    } 
 
     async restart() {
         this.clear();
@@ -254,13 +296,6 @@ class BipsiPlayback extends EventTarget {
         if (avatar === undefined) {
             this.showError("NO EVENT WITH is-player TAG FOUND");
             return;
-        }
-
-        const music = oneField(avatar, "music", "file");
-        if (music) {
-            const file = this.stateManager.resources.get(music.data);
-            this.music.src = URL.createObjectURL(file);
-            this.autoplay = true;
         }
 
         // move avatar to last event (render on top)
@@ -297,23 +332,64 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const [background, foreground, highlight] = this.getActivePalette();
-
-        // recolor tileset according to palette
         const tileset = this.stateManager.resources.get(this.data.tileset);
-        const tilesetFG = recolorMask(tileset, foreground, TEMP_TILESET0);
-        const tilesetHI = recolorMask(tileset, highlight, TEMP_TILESET1);
-
-        // clear to background color
-        fillRendering2D(TEMP_128, background);
 
         // find current animation frame for each tile
         const frame = this.frameCount % 2;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
-        // draw current animation frame for each tile in each layer of tilemaps
-        drawTilemap(TEMP_128, tilesetFG, tileToFrame, room.tilemap, background);
-        drawTilemap(TEMP_128, tilesetHI, tileToFrame, room.highmap, background);
-        drawEvents(TEMP_128, tilesetHI, tileToFrame, room.events, background);
+        fillRendering2D(this.rendering);
+        fillRendering2D(TEMP_128, background);
+
+        drawRecolorLayer(TEMP_128, (backg, color, tiles) => {
+            for (let ty = 0; ty < 16; ++ty) {
+                for (let tx = 0; tx < 16; ++tx) {
+                    const high = room.highmap[ty][tx] > 0;
+                    const tileIndex = high ? room.highmap[ty][tx] : room.tilemap[ty][tx];
+                    if (tileIndex === 0) continue;
+                    
+                    const frameIndex = tileToFrame.get(tileIndex) ?? 0;
+                    const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+    
+                    backg.fillStyle = background;
+                    backg.fillRect(tx * size, ty * size, size, size);
+    
+                    color.fillStyle = high ? highlight : foreground;
+                    color.fillRect(tx * size, ty * size, size, size);
+
+                    tiles.drawImage(
+                        tileset.canvas,
+                        x, y, size, size, 
+                        tx * size, ty * size, size, size,
+                    );
+                }
+            }
+        });
+
+        drawRecolorLayer(TEMP_128, (backg, color, tiles) => {
+            room.events.forEach((event) => {
+                const [tx, ty] = event.position;
+                const graphicField = oneField(event, "graphic", "tile");
+                if (graphicField) {
+                    const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
+                    const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+        
+                    if (background && !eventIsTagged(event, "transparent")) {
+                        backg.fillStyle = background;
+                        backg.fillRect(tx * size, ty * size, size, size);
+                    }
+
+                    color.fillStyle = highlight;
+                    color.fillRect(tx * size, ty * size, size, size);
+
+                    tiles.drawImage(
+                        tileset.canvas,
+                        x, y, size, size, 
+                        tx * size, ty * size, size, size,
+                    );
+                }
+            });
+        });
 
         // upscale tilemaps to display area
         this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
@@ -406,9 +482,17 @@ class BipsiPlayback extends EventTarget {
             const script = new AsyncFunction("COMMANDS", preamble + js);
             await script(defines);
         } catch (e) {
+            console.log(e);
             const error = `SCRIPT ERROR:\n${e}`;
             this.showError(error);
         }
+    }
+
+    playMusic(src) {
+        const playing = !this.music.paused;
+        this.music.src = src;
+        this.autoplay = true;
+        if (playing) this.music.play();
     }
 
     showError(text) {
@@ -605,6 +689,8 @@ function generateScriptingDefines(playback, event) {
     defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
     defines.SET = (key, value) => playback.variables.set(key, value);
 
+    defines.EVENT_ID = (event) => event.id;
+
     defines.TEXT_REPLACE = (text, ...values) => replace(text, ...values);
 
     defines.SAY = async (dialogue, options) => playback.say(dialogue, options);
@@ -622,10 +708,12 @@ function generateScriptingDefines(playback, event) {
 
     defines.RESTART = () => playback.restart();
 
-    defines.SAMPLE = (...args) => sample(playback, ...args);
+    defines.SAMPLE = (id, type, ...values) => sample(playback, id, type, ...values);
     defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
 
     defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
+
+    defines.PLAY_MUSIC = (file) => playback.playMusic(playback.getFileObjectURL(file));
 
     return defines;
 }

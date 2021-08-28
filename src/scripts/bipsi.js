@@ -858,12 +858,14 @@ bipsi.EventEditor = class {
     }
 
     resetDialoguePreview() {
-        const { field } = this.getSelections();
+        const { field, event } = this.getSelections();
 
         const page = !this.editor.dialoguePreviewPlayer.empty ? this.editor.dialoguePreviewPlayer.pagesSeen : 0;
+        const style = event ? oneField(event, "say-style", "json")?.data : undefined;
+
         this.editor.dialoguePreviewPlayer.clear();
         if (field && field.type === "dialogue") {
-            this.editor.dialoguePreviewPlayer.queue(this.valueEditors.dialogue.value, { font: this.editor.font });
+            this.editor.dialoguePreviewPlayer.queue(this.valueEditors.dialogue.value, style);
             for (let i = 0; i < page-1; ++i) {
                 this.editor.dialoguePreviewPlayer.moveToNextPage();
             }
@@ -1419,6 +1421,7 @@ bipsi.Editor = class extends EventTarget {
         };
 
         bipsi.player.addEventListener("render", () => {
+            fillRendering2D(this.renderings.playtest);
             this.renderings.playtest.drawImage(bipsi.player.rendering.canvas, 0, 0, 256, 256);
         });
 
@@ -1609,8 +1612,9 @@ bipsi.Editor = class extends EventTarget {
             bipsi.player.clear();
         });
 
-        const playtest = ui.action("playtest", () => {
-            bipsi.player.copyFrom(this.stateManager);
+        const playtest = ui.action("playtest", async () => {
+            await bipsi.player.copyFrom(this.stateManager);
+            bipsi.player.restart();
             ONE("#playtest-rendering").focus();
         });
 
@@ -1906,14 +1910,62 @@ bipsi.Editor = class extends EventTarget {
         palette = palette ?? data.palettes[room.palette];
         const [background, foreground, highlight] = palette;
 
-        const tilesetC = recolorMask(tileset, foreground, TEMP_TILESET0);
-        const tilesetH = recolorMask(tileset, highlight, TEMP_TILESET1);
+        // find current animation frame for each tile
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
 
         fillRendering2D(rendering, background);
-        drawTilemap(rendering, tilesetC, tileToFrame, room.tilemap, background);
-        drawTilemap(rendering, tilesetH, tileToFrame, room.highmap, background);
-        if (events) drawEvents(rendering, tilesetH, tileToFrame, room.events, background);
+
+        drawRecolorLayer(rendering, (backg, color, tiles) => {
+            for (let ty = 0; ty < 16; ++ty) {
+                for (let tx = 0; tx < 16; ++tx) {
+                    const high = room.highmap[ty][tx] > 0;
+                    const tileIndex = high ? room.highmap[ty][tx] : room.tilemap[ty][tx];
+                    if (tileIndex === 0) continue;
+                    
+                    const frameIndex = tileToFrame.get(tileIndex);
+                    const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+
+                    backg.fillStyle = background;
+                    backg.fillRect(tx * size, ty * size, size, size);
+
+                    color.fillStyle = high ? highlight : foreground;
+                    color.fillRect(tx * size, ty * size, size, size);
+
+                    tiles.drawImage(
+                        tileset.canvas,
+                        x, y, size, size, 
+                        tx * size, ty * size, size, size,
+                    );
+                }
+            }
+        });
+
+        if (events) {
+            drawRecolorLayer(rendering, (backg, color, tiles) => {
+                room.events.forEach((event) => {
+                    const [tx, ty] = event.position;
+                    const graphicField = oneField(event, "graphic", "tile");
+                    if (graphicField) {
+                        const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
+                        const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+            
+                        if (background && !eventIsTagged(event, "transparent")) {
+                            backg.fillStyle = background;
+                            backg.fillRect(tx * size, ty * size, size, size);
+                        }
+
+                        color.fillStyle = highlight;
+                        color.fillRect(tx * size, ty * size, size, size);
+
+                        tiles.drawImage(
+                            tileset.canvas,
+                            x, y, size, size, 
+                            tx * size, ty * size, size, size,
+                        );
+                    }
+                });
+            });
+        }
     }
 
     redraw() {
@@ -2391,6 +2443,7 @@ async function makePlayback(font) {
 
     // update the canvas size every render just in case..
     player.addEventListener("render", () => {
+        fillRendering2D(playRendering);
         playRendering.drawImage(player.rendering.canvas, 0, 0);
         fitCanvasToParent(playCanvas);
         document.documentElement.style.setProperty('--vh', `${window.innerHeight / 100}px`);
@@ -2524,6 +2577,7 @@ bipsi.start = async function () {
         //await editor.loadBundle(bundle);
         bipsi.editor.enterPlayerMode();
         await bipsi.player.loadBundle(bundle);
+        bipsi.player.start();
 
     } else {
         // no embedded project, start editor with save or editor embed
