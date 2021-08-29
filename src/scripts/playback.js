@@ -331,7 +331,8 @@ class BipsiPlayback extends EventTarget {
         // find avatar, current room, current palette
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
-        const [background, foreground, highlight] = this.getActivePalette();
+        const palette = this.getActivePalette();
+        const [background, foreground, highlight] = palette;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
@@ -340,56 +341,8 @@ class BipsiPlayback extends EventTarget {
 
         fillRendering2D(this.rendering);
         fillRendering2D(TEMP_128, background);
-
-        drawRecolorLayer(TEMP_128, (backg, color, tiles) => {
-            for (let ty = 0; ty < 16; ++ty) {
-                for (let tx = 0; tx < 16; ++tx) {
-                    const high = room.highmap[ty][tx] > 0;
-                    const tileIndex = high ? room.highmap[ty][tx] : room.tilemap[ty][tx];
-                    if (tileIndex === 0) continue;
-                    
-                    const frameIndex = tileToFrame.get(tileIndex) ?? 0;
-                    const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
-    
-                    backg.fillStyle = background;
-                    backg.fillRect(tx * size, ty * size, size, size);
-    
-                    color.fillStyle = high ? highlight : foreground;
-                    color.fillRect(tx * size, ty * size, size, size);
-
-                    tiles.drawImage(
-                        tileset.canvas,
-                        x, y, size, size, 
-                        tx * size, ty * size, size, size,
-                    );
-                }
-            }
-        });
-
-        drawRecolorLayer(TEMP_128, (backg, color, tiles) => {
-            room.events.forEach((event) => {
-                const [tx, ty] = event.position;
-                const graphicField = oneField(event, "graphic", "tile");
-                if (graphicField) {
-                    const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
-                    const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
-        
-                    if (background && !eventIsTagged(event, "transparent")) {
-                        backg.fillStyle = background;
-                        backg.fillRect(tx * size, ty * size, size, size);
-                    }
-
-                    color.fillStyle = highlight;
-                    color.fillRect(tx * size, ty * size, size, size);
-
-                    tiles.drawImage(
-                        tileset.canvas,
-                        x, y, size, size, 
-                        tx * size, ty * size, size, size,
-                    );
-                }
-            });
-        });
+        drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
+        drawEventLayer(TEMP_128, tileset, tileToFrame, palette, room.events);
 
         // upscale tilemaps to display area
         this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
