@@ -47,9 +47,13 @@ maker.resourceHandlers.set("canvas-datauri", {
 });
 
 maker.resourceHandlers.set("file-datauri", {
-    load: async (data) => new File([await fetch(data.uri).then((r) => r.blob())], data.name),
+    load: async (data) => new File([await fetch(data.uri).then((r) => r.blob())], data.name, { type: data.type }),
     copy: async (instance) => new File([await instance.arrayBuffer()], instance.name, { type: instance.type }),
-    save: async (instance) => ({ name: instance.name, uri: await maker.dataURIFromFile(instance) }),
+    save: async (instance) => ({ 
+        name: instance.name, 
+        uri: await maker.dataURIFromFile(instance), 
+        type: instance.type,
+    }),
 });
 
 maker.ResourceManager = class {

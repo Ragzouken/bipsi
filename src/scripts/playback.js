@@ -1,3 +1,18 @@
+/**
+ * Use inline style to resize canvas to fit its parent, preserving the aspect
+ * ratio of its internal dimensions.
+ * @param {HTMLCanvasElement} canvas 
+ */
+ function fitCanvasToParent(canvas) {
+    const [tw, th] = [canvas.parentElement.clientWidth, canvas.parentElement.clientHeight];
+    const [sw, sh] = [tw / canvas.width, th / canvas.height];
+    let scale = Math.min(sw, sh);
+    if (canvas.width * scale > 512) scale = Math.floor(scale); 
+
+    canvas.style.setProperty("width", `${canvas.width * scale}px`);
+    canvas.style.setProperty("height", `${canvas.height * scale}px`);
+}
+
 // async equivalent of Function constructor
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
@@ -106,6 +121,14 @@ function shuffleArray(array) {
     }
 }
 
+function findEventsByTag(data, tag) {
+    return allEvents(data).filter((event) => eventIsTagged(event, tag));
+}
+
+function findEventByTag(data, tag) {
+    return allEvents(data).filter((event) => eventIsTagged(event, tag))[0];
+}
+
 const ERROR_STYLE = {
     glyphRevealDelay: 0,
     panelColor: "#FF0000",
@@ -119,17 +142,36 @@ if (color) {
 }
 `;
 
-const BEHAVIOUR_MUSIC_FILE = `
-let music_file = FIELD(EVENT, "music", "file");
-let music_name = FIELD(EVENT, "music", "text");
-
-if (!music_file && music_name) {
-    let library = FIND_EVENT("is-library");
-    music_file = FIELD(library, music_name, "file");
+const BEHAVIOUR_IMAGES = `
+let background = FIELD_OR_LIBRARY("background");
+if (background) {
+    SHOW_IMAGE("BACKGROUND", background, 1, 0, 0);
+} else if (IS_TAGGED(EVENT, "clear-background")) {
+    HIDE_IMAGE("BACKGROUND");
 }
 
-if (music_file) {
-    PLAY_MUSIC(music_file);
+let foreground = FIELD_OR_LIBRARY("foreground");
+if (foreground) {
+    SHOW_IMAGE("FOREGROUND", foreground, 2, 0, 0);
+} else if (IS_TAGGED(EVENT, "clear-foreground")) {
+    HIDE_IMAGE("FOREGROUND");
+}
+
+let overlay = FIELD_OR_LIBRARY("overlay");
+if (overlay) {
+    SHOW_IMAGE("OVERLAY", overlay, 3, 0, 0);
+} else if (IS_TAGGED(EVENT, "clear-overlay")) {
+    HIDE_IMAGE("OVERLAY");
+}
+`;
+
+const BEHAVIOUR_MUSIC = `
+let music = FIELD_OR_LIBRARY("music");
+
+if (music) {
+    PLAY_MUSIC(music);
+} else if (IS_TAGGED(EVENT, "stop-music")) {
+    STOP_MUSIC();
 }
 `;
 
@@ -181,7 +223,8 @@ if (graphic) {
 
 const STANDARD_SCRIPTS = [
     BEHAVIOUR_PAGE_COLOR,
-    BEHAVIOUR_MUSIC_FILE,
+    BEHAVIOUR_IMAGES,
+    BEHAVIOUR_MUSIC,
     BEHAVIOUR_TITLE,
     BEHAVIOUR_DIALOGUE,
     BEHAVIOUR_EXIT, 
@@ -228,11 +271,15 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
         this.error = false;
 
-        this.variables = new Map();
 
         this.objectURLs = new Map();
+        this.imageElements = new Map();
+
         this.music = document.createElement("audio");
         this.autoplay = false;
+
+        this.variables = new Map();
+        this.images = new Map();
     }
 
     async init() {
@@ -269,11 +316,14 @@ class BipsiPlayback extends EventTarget {
     clear() {
         this.ready = false;
         this.error = false;
+        this.ended = false;
         this.dialoguePlayback.clear();
         this.variables.clear();
 
         this.music.removeAttribute("src");
         this.music.pause();
+        this.images.clear();
+        this.imageElements.clear();
         this.objectURLs.forEach((url) => URL.revokeObjectURL(url));
     }
 
@@ -284,6 +334,12 @@ class BipsiPlayback extends EventTarget {
         return url;
     } 
 
+    async getFileImageElement(id) {
+        const image = this.imageElements.get(id) ?? await loadImage(this.getFileObjectURL(id));
+        this.imageElements.set(id, image);
+        return image;
+    }
+
     async restart() {
         this.clear();
         await this.stateManager.copyFrom(this.stateBackup);
@@ -292,7 +348,7 @@ class BipsiPlayback extends EventTarget {
 
     async start() {
         // player avatar is event tagged "is-player" at the beginning of the game
-        const avatar = allEvents(this.data).find((event) => eventIsTagged(event, "is-player"));
+        const avatar = findEventByTag(this.data, "is-player");
         if (avatar === undefined) {
             this.showError("NO EVENT WITH is-player TAG FOUND");
             return;
@@ -304,6 +360,7 @@ class BipsiPlayback extends EventTarget {
         moveEvent(this.data, avatar, { room: index, position: [...avatar.position] });
 
         this.avatarId = avatar.id;
+        this.libraryId = findEventByTag(this.data, "is-library")?.id;
         this.ready = true;
 
         // game starts by running the touch behaviour of the player avatar
@@ -332,17 +389,28 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const palette = this.getActivePalette();
-        const [background, foreground, highlight] = palette;
+        const [background] = palette;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
         const frame = this.frameCount % 2;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
+        // sort images
+        const images = Array.from(this.images.values());
+        images.sort((a, b) => a.layer - b.layer);
+        const images_below_all    = images.filter((image) => image.layer < 1);
+        const images_below_events = images.filter((image) => image.layer >= 1 && image.layer < 2);
+        const images_above_events = images.filter((image) => image.layer >= 2 && image.layer < 3);
+        const images_above_all    = images.filter((image) => image.layer >= 3);
+
         fillRendering2D(this.rendering);
         fillRendering2D(TEMP_128, background);
+        images_below_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
         drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
+        images_below_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
         drawEventLayer(TEMP_128, tileset, tileToFrame, palette, room.events);
+        images_above_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
 
         // upscale tilemaps to display area
         this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
@@ -357,13 +425,29 @@ class BipsiPlayback extends EventTarget {
             this.dialoguePlayback.render();
             this.rendering.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0);
         }
+        
+        fillRendering2D(TEMP_128);
+        images_above_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
+        this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+
+        if (this.ended) {
+            fillRendering2D(this.rendering);
+        }
 
         // signal, to anyone listening, that rendering happened
         this.dispatchEvent(new CustomEvent("render"));
     }
 
+    end() {
+        this.ended = true;
+    }
+
     async proceed() {
         if (!this.ready) return;
+
+        if (this.ended) {
+            this.restart();
+        }
 
         this.dialoguePlayback.skip();
 
@@ -384,7 +468,8 @@ class BipsiPlayback extends EventTarget {
     }
 
     async move(dx, dy) {
-        if (!this.ready || !this.dialoguePlayback.empty || this.busy) return;
+        if (this.ended) this.proceed();
+        if (!this.ready || !this.dialoguePlayback.empty || this.busy || this.ended) return;
 
         this.busy = true;
 
@@ -446,6 +531,24 @@ class BipsiPlayback extends EventTarget {
         this.music.src = src;
         this.autoplay = true;
         if (playing) this.music.play();
+    }
+
+    stopMusic() {
+        this.music.pause();
+        this.autoplay = false;
+    }
+
+    setBackground(image) {
+        this.background = image;
+    }
+    
+    async showImage(imageID, fileID, layer, x, y) {
+        const image = await this.getFileImageElement(fileID);
+        this.images.set(imageID, { image, layer, x, y });
+    }
+
+    hideImage(imageID) {
+        this.images.delete(imageID);
     }
 
     showError(text) {
@@ -600,6 +703,7 @@ function generateScriptingDefines(playback, event) {
     
     defines.PLAYBACK = playback;
     defines.AVATAR = getEventById(playback.data, playback.avatarId);
+    defines.LIBRARY = getEventById(playback.data, playback.libraryId);
     defines.EVENT = event;
     defines.PALETTE = playback.getActivePalette();
 
@@ -636,8 +740,8 @@ function generateScriptingDefines(playback, event) {
     defines.TOUCH = (event) => playback.touch(event);
     defines.EVENT_AT = (location) => getEventAtLocation(playback.data, location);
     defines.LOCATION_OF = (event) => getLocationOfEvent(playback.data, event);
-    defines.FIND_EVENTS = (tag) => allEvents(playback.data).filter((event) => eventIsTagged(event, tag)); 
-    defines.FIND_EVENT = (tag) => defines.FIND_EVENTS(tag)[0];
+    defines.FIND_EVENTS = (tag) => findEventsByTag(playback.data, tag); 
+    defines.FIND_EVENT = (tag) => findEventByTag(playback.data, tag); 
 
     defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
     defines.SET = (key, value) => playback.variables.set(key, value);
@@ -659,7 +763,7 @@ function generateScriptingDefines(playback, event) {
     defines.LOG = (text) => console.log(text);
     defines.DELAY = async (seconds) => sleep(seconds * 1000);
 
-    defines.RESTART = () => playback.restart();
+    defines.RESTART = () => playback.end();
 
     defines.SAMPLE = (id, type, ...values) => sample(playback, id, type, ...values);
     defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
@@ -667,6 +771,21 @@ function generateScriptingDefines(playback, event) {
     defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
 
     defines.PLAY_MUSIC = (file) => playback.playMusic(playback.getFileObjectURL(file));
+    defines.STOP_MUSIC = () => playback.stopMusic();
+
+    defines.SHOW_IMAGE = (id, file, layer, x, y) => playback.showImage(id, file, layer, x, y);
+    defines.HIDE_IMAGE = (id) => playback.hideImage(id);
+
+    defines.FIELD_OR_LIBRARY = (field, event=defines.EVENT) => {
+        let file = oneField(event, field, "file")?.data;
+        let name = oneField(event, field, "text")?.data;
+
+        if (!file && name) {
+            file = oneField(defines.LIBRARY, name, "file")?.data;
+        }
+
+        return file;
+    };
 
     return defines;
 }
