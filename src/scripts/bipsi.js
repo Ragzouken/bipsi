@@ -1,7 +1,5 @@
-const bipsi = {};
-
 // browser saves will be stored under the id "bipsi"
-bipsi.storage = new maker.ProjectStorage("bipsi");
+const storage = new maker.ProjectStorage("bipsi");
 
 // type definitions for the structure of bipsi project data. useful for the
 // code editor, ignored by the browser 
@@ -61,7 +59,7 @@ bipsi.storage = new maker.ProjectStorage("bipsi");
  * @param {BipsiDataProject} data 
  * @returns {string[]}
  */
-bipsi.getManifest = function (data) {
+function getManifest(data) {
     // all embedded files
     const files = allEvents(data)
         .flatMap((event) => event.fields)
@@ -72,7 +70,7 @@ bipsi.getManifest = function (data) {
     return [data.tileset, ...files];
 }
 
-bipsi.constants = {
+const constants = {
     tileSize: 8,
     roomSize: 16,
     frameInterval: 400,
@@ -88,122 +86,12 @@ bipsi.constants = {
 const TEMP_128 = createRendering2D(128, 128);
 const TEMP_256 = createRendering2D(256, 256);
 
-const TEMP_TILESET0 = createRendering2D(1, 1);
-const TEMP_TILESET1 = createRendering2D(1, 1);
-const TEMP_TILE = createRendering2D(1, 1);
-
-function randomPalette() {
-    const h0 = Math.random();
-    const h1 = h0 + Math.random() * .25;
-    const h2 = h1 + Math.random() * .25;
-
-    const background = HSVToRGB({ h: h0, s: .50, v: .2 });
-    const foreground = HSVToRGB({ h: h1, s: .75, v: .5 });
-    const highlight = HSVToRGB({ h: h2, s: .25, v: .75 });
-
-    return [
-        rgbToHex(background),
-        rgbToHex(foreground),
-        rgbToHex(highlight),
-    ];
-}
-
-/** 
- * Create a valid bundle for an empty bipsi project.
- * @returns {maker.ProjectBundle<BipsiDataProject>} 
- */
-bipsi.makeBlankBundle = function () {
-    const project = {
-        settings: { title: "bipsi game" },
-        rooms: [],
-        palettes: ZEROES(8).map(randomPalette),
-        tileset: "0",
-        tiles: [
-            { id: 0, frames: [0] },
-            { id: 1, frames: [1] },
-            { id: 2, frames: [2] },
-        ],
-    };
-
-    const resources = {
-        "0": { type: "canvas-datauri", data: bipsi.constants.tileset },
-    };
-
-    return { project, resources };
-}
-
-function makeBlankRoom(id) {
-    return {
-        id,
-        palette: 0,
-        tilemap: ZEROES(16).map(() => REPEAT(16, 0)),
-        backmap: ZEROES(16).map(() => REPEAT(16, 0)),
-        foremap: ZEROES(16).map(() => REPEAT(16, 1)),
-        wallmap: ZEROES(16).map(() => REPEAT(16, 0)),
-        events: [],
-    }
-}
-
-/** 
- * Update the given bipsi project data so that it's valid for this current
- * version of bipsi.
- * @param {BipsiDataProject} project 
- */
-bipsi.updateProject = function(project) {
-    project.rooms.forEach((room) => {
-        room.backmap = room.backmap ?? ZEROES(16).map(() => REPEAT(16, 0));
-        room.foremap = room.foremap ?? ZEROES(16).map(() => REPEAT(16, 1));
-        
-        if (room.highmap) {
-            for (let y = 0; y < 16; ++y) {
-                for (let x = 0; x < 16; ++x) {
-                    const high = room.highmap[y][x];
-
-                    if (high > 0) {
-                        room.tilemap[y][x] = high;
-                        room.foremap[y][x] = 2;           
-                    }
-                }
-            }
-        }
-    });
-
-    for (let i = project.rooms.length; i < 24; ++i) {
-        project.rooms.push(makeBlankRoom(nextRoomId(project)));
-    }
-
-    project.rooms.forEach((room) => room.events.forEach((event) => {
-        event.id = event.id ?? nextEventId(project);
-        event.fields = event.fields ?? [];
-        event.fields = event.fields.filter((field) => field !== null);
-    }));
-}
-
-function generateColorWheel(width, height) {
-    const rendering = createRendering2D(width, height);
-    withPixels(rendering, (pixels) => {
-        const radius = width * .5;
-
-        for (let y = 0; y < height; ++y) {
-            for (let x = 0; x < width; ++x) {
-                const [dx, dy] = [x - radius, y - radius];
-                const h = (Math.atan2(dy, dx) / (Math.PI * 2) + 1) % 1;
-                const s = Math.sqrt(dx*dx + dy*dy) / radius;
-
-                const color = s > 1 ? 0 : RGBToUint32(HSVToRGB({ h, s, v: 1 }));
-                pixels[y * width + x] = color;
-            }
-        }
-    });
-    return rendering;
-}
-
 /**
  * @param {HTMLCanvasElement} tileset 
  * @param {number} index 
  */
 function getTileCoords(tileset, index) {
-    const size = bipsi.constants.tileSize;
+    const size = constants.tileSize;
     const columns = tileset.width / size;
 
     return {
@@ -304,28 +192,6 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
                 );
             }
         });
-    });
-}
-
-/**
- * @param {CanvasRenderingContext2D} rendering 
- * @param {string[]} palette 
- * @param {BipsiDataRoom} room 
- */
-function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette;
-    for (let y = 0; y < 16; ++y) {
-        for (let x = 0; x < 16; ++x) {
-            const color = room.wallmap[y][x] === 1 ? foreground : background;
-            rendering.fillStyle = color;
-            rendering.fillRect(x, y, 1, 1);
-        }
-    }
-
-    rendering.fillStyle = highlight;
-    room.events.forEach((event) => {
-        const [x, y] = event.position;
-        rendering.fillRect(x, y, 1, 1);
     });
 }
 
@@ -443,15 +309,4 @@ function resizeTileset(tileset, tiles) {
     const cols = 16;
     const rows = Math.ceil((maxFrame + 1) / cols);
     resizeRendering2D(tileset, cols * size, rows * size);
-}
-
-/**
- * Return a random integer at least min and below max. Why is that the normal
- * way to do random ints? I have no idea.
- * @param {number} min 
- * @param {number} max 
- * @returns {number}
- */
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
 }

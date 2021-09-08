@@ -12,11 +12,11 @@
         canvas#events-room(width="256" height="256")
         #room-events-toolbar.viewport-toolbar
             button(name="copy-event" title="copy event")
-                include /common/icons/copy.svg
+                include /icons/copy.svg
             button(name="paste-event" title="paste event")
-                include /common/icons/paste.svg
+                include /icons/paste.svg
             button(name="delete-event" title="delete event")
-                include /common/icons/delete.svg
+                include /icons/delete.svg
     #tile-paint-tab(hidden)
         .row
             canvas#tile-paint-a(width="8" height="8" draggable="false" title="tile animation preview")
@@ -33,15 +33,15 @@
                 button(name="rotate-tile-anticlockwise" title="rotate tile anticlockwise")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4z"/></svg>
                 button(name="shift-tile-up" title="shift tile up")
-                    include /common/icons/arrow-up.svg
+                    include /icons/arrow-up.svg
                 button(name="rotate-tile-clockwise" title="rotate tile clockwise")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14.854 4.854a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 4H3.5A2.5 2.5 0 0 0 1 6.5v8a.5.5 0 0 0 1 0v-8A1.5 1.5 0 0 1 3.5 5h9.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4z"/></svg>
                 button(name="shift-tile-left" title="shift tile left")
-                    include /common/icons/arrow-left.svg
+                    include /icons/arrow-left.svg
                 button(name="shift-tile-down" title="shift tile down")
-                    include /common/icons/arrow-down.svg
+                    include /icons/arrow-down.svg
                 button(name="shift-tile-right" title="shift tile right")
-                    include /common/icons/arrow-right.svg
+                    include /icons/arrow-right.svg
                 button(name="mirror-tile" title="mirror tile")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2.5a.5.5 0 0 0-.939-.24l-6 11A.5.5 0 0 0 .5 14h6a.5.5 0 0 0 .5-.5v-11zm2.376-.484a.5.5 0 0 1 .563.245l6 11A.5.5 0 0 1 15.5 14h-6a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .376-.484zM10 4.46V13h4.658L10 4.46z"/></svg>
                 button(name="flip-tile" title="flip tile")
@@ -49,11 +49,11 @@
                 button(name="invert-tile" title="invert tile")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098L9.05.435zM8 .989c.127 0 .253.049.35.145l6.516 6.516a.495.495 0 0 1 0 .7L8.35 14.866a.493.493 0 0 1-.35.145V.989z"/></svg>
                 button(name="copy-tile-frame" title="copy frame")
-                    include /common/icons/copy.svg
+                    include /icons/copy.svg
                 button(name="paste-tile-frame" title="paste frame")
-                    include /common/icons/paste.svg
+                    include /icons/paste.svg
                 button(name="clear-tile-frame" title="clear frame")
-                    include /common/icons/delete.svg
+                    include /icons/delete.svg
                 button(name="swap-tile-frames" title="swap frames")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/></svg>
                 label.toggle
@@ -122,26 +122,26 @@
                             input(type="radio" name="room-select" value=`${index}` title=`select room ${index}`)
                 #room-buttons
                     button(name="copy-room" title="copy room")
-                        include /common/icons/copy.svg
+                        include /icons/copy.svg
                     button(name="paste-room" title="paste room")
-                        include /common/icons/paste.svg
+                        include /icons/paste.svg
                     button(name="clear-room" title="clear room")
-                        include /common/icons/delete.svg
+                        include /icons/delete.svg
             #tile-select-tab(hidden)
                 #tile-select.radio-select(title="select tiles")
                     label#tile-select-item-template(hidden)
                         input(type="radio" name="tile-select")
                 #tile-buttons
                     button(name="add-new-tile" title="add new tile")
-                        include /common/icons/plus.svg
+                        include /icons/plus.svg
                     button(name="duplicate-tile" title="duplicate selected tile")
-                        include /common/icons/copy.svg
+                        include /icons/copy.svg
                     button(name="reorder-tile-before" title="reorder tile before")
-                        include /common/icons/arrow-left.svg
+                        include /icons/arrow-left.svg
                     button(name="reorder-tile-after" title="reorder tile after")
-                        include /common/icons/arrow-right.svg
+                        include /icons/arrow-right.svg
                     button(name="delete-tile" title="delete selected tile")
-                        include /common/icons/delete.svg
+                        include /icons/delete.svg
             #palette-edit.row(hidden)
                 #color-select.column.radio-select(title="select palette")
                     each _, y in (new Array(8).fill(0))

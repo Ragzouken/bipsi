@@ -9,13 +9,11 @@ async function startEditor(font) {
     const editor = new BipsiEditor(font);
     await editor.init();
 
-    bipsi.editor = editor;
-
     // used to show/hide elements in css
     document.documentElement.setAttribute("data-app-mode", "editor");
 
     // no embedded project, start editor with save or editor embed
-    const save = await bipsi.storage.load("slot0").catch(() => undefined);
+    const save = await storage.load("slot0").catch(() => undefined);
     const bundle = save || maker.bundleFromHTML(document, "#editor-embed");
     
     // load bundle and enter editor mode

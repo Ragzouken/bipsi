@@ -1,7 +1,137 @@
+const bipsi = {};
 
-bipsi.PaletteEditor = class {
+function randomPalette() {
+    const h0 = Math.random();
+    const h1 = h0 + Math.random() * .25;
+    const h2 = h1 + Math.random() * .25;
+
+    const background = HSVToRGB({ h: h0, s: .50, v: .2 });
+    const foreground = HSVToRGB({ h: h1, s: .75, v: .5 });
+    const highlight = HSVToRGB({ h: h2, s: .25, v: .75 });
+
+    return [
+        rgbToHex(background),
+        rgbToHex(foreground),
+        rgbToHex(highlight),
+    ];
+}
+
+const TEMP_TILESET0 = createRendering2D(1, 1);
+
+/** 
+ * Create a valid bundle for an empty bipsi project.
+ * @returns {maker.ProjectBundle<BipsiDataProject>} 
+ */
+function makeBlankBundle() {
+    const project = {
+        settings: { title: "bipsi game" },
+        rooms: [],
+        palettes: ZEROES(8).map(randomPalette),
+        tileset: "0",
+        tiles: [
+            { id: 0, frames: [0] },
+            { id: 1, frames: [1] },
+            { id: 2, frames: [2] },
+        ],
+    };
+
+    const resources = {
+        "0": { type: "canvas-datauri", data: constants.tileset },
+    };
+
+    return { project, resources };
+}
+
+function makeBlankRoom(id) {
+    return {
+        id,
+        palette: 0,
+        tilemap: ZEROES(16).map(() => REPEAT(16, 0)),
+        backmap: ZEROES(16).map(() => REPEAT(16, 0)),
+        foremap: ZEROES(16).map(() => REPEAT(16, 1)),
+        wallmap: ZEROES(16).map(() => REPEAT(16, 0)),
+        events: [],
+    }
+}
+
+/** 
+ * Update the given bipsi project data so that it's valid for this current
+ * version of bipsi.
+ * @param {BipsiDataProject} project 
+ */
+function updateProject(project) {
+    project.rooms.forEach((room) => {
+        room.backmap = room.backmap ?? ZEROES(16).map(() => REPEAT(16, 0));
+        room.foremap = room.foremap ?? ZEROES(16).map(() => REPEAT(16, 1));
+        
+        if (room.highmap) {
+            for (let y = 0; y < 16; ++y) {
+                for (let x = 0; x < 16; ++x) {
+                    const high = room.highmap[y][x];
+
+                    if (high > 0) {
+                        room.tilemap[y][x] = high;
+                        room.foremap[y][x] = 2;           
+                    }
+                }
+            }
+        }
+    });
+
+    for (let i = project.rooms.length; i < 24; ++i) {
+        project.rooms.push(makeBlankRoom(nextRoomId(project)));
+    }
+
+    project.rooms.forEach((room) => room.events.forEach((event) => {
+        event.id = event.id ?? nextEventId(project);
+        event.fields = event.fields ?? [];
+        event.fields = event.fields.filter((field) => field !== null);
+    }));
+}
+
+function generateColorWheel(width, height) {
+    const rendering = createRendering2D(width, height);
+    withPixels(rendering, (pixels) => {
+        const radius = width * .5;
+
+        for (let y = 0; y < height; ++y) {
+            for (let x = 0; x < width; ++x) {
+                const [dx, dy] = [x - radius, y - radius];
+                const h = (Math.atan2(dy, dx) / (Math.PI * 2) + 1) % 1;
+                const s = Math.sqrt(dx*dx + dy*dy) / radius;
+
+                const color = s > 1 ? 0 : RGBToUint32(HSVToRGB({ h, s, v: 1 }));
+                pixels[y * width + x] = color;
+            }
+        }
+    });
+    return rendering;
+}
+
+/**
+ * @param {CanvasRenderingContext2D} rendering 
+ * @param {string[]} palette 
+ * @param {BipsiDataRoom} room 
+ */
+ function drawRoomThumbnail(rendering, palette, room) {
+    const [background, foreground, highlight] = palette;
+    for (let y = 0; y < 16; ++y) {
+        for (let x = 0; x < 16; ++x) {
+            const color = room.wallmap[y][x] === 1 ? foreground : background;
+            rendering.fillStyle = color;
+            rendering.fillRect(x, y, 1, 1);
+        }
+    }
+
+    rendering.fillStyle = highlight;
+    room.events.forEach((event) => {
+        const [x, y] = event.position;
+        rendering.fillRect(x, y, 1, 1);
+    });
+}
+
+class PaletteEditor {
     /**
-     * 
      * @param {BipsiEditor} editor 
      */
     constructor(editor) {
@@ -19,7 +149,7 @@ bipsi.PaletteEditor = class {
             this.colorHueSat.height,
         ).canvas;
 
-        const margin = bipsi.constants.colorwheelMargin;
+        const margin = constants.colorwheelMargin;
         this.colorHueSat.style.setProperty("margin", `-${margin}px`);
         this.colorHueSat.width += margin * 2;
         this.colorHueSat.height += margin * 2;
@@ -129,7 +259,7 @@ bipsi.PaletteEditor = class {
         });
 
         // color wheel:
-        const margin = bipsi.constants.colorwheelMargin;
+        const margin = constants.colorwheelMargin;
         // 1. clear
         fillRendering2D(this.colorHueSatRendering);
         // 2. base wheel at full value
@@ -208,9 +338,9 @@ const FIELD_DEFAULTS = {
     text: "",
 };
 
-bipsi.EventFieldEditor = class extends EventTarget {
+class EventFieldEditor extends EventTarget {
     /**
-     * @param {bipsi.EventEditor} eventEditor 
+     * @param {EventEditor} eventEditor 
      * @param {HTMLElement} fieldElement
      */
     constructor(eventEditor, fieldElement) {
@@ -295,7 +425,7 @@ function prepareTemplate(element) {
     }
 }
 
-bipsi.EventEditor = class {
+class EventEditor {
     /**
      * @param {BipsiEditor} editor 
      */
@@ -538,7 +668,7 @@ bipsi.EventEditor = class {
             const extras = ZEROES(missing).map((_, i) => {
                 const index = this.fieldEditors.length + i;
                 const fieldElement = this.fieldTemplate.cloneNode(true);
-                const fieldEditor = new bipsi.EventFieldEditor(this, fieldElement);
+                const fieldEditor = new EventFieldEditor(this, fieldElement);
 
                 // has to be click so that refresh doesn't overwrite input
                 // before change..
@@ -611,7 +741,7 @@ bipsi.EventEditor = class {
     }
 }
 
-bipsi.TileBrowser = class {
+class TileBrowser {
     /**
      * @param {BipsiEditor} editor 
      */
@@ -641,7 +771,7 @@ bipsi.TileBrowser = class {
             this.frame = 1 - this.frame;
             this.updateCSS();
             this.redraw();
-        }, bipsi.constants.frameInterval);
+        }, constants.frameInterval);
     }
 
     get selectedTileIndex() {
@@ -730,7 +860,7 @@ bipsi.TileBrowser = class {
     }
 }
 
-bipsi.EventTileBrowser = class {
+class EventTileBrowser {
     /**
      * @param {BipsiEditor} editor 
      */
@@ -760,7 +890,7 @@ bipsi.EventTileBrowser = class {
             this.frame = 1 - this.frame;
             this.updateCSS();
             this.redraw();
-        }, bipsi.constants.frameInterval);
+        }, constants.frameInterval);
     }
 
     get selectedTileIndex() {
@@ -832,7 +962,7 @@ bipsi.EventTileBrowser = class {
 }
 
 
-bipsi.TileEditor = class {
+class TileEditor {
     /**
      * @param {BipsiEditor} editor 
      */
@@ -961,10 +1091,10 @@ class BipsiEditor extends EventTarget {
         // to determine which resources are still in use for the project we
         // combine everything the bipsi needs plus anything this editor
         // needs
-        const getManifest = (data) => [...bipsi.getManifest(data), ...this.getManifest()];
+        const getEditorManifest = (data) => [...getManifest(data), ...this.getManifest()];
 
         /** @type {maker.StateManager<BipsiDataProject>} */
-        this.stateManager = new maker.StateManager(getManifest);
+        this.stateManager = new maker.StateManager(getEditorManifest);
 
         /** @type {Object.<string, CanvasRenderingContext2D>} */
         this.renderings = {
@@ -984,12 +1114,12 @@ class BipsiEditor extends EventTarget {
         
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
-        this.tileBrowser = new bipsi.TileBrowser(this);
-        this.eventTileBrowser = new bipsi.EventTileBrowser(this);
+        this.tileBrowser = new TileBrowser(this);
+        this.eventTileBrowser = new EventTileBrowser(this);
 
-        this.tileEditor = new bipsi.TileEditor(this);
-        this.paletteEditor = new bipsi.PaletteEditor(this);
-        this.eventEditor = new bipsi.EventEditor(this);
+        this.tileEditor = new TileEditor(this);
+        this.paletteEditor = new PaletteEditor(this);
+        this.eventEditor = new EventEditor(this);
 
         this.font = font;
         this.dialoguePreviewPlayer = new DialoguePlayback(256, 256);
@@ -1121,7 +1251,7 @@ class BipsiEditor extends EventTarget {
         this.actions.pasteRoom.disabled = true;
         this.actions.pasteTileFrame.disabled = true;
         this.actions.pasteEvent.disabled = true;
-        this.actions.save.disabled = !bipsi.storage.available;
+        this.actions.save.disabled = !storage.available;
 
         // hotkeys
         document.addEventListener("keydown", (event) => {
@@ -1399,15 +1529,15 @@ class BipsiEditor extends EventTarget {
 
             this.frame = 1 - this.frame;
             this.redraw();
-        }, bipsi.constants.frameInterval);
+        }, constants.frameInterval);
     }
 
     async init() {
         await this.paletteEditor.init();
         await this.dialoguePreviewPlayer.load();
 
-        this.EVENT_TILE = await loadImage(bipsi.constants.eventTile);
-        this.WALL_TILE = await loadImage(bipsi.constants.wallTile);
+        this.EVENT_TILE = await loadImage(constants.eventTile);
+        this.WALL_TILE = await loadImage(constants.wallTile);
 
         this.dialoguePreviewPlayer.clear();
         this.dialoguePreviewPlayer.queue("click here to playtest", { panelColor: "#ffd800", textColor: "#000000" });
@@ -1423,7 +1553,7 @@ class BipsiEditor extends EventTarget {
         data = data || this.stateManager.present;
         
         const tileset = this.stateManager.resources.get(data.tileset);
-        const tileSize = bipsi.constants.tileSize;
+        const tileSize = constants.tileSize;
         const roomIndex = this.roomSelect.selectedIndex;
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
@@ -1811,7 +1941,7 @@ class BipsiEditor extends EventTarget {
         this.ready = false;
 
         // account for changes between bipsi versions
-        bipsi.updateProject(bundle.project);
+        updateProject(bundle.project);
 
         await this.stateManager.loadBundle(bundle);
         this.unsavedChanges = false;
@@ -1873,7 +2003,7 @@ class BipsiEditor extends EventTarget {
 
     async resetProject() {
         // open a blank project in the editor
-        await this.loadBundle(maker.bundleFromHTML(document, "#editor-embed") ?? bipsi.makeBlankBundle());
+        await this.loadBundle(maker.bundleFromHTML(document, "#editor-embed") ?? makeBlankBundle());
     }
     
     /**
@@ -1902,7 +2032,7 @@ class BipsiEditor extends EventTarget {
 
         // make bundle and save it
         const bundle = await this.stateManager.makeBundle();
-        bipsi.storage.save(bundle, "slot0");
+        storage.save(bundle, "slot0");
         
         // successful save, no unsaved changes
         this.unsavedChanges = false;

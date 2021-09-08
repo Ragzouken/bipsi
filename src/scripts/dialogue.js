@@ -270,3 +270,14 @@ class DialoguePlayback extends EventTarget {
         target.addEventListener(event, resolve, { once: true });
     });
 }
+
+/**
+ * Return a random integer at least min and below max. Why is that the normal
+ * way to do random ints? I have no idea.
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number}
+ */
+ function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}

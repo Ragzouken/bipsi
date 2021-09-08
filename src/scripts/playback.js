@@ -255,8 +255,8 @@ class BipsiPlayback extends EventTarget {
     constructor(font) {
         super();
         // home for data of the project we're playing
-        this.stateManager = new maker.StateManager(bipsi.getManifest);
-        this.stateBackup = new maker.StateManager(bipsi.getManifest);
+        this.stateManager = new maker.StateManager(getManifest);
+        this.stateBackup = new maker.StateManager(getManifest);
         // final composite of any graphics
         this.rendering = createRendering2D(256, 256);
 

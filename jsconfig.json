@@ -4,5 +4,5 @@
       "target": "esnext",
       "checkJs": true
     },
-    "include": ["src/**/*.js", "src/common/library.d.ts"]
+    "include": ["src/**/*.js", "src/scripts/library.d.ts"]
 }

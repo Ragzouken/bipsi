@@ -1,7 +1,6 @@
 "strict"
 const maker = {};
 const ui = {};
-const storage = {};
 
 /**
  * @template TProject
