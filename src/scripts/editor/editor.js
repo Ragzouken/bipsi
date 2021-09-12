@@ -18,6 +18,13 @@ function makeBlankRoom(id) {
  * @param {BipsiDataProject} project 
  */
 function updateProject(project) {
+    const locationFields = 
+        allEvents(project)
+        .flatMap((event) => event.fields)
+        .filter((field) => field.type === "location");
+    
+    const repairLocations = !locationFields.every((location) => getRoomById(project, location.data.room));
+
     project.rooms.forEach((room) => {
         room.backmap = room.backmap ?? ZEROES(16).map(() => REPEAT(16, 0));
         room.foremap = room.foremap ?? ZEROES(16).map(() => REPEAT(16, 1));
@@ -39,6 +46,12 @@ function updateProject(project) {
     });
 
     project.rooms = project.rooms.filter((room) => room.events.length > 0);
+    
+    if (repairLocations) {
+        locationFields.forEach((field) => {
+            field.data.room = project.rooms[field.data.room]?.id ?? project.rooms[0].id;
+        });
+    }
 
     project.rooms.forEach((room) => room.events.forEach((event) => {
         event.id = event.id ?? nextEventId(project);

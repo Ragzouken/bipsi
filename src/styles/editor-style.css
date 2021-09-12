@@ -154,10 +154,12 @@
 #field-location-editor {
     display: flex; flex-direction: row;
     gap: 1rem;
+
+    height: 236px;
 }
 
 #field-position-select {
     background: var(--trans-gradient);
 
-    width: 236px;
+    height: 236px;
 }
