@@ -286,7 +286,7 @@ function findFreeFrame(tiles) {
  * @returns {number}
  */
 function nextId(items) {
-    const max = Math.max(0, ...items.map((item) => item.id));
+    const max = Math.max(0, ...items.map((item) => item.id ?? 0));
     return max + 1;
 }
 

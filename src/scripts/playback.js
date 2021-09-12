@@ -99,8 +99,11 @@ function getLocationOfEvent(data, event) {
  * @param {BipsiDataLocation} location
  */
 function moveEvent(data, event, location) {
+    const room = data.rooms.find((room) => room.id === location.room);
+    
+    if (!room) throw Error("NO ROOM WITH ID " + location.room);
+    
     removeEvent(data, event);
-    const room = data.rooms[location.room];
     room.events.push(event);
     event.position = [...location.position];
 }
@@ -356,8 +359,7 @@ class BipsiPlayback extends EventTarget {
 
         // move avatar to last event (render on top)
         const room = roomFromEvent(this.data, avatar);
-        const index = this.data.rooms.indexOf(room);
-        moveEvent(this.data, avatar, { room: index, position: [...avatar.position] });
+        moveEvent(this.data, avatar, { room: room.id, position: [...avatar.position] });
 
         this.avatarId = avatar.id;
         this.libraryId = findEventByTag(this.data, "is-library")?.id;

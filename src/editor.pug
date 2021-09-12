@@ -85,6 +85,10 @@
             select(name="room-palette")
                 each index in [0, 1, 2, 3, 4, 5, 6, 7]
                     option(value=`${index}`)= `palette ${index}`
+    #palette-picker(hidden)
+        #palette-picker-palettes.column.radio-select(title="select palette")
+            label#palette-picker-template(hidden)
+                input(type="radio" name="palette-picker-select" value=`${y},${x}` title=`select palette ${y}`)
 #controls
     #upper-toolbar
         #mode-select.horizontal-capsule.radio-select(title="mode-select")
@@ -115,18 +119,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-disc" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 4a4 4 0 0 0-4 4 .5.5 0 0 1-1 0 5 5 0 0 1 5-5 .5.5 0 0 1 0 1zm4.5 3.5a.5.5 0 0 1 .5.5 5 5 0 0 1-5 5 .5.5 0 0 1 0-1 4 4 0 0 0 4-4 .5.5 0 0 1 .5-.5z"/></svg>
     #tools
         #mode-body
-            #room-select-tab(hidden)
-                #room-select.radio-select(title="select rooms")
-                    each _, index in (new Array(24).fill(0))
-                        label
-                            input(type="radio" name="room-select" value=`${index}` title=`select room ${index}`)
-                #room-buttons
-                    button(name="copy-room" title="copy room")
-                        include /icons/copy.svg
-                    button(name="paste-room" title="paste room")
-                        include /icons/paste.svg
-                    button(name="clear-room" title="clear room")
-                        include /icons/delete.svg
             #tile-select-tab(hidden)
                 #tile-select.radio-select(title="select tiles")
                     label#tile-select-item-template(hidden)
@@ -142,6 +134,7 @@
                         include /icons/arrow-right.svg
                     button(name="delete-tile" title="delete selected tile")
                         include /icons/delete.svg
+            include /pages/room-select.pug
             #palette-edit.row(hidden)
                 #color-select.column.radio-select(title="select palette")
                     each _, y in (new Array(8).fill(0))

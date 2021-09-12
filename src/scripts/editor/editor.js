@@ -1,46 +1,4 @@
-const bipsi = {};
-
-function randomPalette() {
-    const h0 = Math.random();
-    const h1 = h0 + Math.random() * .25;
-    const h2 = h1 + Math.random() * .25;
-
-    const background = HSVToRGB({ h: h0, s: .50, v: .2 });
-    const foreground = HSVToRGB({ h: h1, s: .75, v: .5 });
-    const highlight = HSVToRGB({ h: h2, s: .25, v: .75 });
-
-    return [
-        rgbToHex(background),
-        rgbToHex(foreground),
-        rgbToHex(highlight),
-    ];
-}
-
 const TEMP_TILESET0 = createRendering2D(1, 1);
-
-/** 
- * Create a valid bundle for an empty bipsi project.
- * @returns {maker.ProjectBundle<BipsiDataProject>} 
- */
-function makeBlankBundle() {
-    const project = {
-        settings: { title: "bipsi game" },
-        rooms: [],
-        palettes: ZEROES(8).map(randomPalette),
-        tileset: "0",
-        tiles: [
-            { id: 0, frames: [0] },
-            { id: 1, frames: [1] },
-            { id: 2, frames: [2] },
-        ],
-    };
-
-    const resources = {
-        "0": { type: "canvas-datauri", data: constants.tileset },
-    };
-
-    return { project, resources };
-}
 
 function makeBlankRoom(id) {
     return {
@@ -76,11 +34,11 @@ function updateProject(project) {
                 }
             }
         }
+
+        room.id = room.id ?? nextRoomId(project);
     });
 
-    for (let i = project.rooms.length; i < 24; ++i) {
-        project.rooms.push(makeBlankRoom(nextRoomId(project)));
-    }
+    project.rooms = project.rooms.filter((room) => room.events.length > 0);
 
     project.rooms.forEach((room) => room.events.forEach((event) => {
         event.id = event.id ?? nextEventId(project);
@@ -159,11 +117,6 @@ class PaletteEditor {
         this.colorHex = ui.text("color-hex");
 
         this.colorSelect.selectedIndex = 0;
-
-        this.editor.stateManager.addEventListener("change", () => {
-            this.updateTemporaryFromData();
-            this.refreshDisplay();
-        });
 
         this.colorSelect.addEventListener("change", () => {
             this.updateTemporaryFromData();
@@ -524,11 +477,14 @@ class EventEditor {
             });
         });
 
-        this.editor.fieldRoomSelect.addEventListener("change", () => {
-            this.editor.stateManager.makeChange(async (data) => {
-                const { field } = this.getSelections(data);
-                field.data.room = this.editor.fieldRoomSelect.selectedIndex;
-            });
+        this.editor.fieldRoomSelect.select.addEventListener("change", () => {
+            const id = this.editor.fieldRoomSelect.select.valueAsNumber;
+            const index = this.editor.stateManager.present.rooms.findIndex((room) => room.id === id);
+
+            const { field } = this.getSelections();
+            const position = field.data.room === id ? field.data.position : undefined;
+
+            this.refreshPositionSelect(index, position);
         });
 
         this.positionSelect.addEventListener("click", (event) => {
@@ -537,6 +493,7 @@ class EventEditor {
             const ty = Math.floor(y / 8);
             this.editor.stateManager.makeChange(async (data) => {
                 const { field } = this.getSelections(data);
+                field.data.room = this.editor.fieldRoomSelect.select.valueAsNumber;
                 field.data.position = [tx, ty];
             });
         });
@@ -588,6 +545,7 @@ class EventEditor {
 
     refresh() {
         const { event, field, fieldIndex } = this.getSelections();
+        const data = this.editor.stateManager.present;
 
         if (event) {
             this.updateFieldCount(event.fields.length);
@@ -624,18 +582,15 @@ class EventEditor {
                     this.editor.eventTileBrowser.selectedTileIndex = index;
                 } else if (field.type === "location") {
                     ONE("#field-location-editor").hidden = false;
-                    this.editor.fieldRoomSelect.selectedIndex = field.data.room;
-                    const [x, y] = field.data.position;
+                    let index = data.rooms.findIndex((room) => room.id == field.data.room);
 
-                    this.positionSelectRendering.save();
-                    this.editor.drawRoom(this.positionSelectRendering, field.data.room);
-                    {
-                        this.positionSelectRendering.globalCompositeOperation = "difference"
-                        this.positionSelectRendering.fillStyle = "white";
-                        this.positionSelectRendering.fillRect(0, y * 8+2, 128, 4);
-                        this.positionSelectRendering.fillRect(x * 8+2, 0, 4, 128);
+                    if (index === -1) {
+                        console.log("BAD LOCATION ROOM")
+                        return;
                     }
-                    this.positionSelectRendering.restore();
+
+                    this.editor.fieldRoomSelect.select.selectedIndex = index;
+                    this.refreshPositionSelect(index, field.data.position);
                 } else if (field.type === "json") {
                     this.valueEditors.json.value = JSON.stringify(field.data);
                     ONE("#field-json-editor").hidden = false;
@@ -651,6 +606,19 @@ class EventEditor {
         }
 
         this.resetDialoguePreview();
+    }
+
+    refreshPositionSelect(index, position = undefined) {
+        this.positionSelectRendering.globalCompositeOperation = "source-over";
+        this.editor.drawRoom(this.positionSelectRendering, index);
+
+        if (position) {
+            const [x, y] = position; 
+            this.positionSelectRendering.globalCompositeOperation = "difference"
+            this.positionSelectRendering.fillStyle = "white";
+            this.positionSelectRendering.fillRect(0, y * 8+2, 128, 4);
+            this.positionSelectRendering.fillRect(x * 8+2, 0, 4, 128);
+        }
     }
 
     setSelectedIndex(index) {
@@ -726,8 +694,6 @@ class EventEditor {
             const temp = event.fields[prev];
             event.fields[prev] = event.fields[next];
             event.fields[next] = temp;
-
-            console.log(event.fields);
 
             this.setSelectedIndex(next);
         });
@@ -1110,7 +1076,8 @@ class BipsiEditor extends EventTarget {
             playtest: ONE("#playtest-rendering").getContext("2d"),
         };
 
-        this.fieldRoomSelect = ui.radio("field-room-select");
+        this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
+        this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
         
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
@@ -1120,6 +1087,8 @@ class BipsiEditor extends EventTarget {
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
         this.eventEditor = new EventEditor(this);
+
+        //this.palettePicker = new PalettePicker();
 
         this.font = font;
         this.dialoguePreviewPlayer = new DialoguePlayback(256, 256);
@@ -1141,7 +1110,7 @@ class BipsiEditor extends EventTarget {
 
         // find all the ui already defined in the html
         this.modeSelect = ui.radio("mode-select");
-        this.roomSelect = ui.radio("room-select");
+        //this.roomSelect = ui.radio("room-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
         this.roomPaletteSelect = ui.select("room-palette");
         this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
@@ -1167,7 +1136,6 @@ class BipsiEditor extends EventTarget {
 
         // initial selections
         this.modeSelect.selectedIndex = 0;
-        this.roomSelect.selectedIndex = 0;
         this.roomPaintTool.selectedIndex = 0; 
         this.tilePaintFrameSelect.selectedIndex = 0;
 
@@ -1203,12 +1171,7 @@ class BipsiEditor extends EventTarget {
             export_: ui.action("export", () => this.exportProject()),
             import_: ui.action("import", () => this.importProject()),
             reset: ui.action("reset", () => this.resetProject()),
-            help: ui.action("help", () => this.toggleHelp()),
             update: ui.action("update", () => this.updateEditor()),
-
-            copyRoom: ui.action("copy-room", () => this.copySelectedRoom()),
-            pasteRoom: ui.action("paste-room", () => this.pasteSelectedRoom()),
-            clearRoom: ui.action("clear-room", () => this.clearSelectedRoom()),
 
             shiftTileUp: ui.action("shift-tile-up", () =>
                 this.processSelectedTile((tile) => cycleRendering2D(tile,  0, -1))),
@@ -1238,6 +1201,12 @@ class BipsiEditor extends EventTarget {
             reorderTileAfter: ui.action("reorder-tile-after", () => this.reorderTileAfter()),
             deleteTile: ui.action("delete-tile", () => this.deleteTile()),
 
+            newRoom: ui.action("add-new-room", () => this.newRoom()),
+            duplicateRoom: ui.action("duplicate-room", () => this.duplicateRoom()),
+            reorderRoomBefore: ui.action("reorder-room-before", () => this.reorderRoomBefore()),
+            reorderRoomAfter: ui.action("reorder-room-after", () => this.reorderRoomAfter()),
+            deleteRoom: ui.action("delete-room", () => this.deleteRoom()),
+
             swapTileFrames: ui.action("swap-tile-frames", () => this.swapSelectedTileFrames()),
 
             copyEvent: ui.action("copy-event", () => this.copySelectedEvent()),
@@ -1248,7 +1217,6 @@ class BipsiEditor extends EventTarget {
         // can't undo/redo/paste yet
         this.actions.undo.disabled = true;
         this.actions.redo.disabled = true;
-        this.actions.pasteRoom.disabled = true;
         this.actions.pasteTileFrame.disabled = true;
         this.actions.pasteEvent.disabled = true;
         this.actions.save.disabled = !storage.available;
@@ -1302,7 +1270,7 @@ class BipsiEditor extends EventTarget {
         const playtest = ui.action("playtest", () => this.playtest());
         ONE("#playtest-rendering").addEventListener("click", () => playtest.invoke());
 
-        this.roomSelect.addEventListener("change", () => {
+        this.roomSelect.select.addEventListener("change", () => {
             const { room } = this.getSelections();
             this.roomPaletteSelect.selectedIndex = room.palette;
             this.redraw();
@@ -1333,8 +1301,12 @@ class BipsiEditor extends EventTarget {
             this.unsavedChanges = true;
             this.ready = true;
     
+            this.refreshRoomSelect();
+            this.roomSelect.select.selectedIndex = Math.max(this.roomSelect.select.selectedIndex, 0);
+
+            this.paletteEditor.updateTemporaryFromData();
             this.paletteEditor.refreshDisplay();
-            
+
             // enable/disable undo/redo buttons
             this.actions.undo.disabled = !this.stateManager.canUndo;
             this.actions.redo.disabled = !this.stateManager.canRedo;
@@ -1554,7 +1526,7 @@ class BipsiEditor extends EventTarget {
         
         const tileset = this.stateManager.resources.get(data.tileset);
         const tileSize = constants.tileSize;
-        const roomIndex = this.roomSelect.selectedIndex;
+        const roomIndex = this.roomSelect.select.selectedIndex;
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
 
@@ -1648,11 +1620,7 @@ class BipsiEditor extends EventTarget {
             rendering.globalAlpha = 1;
         }
 
-        this.roomThumbs.forEach((thumbnail, roomIndex) => {
-            const room = data.rooms[roomIndex];
-            drawRoomThumbnail(thumbnail, data.palettes[room.palette], room);
-            this.roomThumbs2[roomIndex].drawImage(thumbnail.canvas, 0, 0);
-        });
+        this.refreshRoomSelect();
 
         this.drawRoom(TEMP_128, roomIndex, { palette });
         this.renderings.paletteRoom.drawImage(TEMP_128.canvas, 0, 0);
@@ -1686,6 +1654,19 @@ class BipsiEditor extends EventTarget {
         fillRendering2D(this.renderings.playtest);
         this.renderings.playtest.drawImage(this.playtestSplash.canvas, 0, 0);
     } 
+
+    refreshRoomSelect() {
+        const { data } = this.getSelections();
+
+        const thumbs = data.rooms.map((room) => {
+            const thumb = createRendering2D(16, 16);
+            drawRoomThumbnail(thumb, data.palettes[room.palette], room);
+            return { id: room.id, thumb: thumb.canvas };
+        });
+
+        this.roomSelect.updateRooms(thumbs);
+        this.fieldRoomSelect.updateRooms(thumbs);
+    }
 
     redrawDialoguePreview() {
         if (this.eventEditor.showDialoguePreview && !this.dialoguePreviewPlayer.empty) {
@@ -1891,6 +1872,53 @@ class BipsiEditor extends EventTarget {
         });
     }
 
+    async newRoom() {
+        await this.stateManager.makeChange(async (data) => {
+            const { roomIndex } = this.getSelections(data);
+            const room = makeBlankRoom(nextRoomId(data));
+            data.rooms.splice(roomIndex+1, 0, room);
+        });
+        this.roomSelect.select.selectedIndex += 1;
+    }
+
+    async duplicateRoom() {
+        await this.stateManager.makeChange(async (data) => {
+            const { roomIndex, room } = this.getSelections(data);
+            const copy = COPY(room);
+            copy.id = nextRoomId(data);
+            data.rooms.splice(roomIndex+1, 0, copy);
+
+            const nextId = nextEventId(data);
+            copy.events.forEach((event, i) => event.id = nextId+i);
+        });
+        this.roomSelect.select.selectedIndex += 1;
+    }
+
+    async reorderRoomBefore() {
+        return this.stateManager.makeChange(async (data) => {
+            const { roomIndex } = this.getSelections(data);
+            const nextIndex = roomIndex - 1;
+            [data.rooms[nextIndex], data.rooms[roomIndex]] = [data.rooms[roomIndex], data.rooms[nextIndex]];
+            this.roomSelect.select.selectedIndex -= 1;
+        });
+    }
+
+    async reorderRoomAfter() {
+        return this.stateManager.makeChange(async (data) => {
+            const { roomIndex } = this.getSelections(data);
+            const nextIndex = roomIndex + 1;
+            [data.rooms[nextIndex], data.rooms[roomIndex]] = [data.rooms[roomIndex], data.rooms[nextIndex]];
+            this.roomSelect.select.selectedIndex += 1;
+        });
+    }
+
+    async deleteRoom() {
+        return this.stateManager.makeChange(async (data) => {
+            const { room } = this.getSelections(data);
+            arrayDiscard(data.rooms, room);
+        });
+    }
+
     createEvent(fieldsTemplate = undefined) {
         this.stateManager.makeChange(async (data) => {
             const { room } = this.getSelections(data);
@@ -2002,8 +2030,8 @@ class BipsiEditor extends EventTarget {
     } 
 
     async resetProject() {
-        // open a blank project in the editor
-        await this.loadBundle(maker.bundleFromHTML(document, "#editor-embed") ?? makeBlankBundle());
+        // open the default project in the editor
+        await this.loadBundle(maker.bundleFromHTML(document, "#editor-embed"));
     }
     
     /**

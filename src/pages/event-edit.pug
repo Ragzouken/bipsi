@@ -74,10 +74,11 @@
                 label#event-tile-select-item-template(hidden)
                     input(type="radio" name="event-tile-select")
         #field-location-editor(hidden)
-            #field-room-select.radio-select(title="select room")
-                each _, index in (new Array(24).fill(0))
+            #field-room-select.room-select.radio-select(title="select room")
+                template#field-room-select-template
                     label
-                        input(type="radio" name="field-room-select" value=`${index}` title=`select room ${index}`)
+                        input(type="radio" name="field-room-select" value="0" title=`select room 0`)
+                        canvas(width="16" height="16")
             canvas#field-position-select(width="128" height="128" title="select position")
         #field-file-editor(hidden)
             button(name="field-file-select") select file

@@ -453,20 +453,15 @@ class RadioGroupWrapper extends EventTarget {
     /** @param {HTMLInputElement[]} inputs */
     constructor(inputs) {
         super();
-        this.inputs = inputs;
-
-        inputs.forEach((input) => {
-            input.addEventListener("change", () => {
-                if (!input.checked) return;
-                this.dispatchEvent(new CustomEvent("change"));
-            });
-        });
 
         const group = this;
         this.onRadioChange = function() {
             if (!this.checked) return;
             group.dispatchEvent(new CustomEvent("change"));
         }
+
+        this.inputs = [];
+        this.replaceInputs(inputs);
     }
 
     get selectedIndex() {
@@ -520,6 +515,16 @@ class RadioGroupWrapper extends EventTarget {
     remove(radioElement) {
         arrayDiscard(this.inputs, radioElement);
         radioElement.removeEventListener("change", this.onRadioChange);
+    }
+
+    removeAll() {
+        this.inputs.forEach((element) => element.removeEventListener("change", this.onRadioChange));
+        this.inputs.length = 0;
+    }
+
+    replaceInputs(inputs) {
+        this.removeAll();
+        inputs.forEach((input) => this.add(input));
     }
 }
 
