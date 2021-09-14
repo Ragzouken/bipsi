@@ -12,6 +12,22 @@ function makeBlankRoom(id) {
     }
 }
 
+function generateGrid(width, height, gap) {
+    const rendering = createRendering2D(width, height);
+
+    for (let y = 0; y <= (height / gap); ++y) {
+        rendering.fillRect(0, y * gap - 1, width, 2);
+    }
+    for (let x = 0; x <= (width / gap); ++x) {
+        rendering.fillRect(x * gap - 1, 0, 2, height);
+    }
+
+    return rendering;
+}
+
+const TILE_GRID = generateGrid(160, 160, 20);
+const ROOM_GRID = generateGrid(256, 256, 16);
+
 /** 
  * Update the given bipsi project data so that it's valid for this current
  * version of bipsi.
@@ -1042,12 +1058,7 @@ class TileEditor {
 
             if (grid) {
                 rendering.globalAlpha = .25;
-                for (let y = 0; y < 8; ++y) {
-                    rendering.fillRect(0, y * 20 - 1, 160, 2);
-                }
-                for (let x = 0; x < 8; ++x) {
-                    rendering.fillRect(x * 20 - 1, 0, 2, 160);
-                }
+                rendering.drawImage(TILE_GRID.canvas, 0, 0);
                 rendering.globalAlpha = 1;
             }
         });
@@ -1608,12 +1619,7 @@ class BipsiEditor extends EventTarget {
         if (this.roomGrid.checked) {
             const rendering = this.renderings.tileMapPaint;
             rendering.globalAlpha = .25;
-            for (let y = 0; y < 17; ++y) {
-                rendering.fillRect(0, y * 16 - 1, 256, 2);
-            }
-            for (let x = 0; x < 17; ++x) {
-                rendering.fillRect(x * 16 - 1, 0, 2, 256);
-            }
+            rendering.drawImage(ROOM_GRID.canvas, 0, 0);
             rendering.globalAlpha = 1;
         }
 
