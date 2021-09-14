@@ -7,6 +7,7 @@ class RoomSelectItem {
     }
 
     setup(id, thumb) {
+        this.input.title = `select room ${id}`;
         this.input.value = id;
         this.rendering.drawImage(thumb, 0, 0);
     }

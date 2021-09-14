@@ -279,6 +279,7 @@ class BipsiPlayback extends EventTarget {
         this.imageElements = new Map();
 
         this.music = document.createElement("audio");
+        this.music.loop = true;
         this.autoplay = false;
 
         this.variables = new Map();
