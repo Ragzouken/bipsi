@@ -171,3 +171,23 @@
 input + svg {
     z-index: 6;
 }
+
+label.toggle#tile-grid {
+    max-width: 64px;
+}
+
+#room-picker-toggle {
+    gap: .25rem;
+}
+
+#events-room-select-window {
+    position: absolute;
+    width: 512px; height: 192px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: .5rem;
+    padding: .5rem;
+
+    background: var(--button-color);
+}

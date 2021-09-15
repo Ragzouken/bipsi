@@ -165,7 +165,7 @@ input[type="text"], textarea {
 
 label.toggle {
     flex: 1;
-    flex-direction: column;
+    flex-direction: row;
     white-space: nowrap;
     border: none;
     border-radius: 1em;
@@ -175,8 +175,6 @@ label.toggle {
     justify-content: center;
     align-items: center;
     padding: .25em;
-    
-    max-width: 64px;
 
     color: black;
     position: relative;

@@ -562,14 +562,6 @@ class EventEditor {
         return { event, field, fieldIndex };
     }
 
-    /**
-     * @param {BipsiDataEvent} event 
-     */
-    showEvent(event) {
-        this.event = event ?? { fields: [] };
-        this.refresh();
-    }
-
     refresh() {
         const { event, field, fieldIndex } = this.getSelections();
         const data = this.editor.stateManager.present;
@@ -1110,7 +1102,27 @@ class BipsiEditor extends EventTarget {
 
         this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
-        
+        this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#events-room-select-template"));
+
+        this.eventsRoomSelectWindow = ONE("#events-room-select-window");
+        this.eventsRoomSelectToggle = ui.toggle("events-switch-room");
+
+        this.eventsRoomSelectToggle.addEventListener("change", () => {
+            this.eventsRoomSelectWindow.hidden = !this.eventsRoomSelectToggle.checked;
+        });
+
+        this.eventsRoomSelect.select.addEventListener("change", () => {
+            this.roomSelect.select.selectedIndex = this.eventsRoomSelect.select.selectedIndex;
+            this.eventsRoomSelectToggle.checked = false;
+        });
+
+        window.addEventListener("pointerup", (event) => {
+            const ignore = this.eventsRoomSelectWindow.contains(event.target);
+
+            if (ignore) return;
+            this.eventsRoomSelectToggle.checked = false;
+        });
+
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
         this.tileBrowser = new TileBrowser(this);
@@ -1297,7 +1309,10 @@ class BipsiEditor extends EventTarget {
         this.roomSelect.select.addEventListener("change", () => {
             const { room } = this.getSelections();
             this.roomPaletteSelect.selectedIndex = room.palette;
+            
+            this.selectedEventId = undefined;
             this.redraw();
+            this.eventEditor.refresh();
         });
 
         this.roomPaintTool.addEventListener("change", () => {
@@ -1326,7 +1341,6 @@ class BipsiEditor extends EventTarget {
             this.ready = true;
     
             this.refreshRoomSelect();
-            this.roomSelect.select.selectedIndex = Math.max(this.roomSelect.select.selectedIndex, 0);
 
             this.paletteEditor.updateTemporaryFromData();
             this.paletteEditor.refreshDisplay();
@@ -1494,7 +1508,7 @@ class BipsiEditor extends EventTarget {
             this.selectedEventId = event_?.id;
             const events = event_ === undefined ? room.events : [event_];
             
-            this.eventEditor.showEvent(event_);
+            this.eventEditor.refresh();
 
             drag.addEventListener("move", (event) => {
                 const { x: x0, y: y0 } = round(positions[positions.length - 2]);
@@ -1688,6 +1702,10 @@ class BipsiEditor extends EventTarget {
 
         this.roomSelect.updateRooms(thumbs);
         this.fieldRoomSelect.updateRooms(thumbs);
+        this.eventsRoomSelect.updateRooms(thumbs);
+
+        this.roomSelect.select.selectedIndex = Math.max(this.roomSelect.select.selectedIndex, 0);
+        this.eventsRoomSelect.select.selectedIndex = this.roomSelect.select.selectedIndex;
     }
 
     redrawDialoguePreview() {
