@@ -20,9 +20,13 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bi
         script
             include scripts/playback.js
         script(data-editor-only)
+            include scripts/editor/utility.js
+        script(data-editor-only)
             include scripts/editor/editor.js
         script(data-editor-only)
             include scripts/editor/room-select.js
+        script(data-editor-only)
+            include scripts/editor/tile-select.js
         //script(data-editor-only)
             include scripts/editor/palette-picker.js
         script

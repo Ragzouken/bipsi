@@ -71,8 +71,9 @@
                 textarea
         #field-tile-editor(hidden)
             #field-tile-select.radio-select(title="select tile")
-                label#event-tile-select-item-template(hidden)
-                    input(type="radio" name="event-tile-select")
+                template#field-tile-select-template
+                    label
+                        input(type="radio" name="field-tile-select")
         #field-location-editor(hidden)
             #field-room-select.room-select.radio-select(title="select room")
                 template#field-room-select-template

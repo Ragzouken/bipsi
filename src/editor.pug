@@ -128,21 +128,7 @@
     #tools
         #mode-body
             include /pages/room-select.pug
-            #tile-select-tab(hidden)
-                #tile-select.radio-select(title="select tiles")
-                    label#tile-select-item-template(hidden)
-                        input(type="radio" name="tile-select")
-                #tile-buttons
-                    button(name="add-new-tile" title="add new tile")
-                        include /icons/plus.svg
-                    button(name="duplicate-tile" title="duplicate selected tile")
-                        include /icons/copy.svg
-                    button(name="reorder-tile-before" title="reorder tile before")
-                        include /icons/arrow-left.svg
-                    button(name="reorder-tile-after" title="reorder tile after")
-                        include /icons/arrow-right.svg
-                    button(name="delete-tile" title="delete selected tile")
-                        include /icons/delete.svg
+            include /pages/tile-select.pug
             #palette-edit.row(hidden)
                 #color-select.column.radio-select(title="select palette")
                     each _, y in (new Array(8).fill(0))

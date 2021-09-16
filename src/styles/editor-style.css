@@ -49,12 +49,12 @@
     overflow: hidden;
 }
 
-#tile-buttons {
+.tile-buttons {
     display: flex; flex-direction: row;
     gap: .5rem;
 }
 
-#tile-buttons > * {
+.tile-buttons > * {
     width: 56px;
     height: 40px;
 
@@ -103,12 +103,12 @@
     height: 240px;
 }
 
-#room-buttons {
+.room-buttons {
     display: flex; flex-direction: row;
     gap: .5rem;
 }
 
-#room-buttons > * {
+.room-buttons > * {
     width: 56px;
     height: 40px;
 
@@ -182,12 +182,14 @@ label.toggle#tile-grid {
 
 #events-room-select-window {
     position: absolute;
-    width: 512px; height: 192px;
+    width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
 
     display: flex; flex-direction: column;
-    border-radius: .5rem;
-    padding: .5rem;
+    border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
 
-    background: var(--button-color);
+    background: var(--frame-color);
+
+    cursor: initial;
 }

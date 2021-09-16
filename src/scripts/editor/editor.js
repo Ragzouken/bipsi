@@ -726,227 +726,6 @@ class EventEditor {
     }
 }
 
-class TileBrowser {
-    /**
-     * @param {BipsiEditor} editor 
-     */
-    constructor(editor) {
-        this.editor = editor;
-
-        this.thumbnailURIs = [];
-
-        const { parent, element } = prepareTemplate(ONE("#tile-select-item-template"));
-        this.itemContainer = parent;
-        this.itemTemplate = element; 
-
-        /** @type {HTMLLabelElement[]} */
-        this.items = [];
-
-        this.select = ui.radio("tile-select");
-        this.select.remove(ONE("#tile-select-item-template > input"));
-    
-        this.select.addEventListener("change", () => {
-            this.redraw();
-        });
-
-        this.frame = 0;
-
-        window.setInterval(() => {
-            if (!this.editor.ready) return;
-            this.frame = 1 - this.frame;
-            this.updateCSS();
-            this.redraw();
-        }, constants.frameInterval);
-    }
-
-    get selectedTileIndex() {
-        return this.select.valueAsNumber;
-    }
-
-    set selectedTileIndex(value) { 
-        this.select.setValueSilent(value);
-        this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
-    }
-
-    redraw() {
-        const { data, tile } = this.editor.getSelections();
-        if (!tile) return;
-
-        this.updateTileCount(data.tiles.length);
-
-        this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
-
-        this.editor.actions.reorderTileBefore.disabled = this.selectedTileIndex <= 0;
-        this.editor.actions.reorderTileAfter.disabled = this.selectedTileIndex >= data.tiles.length - 1;
-    }
-
-    async setFrames(canvases) {
-        const prev = [...this.thumbnailURIs];
-        const blobs = await Promise.all(canvases.map(canvasToBlob));
-        const uris = blobs.map(URL.createObjectURL);
-        await Promise.all(uris.map(loadImage)).then(() => {
-            this.thumbnailURIs = uris;
-            this.updateCSS();
-            prev.map(URL.revokeObjectURL);
-        });
-
-        const root = ONE(":root");
-        const scale = 5;
-        const w = canvases[0].width * scale;
-        const h = canvases[0].height * scale;
-
-        const { data, room } = this.editor.getSelections();
-
-        root.style.setProperty("--tileset-background-size", `${w}px ${h}px`);
-        root.style.setProperty("--tileset-background-color", data.palettes[room.palette][0]);
-
-        this.updateTileCount(data.tiles.length);
-        this.items.forEach((label, index) => {
-            const { x, y } = getTileCoords(canvases[0], index);
-            label.style.backgroundPosition = `-${x * scale}px -${y * scale}px`;
-        });
-    }
-
-    async updateCSS() {
-        this.itemContainer.style.setProperty(
-            "--tileset-background-image", 
-            `url("${this.thumbnailURIs[this.frame]}")`,
-        );
-    }
-
-    updateTileCount(count) {
-        const missing = count - this.items.length;
-
-        if (missing < 0) {
-            const excess = this.items.splice(missing, -missing);
-            excess.forEach((element) => {
-                element.remove();
-                const radio = ONE("input", element);
-                this.select.remove(radio);
-            });
-        } else if (missing > 0) {
-            const extras = ZEROES(missing).map((_, i) => {
-                const index = this.items.length + i;
-                const label = this.itemTemplate.cloneNode(true);
-                const radio = ONE("input", label);
-                radio.title = `select tile ${index}`;
-                radio.value = index.toString();
-                this.select.add(radio);
-                return label;
-            });
-
-            this.itemContainer.append(...extras);
-            this.items.push(...extras);
-        }
-
-        if (this.select.selectedIndex === -1) {
-            this.select.selectedIndex = 0;
-        }
-    }
-}
-
-class EventTileBrowser {
-    /**
-     * @param {BipsiEditor} editor 
-     */
-    constructor(editor) {
-        this.editor = editor;
-
-        this.thumbnailURIs = [];
-
-        const { parent, element } = prepareTemplate(ONE("#event-tile-select-item-template"));
-        this.itemContainer = parent;
-        this.itemTemplate = element; 
-
-        /** @type {HTMLLabelElement[]} */
-        this.items = [];
-
-        this.select = ui.radio("event-tile-select");
-        this.select.remove(ONE("#event-tile-select-item-template > input"));
-
-        this.select.addEventListener("change", () => {
-            this.redraw();
-        });
-
-        this.frame = 0;
-
-        window.setInterval(() => {
-            if (!this.editor.ready) return;
-            this.frame = 1 - this.frame;
-            this.updateCSS();
-            this.redraw();
-        }, constants.frameInterval);
-    }
-
-    get selectedTileIndex() {
-        return this.select.valueAsNumber;
-    }
-
-    set selectedTileIndex(value) { 
-        this.select.setValueSilent(value);
-        this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
-    }
-
-    redraw() {
-    }
-
-    async setFrames(canvases) {
-        const prev = [...this.thumbnailURIs];
-        const blobs = await Promise.all(canvases.map(canvasToBlob));
-        const uris = blobs.map(URL.createObjectURL);
-        await Promise.all(uris.map(loadImage)); // preload against flicker
-        this.thumbnailURIs = uris;
-        this.updateCSS();
-        prev.map(URL.revokeObjectURL);
-
-        const scale = 5;
-        this.updateTileCount(this.editor.stateManager.present.tiles.length);
-        this.items.forEach((label, index) => {
-            const { x, y } = getTileCoords(canvases[0], index);
-            label.style.backgroundPosition = `-${x * scale}px -${y * scale}px`;
-        });
-    }
-
-    async updateCSS() {
-        ONE("#field-tile-select").style.setProperty(
-            "--tileset-background-image", 
-            `url("${this.thumbnailURIs[this.frame]}")`,
-        );
-        
-    }
-
-    updateTileCount(count) {
-        const missing = count - this.items.length;
-
-        if (missing < 0) {
-            const excess = this.items.splice(missing, -missing);
-            excess.forEach((element) => {
-                element.remove();
-                const radio = ONE("input", element);
-                this.select.remove(radio);
-            });
-        } else if (missing > 0) {
-            const extras = ZEROES(missing).map((_, i) => {
-                const index = this.items.length + i;
-                const label = this.itemTemplate.cloneNode(true);
-                const radio = ONE("input", label);
-                radio.title = `select tile ${index}`;
-                radio.value = index.toString();
-                this.select.add(radio);
-                return label;
-            });
-
-            this.itemContainer.append(...extras);
-            this.items.push(...extras);
-        }
-
-        if (this.selectedTileIndex === -1) {
-            this.selectedTileIndex = 0;
-        }
-    }
-}
-
-
 class TileEditor {
     /**
      * @param {BipsiEditor} editor 
@@ -1113,20 +892,21 @@ class BipsiEditor extends EventTarget {
 
         this.eventsRoomSelect.select.addEventListener("change", () => {
             this.roomSelect.select.selectedIndex = this.eventsRoomSelect.select.selectedIndex;
-            this.eventsRoomSelectToggle.checked = false;
+            //this.eventsRoomSelectToggle.checked = false;
         });
 
-        window.addEventListener("pointerup", (event) => {
-            const ignore = this.eventsRoomSelectWindow.contains(event.target);
-
+        window.addEventListener("click", (event) => {
+            const ignore = event.pointerId === -1 
+                        || this.eventsRoomSelectWindow.contains(event.target)
+                        || ONE("#room-picker-toggle").contains(event.target);
             if (ignore) return;
             this.eventsRoomSelectToggle.checked = false;
         });
 
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
-        this.tileBrowser = new TileBrowser(this);
-        this.eventTileBrowser = new EventTileBrowser(this);
+        this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
+        this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
 
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
@@ -1660,8 +1440,6 @@ class BipsiEditor extends EventTarget {
         this.renderings.tilePaintRoom.drawImage(TEMP_128.canvas, 0, 0);
         this.renderings.eventsRoom.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
 
-        const { x, y } = this.selectedEventCell;
-
         if (!this.eventEditor.showDialoguePreview) {
             fillRendering2D(TEMP_256);
     
@@ -1670,9 +1448,12 @@ class BipsiEditor extends EventTarget {
                 TEMP_256.drawImage(this.EVENT_TILE, x * tileSize * 2, y * tileSize * 2);
             });
 
-            TEMP_256.fillStyle = "white";
-            TEMP_256.fillRect(0, y * 16 + 6, 256, 4);
-            TEMP_256.fillRect(x * 16 + 6, 0, 4, 256);
+            if (this.selectedEventCell) {
+                const { x, y } = this.selectedEventCell;
+                TEMP_256.fillStyle = "white";
+                TEMP_256.fillRect(0, y * 16 + 6, 256, 4);
+                TEMP_256.fillRect(x * 16 + 6, 0, 4, 256);
+            }
 
             this.renderings.eventsRoom.globalAlpha = .5;
             this.renderings.eventsRoom.drawImage(TEMP_256.canvas, 0, 0);
@@ -1718,7 +1499,7 @@ class BipsiEditor extends EventTarget {
         }
     }
 
-    redrawTileBrowser() {
+    async redrawTileBrowser() {
         const { data, room, tileset } = this.getSelections();
         const [, foreground, highlight] = data.palettes[room.palette];
 
@@ -1757,8 +1538,11 @@ class BipsiEditor extends EventTarget {
             }
         });
 
-        this.tileBrowser.setFrames([frame0.canvas, frame1.canvas]);
-        this.eventTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
+        await this.tileBrowser.setFrames([frame0.canvas, frame1.canvas]);
+        await this.eventTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
+        if (this.tileBrowser.select.selectedIndex === -1) {
+            this.tileBrowser.select.selectedIndex = 0;
+        }
     }
 
     async copySelectedRoom() {
