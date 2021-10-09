@@ -134,8 +134,11 @@ function findEventByTag(data, tag) {
 
 const ERROR_STYLE = {
     glyphRevealDelay: 0,
+    lines: 8,
     panelColor: "#FF0000",
     textColor: "#FFFFFF",
+
+    anchorX: .5, anchorY: .5,
 }
 
 const BEHAVIOUR_PAGE_COLOR = `
@@ -546,6 +549,7 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileID, layer, x, y) {
+        console.log(fileID);
         const image = await this.getFileImageElement(fileID);
         this.images.set(imageID, { image, layer, x, y });
     }
@@ -785,6 +789,8 @@ function generateScriptingDefines(playback, event) {
 
         if (!file && name) {
             file = oneField(defines.LIBRARY, name, "file")?.data;
+        } else if (!file) {
+            file = oneField(defines.LIBRARY, field, "file")?.data;
         }
 
         return file;

@@ -41,7 +41,6 @@ const storage = new maker.ProjectStorage("bipsi");
 
 /**
  * @typedef {Object} BipsiDataProject
- * @property {BipsiDataSettings} settings
  * @property {BipsiDataRoom[]} rooms
  * @property {string[][]} palettes
  * @property {string} tileset
