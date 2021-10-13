@@ -784,7 +784,6 @@ function generateScriptingDefines(playback, event) {
     defines.HIDE_IMAGE = (id) => playback.hideImage(id);
 
     defines.FIELD_OR_LIBRARY = (field, event=defines.EVENT) => {
-        console.log(event, field)
         let file = oneField(event, field, "file")?.data;
         let name = oneField(event, field, "text")?.data;
 
