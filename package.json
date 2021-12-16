@@ -1,0 +1,14 @@
+{
+  "name": "bipsi",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "repository": "git@github.com:smwhr/bipsi.git",
+  "author": "Ju / Smwhr <ju@smwhr.net>",
+  "license": "MIT",
+  "dependencies": {
+    "pug": "^3.0.2"
+  },
+  "devDependencies": {
+    "pug-cli": "^1.0.0-alpha6"
+  }
+}
