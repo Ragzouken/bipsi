@@ -89,8 +89,7 @@ function getEventAtLocation(data, location) {
  */
 function getLocationOfEvent(data, event) {
     const room = roomFromEvent(data, event);
-    const index = data.rooms.indexOf(room);
-    return { room: index, position: [...event.position] };
+    return { room: room.id, position: [...event.position] };
 }
 
 /**
