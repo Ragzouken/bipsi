@@ -17,6 +17,15 @@
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
 /**
+ * @param {any} message 
+ * @param {string} origin 
+ */
+function postMessageParent(message, origin) {
+    const target = window.parent ?? window.opener;
+    target?.postMessage(message, origin);
+}
+
+/**
  * @param {BipsiDataEvent} event 
  * @param {string} key 
  */
@@ -771,7 +780,7 @@ function generateScriptingDefines(playback, event) {
 
     defines.RESTART = () => playback.end();
 
-    defines.SAMPLE = (id, type, ...values) => sample(playback, id, type, ...values);
+    defines.SAMPLE = (id, type, ...values) => sample(playback, id, type, values);
     defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
 
     defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
@@ -794,6 +803,8 @@ function generateScriptingDefines(playback, event) {
 
         return file;
     };
+
+    defines.POST = (message, origin="*") => postMessageParent(message, origin);
 
     return defines;
 }
