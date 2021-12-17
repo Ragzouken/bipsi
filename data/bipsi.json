@@ -8,16 +8,16 @@
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 0, 0, 1, 0],
+        [0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       ],
@@ -44,22 +44,22 @@
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       ],
       "events": [{
         "id": 8,
-        "position": [6, 7],
+        "position": [7, 14],
         "fields": [{
           "key": "is-player",
           "type": "tag",
@@ -76,6 +76,68 @@
           "key": "page-color",
           "type": "text",
           "data": "black"
+        }]
+      }, {
+        "id": 9,
+        "position": [9, 7],
+        "fields": [{
+          "key": "graphic",
+          "type": "tile",
+          "data": 9
+        }, {
+          "key": "solid",
+          "type": "tag",
+          "data": true
+        }, {
+          "key": "say",
+          "type": "dialogue",
+          "data": "hello"
+        }]
+      }, {
+        "id": 10,
+        "position": [7, 13],
+        "fields": [{
+          "key": "exit",
+          "type": "location",
+          "data": {
+            "room": 0,
+            "position": [7, 11]
+          }
+        }]
+      }, {
+        "id": 11,
+        "position": [7, 12],
+        "fields": [{
+          "key": "exit",
+          "type": "location",
+          "data": {
+            "room": 0,
+            "position": [7, 14]
+          }
+        }]
+      }, {
+        "id": 12,
+        "position": [9, 8],
+        "fields": [{
+          "key": "reception_talk",
+          "type": "tag",
+          "data": true
+        }]
+      }, {
+        "id": 13,
+        "position": [14, 9],
+        "fields": [{
+          "key": "exit-east",
+          "type": "tag",
+          "data": true
+        }]
+      }, {
+        "id": 14,
+        "position": [1, 9],
+        "fields": [{
+          "key": "exit-west",
+          "type": "tag",
+          "data": true
         }]
       }],
       "backmap": [
@@ -106,7 +168,7 @@
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -125,21 +187,23 @@
       ["#332219", "#7f651f", "#bfba8f"],
       ["#332719", "#547f1f", "#8fbfae"]
     ],
-    "tileset": "0",
+    "tileset": "19",
     "tiles": [
       { "id": 1, "frames": [1] },
       { "id": 2, "frames": [5] },
+      { "id": 8, "frames": [8] },
       { "id": 3, "frames": [4] },
       { "id": 4, "frames": [6] },
       { "id": 5, "frames": [7] },
       { "id": 6, "frames": [0] },
+      { "id": 9, "frames": [9] },
       { "id": 7, "frames": [2, 3] }
     ]
   },
   "resources": {
-    "0": {
+    "19": {
       "type": "canvas-datauri",
-      "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAICAYAAABJYvnfAAAAAXNSR0IArs4c6QAAANdJREFUSEu9VUEOwzAIG/9/dKZM8mRZBqerul7akgSMMaRe9Ky11v6tqoIZNt7H37y325PsXYztO8VXvJpPwvdNdB/sCOic7P0pQEo+rSMGE8HEIL4SpbgYK38fE+ACMDiA4jerKNkdEScKcH5RzEnJWGulzsw6IJowEtBzrCzXXklBXeXZl1Oi2kYFpB58ggAF9A8FuOJ8hsyUIJhOLaAJpEGaKu/ah1XG8+q2ArRnOrloklMV3RDqbo+kwGlQXpkBVgHKtCMjAZgITP5PbgFX+V9mgCvAG+5qfBj6noYkAAAAAElFTkSuQmCC"
+      "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAAAICAYAAAAx3fd+AAAAAXNSR0IArs4c6QAAASxJREFUWEfdVlsOwzAIW+5/6FSZROVZgGlVomr7WZsmPGJsGB/4zTnneh1jDFu2NdyHz7g32qPWIx/LtvLP8XI+Kj5l387zPmVX5fyW7yfQK6CoAKJk1/7uizAfCAAWRhUgjDV6ZlDunHkLsNU4ygXgMQDBMVDwH1VErXsBVxTAs2vFnCkZFo7nh+3+vQJECXoMNNmN2MkAMHu5MLJqjZiP0u8pEa/dYTOfebr1VVnaue+rAKoHK4Z4AEeXx8yr+M8u4IoCXPFtPjMV6m5/ncCf+SmGI9uZAdFZHsy8AqteXmUGeEIBlNJkLXAHUF0+fqb9iCGVIVD1yOy7UqBdCsBs5xnCu58uYHbZLRWAAsDr+Vw01cnbm8QjOc4A8WYAr4dHxYc+K/ntAuxpPwfos+gYDcxDZwAAAABJRU5ErkJggg=="
     }
   }
 }

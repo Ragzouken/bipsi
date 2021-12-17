@@ -56,6 +56,14 @@ function allFields(event, name, type=undefined) {
 
 /**
  * 
+ * @param {BipsiDataEvent} event
+ */
+ function allTags(event) {
+    return event.fields.filter((field) => field.type === "tag").map((field) => field.key);
+}
+
+/**
+ * 
  * @param {BipsiDataEvent} event 
  * @param {string} name 
  * @param {string} type 
@@ -295,10 +303,18 @@ class BipsiPlayback extends EventTarget {
 
         this.variables = new Map();
         this.images = new Map();
+
+        this.story = undefined
+        this.preventMoving = false;
     }
 
     async init() {
         await this.dialoguePlayback.load();
+    }
+
+    async initWithStory(story){
+        await this.init()
+        this.story = story;
     }
 
     /** @type {BipsiDataProject} */
@@ -378,7 +394,76 @@ class BipsiPlayback extends EventTarget {
         this.ready = true;
 
         // game starts by running the touch behaviour of the player avatar
-        await this.touch(avatar);
+        //await this.touch(avatar);
+        await this.continueStory();
+    }
+
+    async continueStory(){
+        console.log("continuing")
+        const story = this.story;
+        while(story.canContinue) {
+            // Get ink to generate the next paragraph
+            var paragraphText = this.story.Continue().trim();
+            var tags = story.currentTags;
+
+            if(paragraphText.length > 0){
+                if(tags.includes("TITLE")){
+                    await this.title(paragraphText)
+                }else{
+                    await this.say(paragraphText)
+                }
+            }
+        }
+
+        const choices = this.story.currentChoices;
+
+        const autoChoice = choices.find( (choice) => choice.text.startsWith("auto:"))
+        if(autoChoice !== undefined){
+            story.ChooseChoiceIndex(autoChoice.index)
+            return await this.continueStory();
+        }
+
+        const dialogChoices = choices.filter( (choice) => {
+            if(choice.text.startsWith("auto:")) return false;
+            if(choice.text.startsWith("tag:")) return false;
+            return true;
+        })
+
+        const continueStory = this.continueStory.bind(this)
+
+        if(dialogChoices.length > 0){
+            console.log("Choices present : prevent player from moving freely !")
+
+            const choiceListContainer = ONE("#player-choices-list");
+            this.preventMoving = true;
+            dialogChoices.forEach(function(choice) {
+
+                // Create paragraph with anchor element
+                var choiceParagraphElement = document.createElement('li');
+                choiceParagraphElement.classList.add("choice");
+                choiceParagraphElement.innerHTML = `<a href='#'>${choice.text}</a>`
+                choiceListContainer.appendChild(choiceParagraphElement);
+    
+                // Click on choice
+                var choiceAnchorEl = choiceParagraphElement.querySelectorAll("a")[0];
+                choiceAnchorEl.addEventListener("click", function(event) {
+    
+                    // Don't follow <a> link
+                    event.preventDefault();
+    
+                    // Remove all existing choices
+                    choiceListContainer.innerHTML = "";
+    
+                    // Tell the story where to go next
+                    story.ChooseChoiceIndex(choice.index);
+    
+                    // Aaand loop
+                    continueStory();
+                });
+            });
+        }else{
+            this.preventMoving = false
+        }
     }
 
     update(dt) {
@@ -518,8 +603,24 @@ class BipsiPlayback extends EventTarget {
     async touch(event) {
         const touch = oneField(event, "touch", "javascript")?.data;
 
+        const tags = allTags(event);
+
+        // do we have a choice that can be triggered by this event ?
+        const choices = this.story.currentChoices
+        const taggedChoice = choices.find(choice => {
+            if(choice.text.substr(0,4) == "tag:"){
+                const tagvalue = choice.text.substr(4).trim();
+                if(tags.includes(tagvalue)) return true
+                return false;
+            }
+            return false;
+        })
+
         if (touch !== undefined) {
             await this.runJS(event, touch);
+        }else if(taggedChoice !== undefined){
+            this.story.ChooseChoiceIndex(taggedChoice.index)
+            await this.continueStory();
         } else {
             await standardEventTouch(this, event);
         }

@@ -18,6 +18,28 @@ body, canvas {
     flex: 1;
 
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+#player-container #player-choices{
+    margin-top: 0.8em;
+    width: 80%;
+    padding: 1em;
+}
+#player-container #player-choices ul{
+    font-family: "Press Start 2P";
+    list-style: none;
+    font-size: 0.8em;
+    margin: 0; padding: 0
+}
+#player-container #player-choices ul li{
+    margin: 0; padding: 0;
+}
+#player-container #player-choices ul li:not(last-child){
+    margin-bottom: 1em;
+}
+#player-container #player-choices a{
+    color: white;
+    text-decoration: none;
 }

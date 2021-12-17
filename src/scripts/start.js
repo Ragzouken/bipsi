@@ -27,9 +27,9 @@ async function startEditor(font) {
     });
 }
 
-async function makePlayback(font, bundle) {
+async function makePlayback(font, bundle, story) {
     const playback = new BipsiPlayback(font);
-    await playback.init();
+    await playback.initWithStory(story);
 
     const playCanvas = /** @type {HTMLCanvasElement} */ (ONE("#player-canvas"));
     const playRendering = /** @type {CanvasRenderingContext2D} */ (playCanvas.getContext("2d"));
@@ -63,6 +63,7 @@ async function makePlayback(font, bundle) {
     keyToCode.set("ArrowRight", "KeyD");
 
     function doMove(key) {
+        if(playback.preventMoving) return;
         const move = keys.get(key);
         if (move) {
             move();
@@ -157,8 +158,11 @@ async function start() {
     // determine if there is a project bundle embedded in this page
     const bundle = maker.bundleFromHTML(document);
 
+    const storyContent = maker.bundleFromHTML(document, "#story-embed");
+    const story = new inkjs.Story(storyContent);
+
     if (bundle) {
-        await makePlayback(font, bundle);
+        await makePlayback(font, bundle, story);
     } else {
         await startEditor(font);
     }
