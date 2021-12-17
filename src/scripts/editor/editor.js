@@ -985,6 +985,7 @@ class BipsiEditor extends EventTarget {
             // editor menu
             save: ui.action("save", () => this.save()),
             export_: ui.action("export", () => this.exportProject()),
+            export_json: ui.action("export_json", () => this.exportBundle()),
             import_: ui.action("import", () => this.importProject()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
@@ -1838,6 +1839,24 @@ class BipsiEditor extends EventTarget {
         // prompt the browser to download the page
         const name = "bipsi.html";
         const blob = maker.textToBlob(await this.makeExportHTML(), "text/html");
+        maker.saveAs(blob, name);
+    }
+
+    async exportBundle() {
+        const bundle = await this.stateManager.makeBundle();
+        const name = "bipsi.json";
+        const formatted = perfectJson(bundle,{singleLine: ({ key, path, depth }) => {
+            if (key == "position") return true;
+            if (key == "frames") return true;
+            if (depth >= 5){
+               return ["tilemap", "highmap", "backmap", "foremap", "wallmap"].includes(path[3]);
+            }
+            if (depth >= 3){
+                return ["palettes", "tiles"].includes(path[1]);
+            }
+            return false;
+          }});
+        const blob = maker.textToBlob(formatted, "application/json");
         maker.saveAs(blob, name);
     }
 

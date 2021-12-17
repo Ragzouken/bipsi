@@ -256,6 +256,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+inkjs@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/inkjs/-/inkjs-2.0.0.tgz#be9fb903bdf47fb90e1e585346c1eb185db869c3"
+  integrity sha512-rYKIPfY0GygxabFl04fFqQa8iisN1KY+4j+SOxLYVbirIzLL/t1BmO6Z7DuW8/PnRYRzsWu/wnjL+ZpJ0BxyAg==
+
 is-buffer@^1.1.5:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"

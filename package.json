@@ -6,9 +6,14 @@
   "author": "Ju / Smwhr <ju@smwhr.net>",
   "license": "MIT",
   "dependencies": {
+    "inkjs": "^2.0.0",
     "pug": "^3.0.2"
   },
   "devDependencies": {
     "pug-cli": "^1.0.0-alpha6"
+  },
+  "scripts": {
+    "watch": "pug -P -w -o dist -b src src/index.pug",
+    "build": "pug -P -o dist -b src src/index.pug"
   }
 }

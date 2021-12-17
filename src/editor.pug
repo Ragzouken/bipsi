@@ -146,10 +146,11 @@
                 h2 project
                 p
                     .button-row
-                        button(name="export" title="export as webpage") export
+                        button(name="export" title="export as webpage") as HTML
+                        button(name="export_json" title="export as json") as JSON
                         button(name="update" title="open this flickgame study in the latest version" data-remix-only) update
                         button(name="import" title="import from webpage" data-original-only) import
-                        button(name="reset" title="reset project to default") new project
+                        button(name="reset" title="reset project to default") reset
                 h2= `bipsi -- ${version} (${date})`
                 p sprout-detective is a server projet from the sprout community made with <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi</a> and narration is powered by <a href="https://www.inklestudios.com/ink/">ink</a>
                 p quick links to : <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi user guide</a>,  <a href="https://kool.tools/bipsi/scripting-guide.pdf">bipsi scripting guide</a> and <a href="https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md">writing with Ink</a>
