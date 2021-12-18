@@ -208,7 +208,7 @@ label.toggle {
 
 #viewport {
     width: 512px;
-    height: calc(512px + 48px + .5rem);
+    height: calc(512px + 48px + 3.2rem);
     background: none;
 
     padding: 0;

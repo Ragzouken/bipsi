@@ -19,9 +19,22 @@ body, canvas {
 
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
+
+    margin: 0 auto;
+    max-width: 512px;
+    width: 100%;
 }
+
+@media screen and (max-width: 640px) {
+    #player-container {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+
 #player-container #player-choices{
     margin-top: 0.8em;
     width: 80%;
