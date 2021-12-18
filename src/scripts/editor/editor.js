@@ -1837,7 +1837,7 @@ class BipsiEditor extends EventTarget {
         
     async exportProject() {
         // prompt the browser to download the page
-        const name = "bipsi.html";
+        const name = "binksi.html";
         const blob = maker.textToBlob(await this.makeExportHTML(), "text/html");
         maker.saveAs(blob, name);
     }

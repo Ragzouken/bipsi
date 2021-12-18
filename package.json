@@ -1,5 +1,5 @@
 {
-  "name": "bipsi",
+  "name": "binksi",
   "version": "1.0.0",
   "main": "dist/index.js",
   "repository": "git@github.com:smwhr/bipsi.git",
@@ -7,6 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "inkjs": "^2.0.0",
+    "node-html-parser": "^5.1.0",
     "pug": "^3.0.2"
   },
   "devDependencies": {
@@ -14,6 +15,9 @@
   },
   "scripts": {
     "watch": "pug -P -w -o dist -b src src/index.pug",
-    "build": "pug -P -o dist -b src src/index.pug"
+    "ink": "inklecate -o data/story.ink.json data/story.ink && node build-scripts/cleanJson.js data/story.ink.json",
+    "build": "pug -P -o dist -b src src/index.pug",
+    "make-player": "node build-scripts/makePlayer.js dist/index.html dist/player.html",
+    "dist": "mkdir -p dist/editor && mv dist/index.html dist/editor/index.html && mv dist/player.html dist/index.html"
   }
 }
