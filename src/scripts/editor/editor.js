@@ -896,7 +896,7 @@ class BipsiEditor extends EventTarget {
         });
 
         window.addEventListener("click", (event) => {
-            const ignore = event.pointerId === -1 
+            const ignore = !event.isTrusted
                         || this.eventsRoomSelectWindow.contains(event.target)
                         || ONE("#room-picker-toggle").contains(event.target);
             if (ignore) return;
