@@ -11,10 +11,12 @@
     "pug": "^3.0.2"
   },
   "devDependencies": {
+    "light-server-pug": "^2.6.4",
     "pug-cli": "^1.0.0-alpha6"
   },
   "scripts": {
     "watch": "pug -P -w -o dist -b src src/index.pug",
+    "editor": "light-server-pug -o -s dist -w 'src/**, data/** # yarn build'",
     "ink": "inklecate -o data/story.ink.json data/story.ink && node build-scripts/cleanJson.js data/story.ink.json",
     "build": "pug -P -o dist -b src src/index.pug",
     "make-player": "node build-scripts/makePlayer.js dist/index.html dist/player.html",

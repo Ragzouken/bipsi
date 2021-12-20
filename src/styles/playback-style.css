@@ -37,7 +37,7 @@ body, canvas {
 
 #player-container #player-choices{
     margin-top: 0.8em;
-    width: 80%;
+    width: 100%;
     padding: 1em;
 }
 #player-container #player-choices ul{

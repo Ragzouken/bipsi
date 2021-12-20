@@ -69,10 +69,6 @@
           "type": "tile",
           "data": 6
         }, {
-          "key": "title",
-          "type": "dialogue",
-          "data": "demo ==binksi== game"
-        }, {
           "key": "page-color",
           "type": "text",
           "data": "black"

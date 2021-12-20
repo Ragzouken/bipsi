@@ -1,4 +1,4 @@
-Bipsi Detective #TITLE
+demo ==binksi== game #TITLE
 
 -> init
 
@@ -22,10 +22,10 @@ Bipsi Detective #TITLE
 -> opts
 
 === talk_to_receptionist
-Welcome to Lich Hotel.
+Welcome to Binksi Hotel.
 Do you have a room here ?
-+ yes
-+ no
++ [yes]
++ [no]
 -
 Then why bother me ?
 ->->
