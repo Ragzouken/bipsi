@@ -446,7 +446,7 @@ maker.textToBlob = function(text, type = "text/plain") {
 maker.bundleFromHTML = function(html, query="#bundle-embed") {
     let json = ONE(query, html)?.textContent;
 
-    const bundle = json ? JSON.parse(json.charCodeAt(0) == 123 ? json : json.substr(1)) : undefined;
+    const bundle = json ? JSON.parse(json.charCodeAt(0) == 123 ? json : json.substring(1)) : undefined;
     return bundle;
 }
 

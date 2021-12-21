@@ -145,11 +145,20 @@
             #play-tab-body(hidden)
                 p
                     .button-row
-                        button(name="export" title="export as webpage") as HTML
-                        button(name="export_json" title="export as json") as JSON
+                        h3 Import
+                        button(name="import_html" title="import from webpage" data-original-only) html
+                        button(name="import_bipsi" title="import a bipsi" data-original-only) bipsi bundle
+                        button(name="import_story" title="import an ink story" data-original-only) ink story
+                p
+                    .button-row
+                        h3 Export 
+                        button(name="export" title="export as webpage") release as html
+                        button(name="export_json" title="export as json") bipsi bundle
+                p
+                    .button-row
+                        h3 Extra 
                         button(name="update" title="open this flickgame study in the latest version" data-remix-only) update
-                        button(name="import" title="import from webpage" data-original-only) import
-                        button(name="reset" title="reset project to default") reset
+                        button(name="reset" title="reset project to default") reset to default
                 h2= `binksi -- ${version} (${date})`
                 p propulse your <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi</a> games with narration engine <a href="https://www.inklestudios.com/ink/">ink</a>
                 p quick links to : <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi user guide</a>,  <a href="https://kool.tools/bipsi/scripting-guide.pdf">bipsi scripting guide</a> and <a href="https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md">writing with Ink</a>

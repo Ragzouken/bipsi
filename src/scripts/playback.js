@@ -907,5 +907,14 @@ function generateScriptingDefines(playback, event) {
 
     defines.POST = (message, origin="*") => postMessageParent(message, origin);
 
+    //binksi
+    defines.STORY = playback.story;
+    defines.SET_INK_VAR = (field, value) => playback.story.variablesState.$(field, value);
+    defines.GET_INK_VAR = (field) => playback.story.variablesState.$(field);
+    defines.DIVERT_TO = (knot_name) => {
+        playback.story.ChoosePathString(knot_name);
+        return playback.continueStory();
+    }
+
     return defines;
 }

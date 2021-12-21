@@ -986,7 +986,9 @@ class BipsiEditor extends EventTarget {
             save: ui.action("save", () => this.save()),
             export_: ui.action("export", () => this.exportProject()),
             export_json: ui.action("export_json", () => this.exportBundle()),
-            import_: ui.action("import", () => this.importProject()),
+            import_: ui.action("import_html", () => this.importProject()),
+            import_json: ui.action("import_bipsi", () => this.importBundle()),
+            import_story: ui.action("import_story", () => this.importStory()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
 
@@ -1800,6 +1802,11 @@ class BipsiEditor extends EventTarget {
         this.unsavedChanges = false;
     }
 
+    async loadStory(story) {
+        ONE("#story-embed").innerHTML = JSON.stringify(story);
+        await this.playtest()
+    }
+
     /** @returns {string[]} */
     getManifest() {
         return [];
@@ -1870,6 +1877,24 @@ class BipsiEditor extends EventTarget {
         const bundle = maker.bundleFromHTML(html);
         // load the contents of the bundle into the editor
         await this.loadBundle(bundle);
+    } 
+
+    async importBundle() {
+        // ask the browser to provide a file
+        const [file] = await maker.pickFiles("application/json");
+        // read the file and turn it into an html page
+        const json = await maker.textFromFile(file);
+        const bundle = JSON.parse(json);
+        await this.loadBundle(bundle);
+    } 
+
+    async importStory() {
+        // ask the browser to provide a file
+        const [file] = await maker.pickFiles("application/json");
+        // read the file and turn it into an html page
+        const json = await maker.textFromFile(file);
+        const story = JSON.parse(json.charCodeAt(0) == 123 ? json : json.substring(1))
+        await this.loadStory(story);
     } 
 
     async resetProject() {

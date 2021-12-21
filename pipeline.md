@@ -2,7 +2,7 @@
 
 ## Graphics
 
-* Connect [to the online editor](https://smwhr.github.io/sprout-detective/editor)
+* Connect [to the online editor](https://smwhr.github.io/binksi/editor)
 * Export JSON
 * Save in `data/bipsi.json`
 * Review your changes, commit and push
@@ -24,4 +24,4 @@
 
 ## Overall
 
-* The full game is compiled in the branch `distribution` and can be [played online](https://smwhr.github.io/sprout-detective/play)
+* The full game is compiled in the branch `distribution` and can be [played online](https://smwhr.github.io/binksi/play)
