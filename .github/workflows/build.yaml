@@ -3,7 +3,7 @@ on:
   [push, workflow_dispatch]
 
 jobs:
-  build-ink:
+  build-binksi:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
