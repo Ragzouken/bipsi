@@ -20,6 +20,6 @@
     "ink": "inklecate -o data/story.ink.json data/story.ink && node build-scripts/cleanJson.js data/story.ink.json",
     "build": "pug -P -o dist -b src src/index.pug",
     "make-player": "node build-scripts/makePlayer.js dist/index.html dist/player.html",
-    "dist": "mkdir -p dist/editor && mv dist/index.html dist/editor/index.html && mv dist/player.html dist/index.html"
+    "dist-doc": "mkdir -p dist/docs && cp -R docs/* dist/docs"
   }
 }

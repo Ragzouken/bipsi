@@ -398,8 +398,18 @@ class BipsiPlayback extends EventTarget {
         await this.continueStory();
     }
 
+    async spawnAt(target){
+        let targetEvent = findEventByTag(this.data, target);
+        if(targetEvent){
+            let targetLocation = getLocationOfEvent(this.data, targetEvent);
+            if(targetLocation){
+                const AVATAR = getEventById(this.data, this.avatarId);
+                await moveEvent(this.data, AVATAR, targetLocation);
+            }
+        }
+    }
+
     async continueStory(){
-        console.log("continuing")
         const story = this.story;
         while(story.canContinue) {
             // Get ink to generate the next paragraph
@@ -407,10 +417,14 @@ class BipsiPlayback extends EventTarget {
             var tags = story.currentTags;
 
             if(paragraphText.length > 0){
-                if(tags.includes("TITLE")){
-                    await this.title(paragraphText)
+                const matchSpawn = paragraphText.trim().match(/SPAWN_AT\(([^)]*)\)/)
+                if( matchSpawn ){
+                    const target = matchSpawn[1];
+                    await this.spawnAt(target);
+                }else if(tags.includes("TITLE")){
+                    await this.title(paragraphText);
                 }else{
-                    await this.say(paragraphText)
+                    await this.say(paragraphText);
                 }
             }
         }
@@ -432,8 +446,6 @@ class BipsiPlayback extends EventTarget {
         const continueStory = this.continueStory.bind(this)
 
         if(dialogChoices.length > 0){
-            console.log("Choices present : prevent player from moving freely !")
-
             const choiceListContainer = ONE("#player-choices-list");
             this.preventMoving = true;
             dialogChoices.forEach(function(choice) {
