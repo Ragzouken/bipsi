@@ -4,12 +4,12 @@
 
 The usage of the editor should be transparent if you're already familiar with bipsi. You can check the [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf) if you're lost.
 
-To take better advantage of binksi, you will need to load an Ink Story via the *load ink story* button on the play page. If you need help, you can follow the documentation at [Writing With Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).  
+To take better advantage of binksi, you will need to load an Ink Story via the *import > ink story* button on the play page. If you need help, you can follow the documentation at [Writing With Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).  
 *Note* : you'll need to upload a _compiled_ ink story (in JSON format).
 
 The editor comes preloaded with an example story. You can find [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink).
 
-## Additional Bipsi functions and variable
+## Additional Bipsi functions and variables
 
 * `STORY` : the `Story` object as provided by `inkjs`.
 * `SET_INK_VAR(varname, value)` : save the variable `varname` inside of ink with value `value`.
@@ -47,3 +47,11 @@ The editor comes preloaded with an example story. You can find [the example file
     The name should _not_ be enclosed in any quotes.  
     If the teleport target does not exist, nothing happens and the story continues.  
     _Tip_: `teleport_name` can be a printed variable, (eg: `SPAWN_AT({lastVisitedRoom})`)
+    _Example_: See [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink)
+
+
+* `SPAWN_AT(teleport_name, event_name)` :  
+    When encoutered in the text of the story, bipsi will try to move the selected event `event_name` on an event tagged with `teleport_name`.  
+    Both names should _not_ be enclosed in any quotes.  
+    If the teleport target or the event does not exist, nothing happens and the story continues. 
+    _Tip_: You cannot create new event _on-the-fly_, you should create a "store room" where you can take event from and put them back

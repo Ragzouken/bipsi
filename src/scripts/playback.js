@@ -408,13 +408,13 @@ class BipsiPlayback extends EventTarget {
         await this.continueStory();
     }
 
-    async spawnAt(target){
+    async spawnAt(target, event){
         let targetEvent = findEventByTag(this.data, target);
         if(targetEvent){
             let targetLocation = getLocationOfEvent(this.data, targetEvent);
-            if(targetLocation){
-                const AVATAR = getEventById(this.data, this.avatarId);
-                await moveEvent(this.data, AVATAR, targetLocation);
+            let spawnedEvent = findEventByTag(this.data, event);
+            if(targetLocation && spawnedEvent){
+                await moveEvent(this.data, spawnedEvent, targetLocation);
             }
         }
     }
@@ -427,10 +427,12 @@ class BipsiPlayback extends EventTarget {
             var tags = story.currentTags;
 
             if(paragraphText.length > 0){
-                const matchSpawn = paragraphText.trim().match(/SPAWN_AT\(([^)]*)\)/)
+                const matchSpawn = paragraphText.trim().match(/SPAWN_AT\(([^),\s]*)([\s]*,[\s]*([^)]*)*)*\)/)
+                console.log(matchSpawn)
                 if( matchSpawn ){
                     const target = matchSpawn[1];
-                    await this.spawnAt(target);
+                    const event = matchSpawn[3] || "is-player";
+                    await this.spawnAt(target.trim(), event.trim());
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
