@@ -21,7 +21,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         pathInArchive: "inklecate"
     - name: install, build ink, build website
-      run: yarn && yarn ink && yarn build && yarn make-player && yarn dist
+      run: yarn && yarn ink && yarn build
     - name: Deploy 🚀
       uses: JamesIves/github-pages-deploy-action@4.1.5
       with:
