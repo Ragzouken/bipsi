@@ -93,7 +93,8 @@ function roomFromEvent(data, event) {
  * @returns {BipsiDataEvent?}
  */
 function getEventAtLocation(data, location) {
-    const room = data.rooms[location.room];
+    const room = data.rooms.find((room) => room.id === location.room);
+    
     const [x, y] = location.position;
     const [event] = getEventsAt(room.events, x, y);
     return event;
@@ -243,16 +244,25 @@ if (graphic) {
 }
 `;
 
+const BEHAVIOUR_TOUCH_LOCATION = `
+let location = FIELD(EVENT, "touch-location", "location");
+let event = location ? EVENT_AT(location) : undefined;
+if (event) {
+    TOUCH(event);
+}
+`;
+
 const STANDARD_SCRIPTS = [
     BEHAVIOUR_PAGE_COLOR,
     BEHAVIOUR_IMAGES,
     BEHAVIOUR_MUSIC,
     BEHAVIOUR_TITLE,
     BEHAVIOUR_DIALOGUE,
-    BEHAVIOUR_EXIT, 
-    BEHAVIOUR_REMOVE, 
+    BEHAVIOUR_EXIT,
+    BEHAVIOUR_REMOVE,
     BEHAVIOUR_ENDING, 
     BEHAVIOUR_SET_AVATAR,
+    BEHAVIOUR_TOUCH_LOCATION,
 ];
 
 const BACKG_PAGE = createRendering2D(128, 128); 
