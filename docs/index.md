@@ -46,12 +46,12 @@ The editor comes preloaded with an example story. You can find [the example file
     When encoutered in the text of the story, bipsi will try to teleport the avatar on an event tagged with `teleport_name`.  
     The name should _not_ be enclosed in any quotes.  
     If the teleport target does not exist, nothing happens and the story continues.  
-    _Tip_: `teleport_name` can be a printed variable, (eg: `SPAWN_AT({lastVisitedRoom})`)
-    _Example_: See [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink)
+    _Tip_: `teleport_name` can be a printed variable, (eg: `SPAWN_AT({lastVisitedRoom})`).
+    _Example_: See [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink).
 
 
 * `SPAWN_AT(teleport_name, event_name)` :  
     When encoutered in the text of the story, bipsi will try to move the selected event `event_name` on an event tagged with `teleport_name`.  
     Both names should _not_ be enclosed in any quotes.  
     If the teleport target or the event does not exist, nothing happens and the story continues. 
-    _Tip_: You cannot create new event _on-the-fly_, you should create a "store room" where you can take event from and put them back
+    _Tip_: You cannot create new event _on-the-fly_, you should create a "store room" where you can take event from and put them back.
