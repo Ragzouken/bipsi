@@ -1,5 +1,5 @@
 :root {
-    --button-color: #ffd800;
+    --button-color: #C25C5C;
 
     /** diagonal stripes for showing clearly transparent pixels of the paint area */
     --trans-color-1: rgb(32, 32, 32);
@@ -33,7 +33,7 @@ body {
     align-items: center;
 
     background: black;
-    color: white;
+    color: black;
 }
 
 #editor {
@@ -54,7 +54,7 @@ html[data-remix-generation="0"] [data-remix-only] {
     display: flex; flex-direction: column;
     padding: 1em; gap: 1em;
 
-    background: #367b6b;
+    background: #ECECEC;
     border-radius: 2em;
 }
 
@@ -178,9 +178,10 @@ button {
 
     border: none;
     border-radius: 1em;
+    color: white;
     background-color: var(--button-color);
 
-    font-weight: bold;
+    font-weight: 400;
 
     display: flex;
     justify-content: center;
@@ -190,7 +191,7 @@ button {
 }
 
 button:active {
-    filter: invert();
+    background-color: #972f26;
 }
 
 button:disabled {

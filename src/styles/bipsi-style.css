@@ -1,6 +1,6 @@
 :root {
-    --button-color: #ffd800;
-    --frame-color: #367b6b;
+    --button-color: #C25C5C;
+    --frame-color: #ECECEC;
 }
 
 body {
@@ -105,7 +105,7 @@ input[type="text"], textarea {
 }
 
 #mode-select.radio-select input[type="radio"]:checked {
-    background: #367b6b;
+    background: #972f26;
 }
 
 #undo-row {
@@ -588,11 +588,11 @@ a {
 }
 
 a:hover {
-    color: white;
+    color: var(--button-color)
 }
 
 a:visited {
-    color: #cef0df;
+    color: var(--button-color);
 }
 
 em {
