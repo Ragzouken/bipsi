@@ -19,6 +19,7 @@
     "editor": "light-server-pug -o -s dist -w 'src/**, data/** # yarn build'",
     "ink": "inklecate -o data/story.ink.json data/story.ink && node build-scripts/cleanJson.js data/story.ink.json",
     "build": "pug -P -o dist -b src src/index.pug",
+    "build:empty": "pug -P -o dist -b src src/index.pug && node build-scripts/makeEmptyEditor.js dist/index.html dist/index.html",
     "make-player": "node build-scripts/makePlayer.js dist/index.html dist/player.html",
     "dist-doc": "mkdir -p dist/docs && cp -R docs/* dist/docs"
   }
