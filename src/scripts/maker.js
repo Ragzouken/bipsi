@@ -536,8 +536,8 @@ class CheckboxWrapper extends EventTarget {
 
         inputs.forEach((input) => {
             input.addEventListener("change", () => {
-                this.dispatchEvent(new CustomEvent("change"));
                 this.setCheckedSilent(input.checked);
+                this.dispatchEvent(new CustomEvent("change"));
             });
         });
     }

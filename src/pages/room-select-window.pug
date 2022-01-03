@@ -1,4 +1,4 @@
-#events-room-select-window(hidden)
+#room-select-window(hidden)
     .room-buttons
         button(name="add-new-room" title="add new room")
             include /icons/plus.svg
@@ -11,7 +11,7 @@
         button(name="delete-room" title="delete selected room")
             include /icons/delete.svg
     #events-room-select.room-select.radio-select(title="select room")
-        template#events-room-select-template
+        template#room-select-window-template
             label
                 input(type="radio" name="events-room-select" value="0" title=`select room 0`)
                 canvas(width="16" height="16")

@@ -881,13 +881,13 @@ class BipsiEditor extends EventTarget {
 
         this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
-        this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#events-room-select-template"));
+        this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
 
-        this.eventsRoomSelectWindow = ONE("#events-room-select-window");
-        this.eventsRoomSelectToggle = ui.toggle("events-switch-room");
+        this.roomSelectWindow = ONE("#room-select-window");
+        this.showRoomSelect = ui.toggle("show-room-window");
 
-        this.eventsRoomSelectToggle.addEventListener("change", () => {
-            this.eventsRoomSelectWindow.hidden = !this.eventsRoomSelectToggle.checked;
+        this.showRoomSelect.addEventListener("change", () => {
+            this.roomSelectWindow.hidden = !this.showRoomSelect.checked;
         });
 
         this.eventsRoomSelect.select.addEventListener("change", () => {
@@ -897,10 +897,10 @@ class BipsiEditor extends EventTarget {
 
         window.addEventListener("click", (event) => {
             const ignore = !event.isTrusted
-                        || this.eventsRoomSelectWindow.contains(event.target)
-                        || ONE("#room-picker-toggle").contains(event.target);
+                        || this.roomSelectWindow.contains(event.target)
+                        || event.target.name === "show-room-window"
             if (ignore) return;
-            this.eventsRoomSelectToggle.checked = false;
+            this.showRoomSelect.checked = false;
         });
 
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
@@ -1165,7 +1165,13 @@ class BipsiEditor extends EventTarget {
             const tool = this.roomPaintTool.value;
 
             const prevTile = room.tilemap[y][x];
-            const nextTile = prevTile !== tile.id ? tile.id : 0;
+
+            const pal = tool === "high" ? 2 : 1;
+            const same = room.tilemap[y][x] === tile.id 
+                      && room.backmap[y][x] === 0
+                      && room.foremap[y][x] === pal;
+
+            const nextTile = same ? 0 : tile.id;
             const nextWall = 1 - room.wallmap[y][x];
 
             if (tool === "pick" || forcePick) {
@@ -1179,8 +1185,6 @@ class BipsiEditor extends EventTarget {
                 const setIfWithin = (map, x, y, value) => {
                     if (x >= 0 && x < 16 && y >= 0 && y < 16) map[y][x] = value ?? 0;
                 } 
-
-                const pal = tool === "high" ? 2 : 1;
 
                 const plots = {
                     tile: (x, y) => { 

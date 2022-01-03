@@ -216,60 +216,12 @@ label.toggle {
     overflow: visible;
 }
 
-#tile-paint-tab {
-    display: flex; flex-direction: column;
-    gap: 1rem;
-}
-
-#tile-paint-previews {
-    display: flex; flex-direction: row;
-    gap: 1rem;
-}
-
-#tile-paint-canvases {
-    flex: 0;
-
-    display: flex; flex-direction: row;
-
-    padding: 1rem; gap: 1rem;
-    background: var(--trans-gradient);
-    border-radius: 1rem;
-
-    align-items: center;
-    justify-content: space-evenly;
-}
-
-#tile-paint-canvases canvas {
-    width: 160px; height: 160px;
-    cursor: crosshair;
-}
-
-#tile-paint-buttons {
-    flex: 1;
-
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-}
-
-#tile-paint-a {
-    cursor: not-allowed;
-    margin: auto;
-
-    width: 96px;
-    height: 96px;
-}
-
 #viewport {
     display: flex; flex-direction: column;
 
     justify-content: unset;
     align-items: unset;
 
-    gap: .5rem;
-}
-
-.viewport-toolbar {
-    display: flex; flex-direction: row;
     gap: .5rem;
 }
 

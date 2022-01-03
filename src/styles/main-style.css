@@ -367,8 +367,8 @@ input[type="text"], textarea {
     grid-template-columns: repeat(3, auto);
 }
 
-.grid3 label { border-radius: 0; }
-.grid3 label:nth-child(1) { border-top-left-radius: 1em; }
-.grid3 label:nth-child(3) { border-top-right-radius: 1em; }
-.grid3 label:nth-last-child(3) { border-bottom-left-radius: 1em; }
-.grid3 label:nth-last-child(1) { border-bottom-right-radius: 1em; }
+.grid3 > * { border-radius: 0; }
+.grid3 > *:nth-child(1) { border-top-left-radius: 1em; }
+.grid3 > *:nth-child(3) { border-top-right-radius: 1em; }
+.grid3 > *:nth-last-child(3) { border-bottom-left-radius: 1em; }
+.grid3 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
