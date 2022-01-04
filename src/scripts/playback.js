@@ -244,6 +244,11 @@ if (event) {
 }
 `;
 
+const BEHAVIOUR_ADD_BEHAVIOUR = `
+let scripts = FIELDS(EVENT, "add-behaviour", "javascript");
+ADD_BEHAVIOURS(...scripts);
+`;
+
 const STANDARD_SCRIPTS = [
     BEHAVIOUR_PAGE_COLOR,
     BEHAVIOUR_IMAGES,
@@ -255,6 +260,7 @@ const STANDARD_SCRIPTS = [
     BEHAVIOUR_ENDING, 
     BEHAVIOUR_SET_AVATAR,
     BEHAVIOUR_TOUCH_LOCATION,
+    BEHAVIOUR_ADD_BEHAVIOUR,
 ];
 
 const BACKG_PAGE = createRendering2D(128, 128); 
@@ -295,7 +301,6 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
         this.error = false;
 
-
         this.objectURLs = new Map();
         this.imageElements = new Map();
 
@@ -305,6 +310,7 @@ class BipsiPlayback extends EventTarget {
 
         this.variables = new Map();
         this.images = new Map();
+        this.extra_behaviours = [];
     }
 
     async init() {
@@ -348,6 +354,7 @@ class BipsiPlayback extends EventTarget {
         this.music.removeAttribute("src");
         this.music.pause();
         this.images.clear();
+        this.extra_behaviours.length = 0;
         this.imageElements.clear();
         this.objectURLs.forEach((url) => URL.revokeObjectURL(url));
     }
@@ -603,6 +610,10 @@ async function standardEventTouch(playback, event) {
     for (let script of STANDARD_SCRIPTS) {
         await playback.runJS(event, script);
     }
+
+    for (let script of playback.extra_behaviours) {
+        await playback.runJS(event, script);
+    }
 }
 
 function sample(playback, id, type, values) {
@@ -794,7 +805,8 @@ function generateScriptingDefines(playback, event) {
     defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
 
     defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
-
+    defines.ADD_BEHAVIOURS = (...scripts) => playback.extra_behaviours.push(...scripts);
+    
     defines.PLAY_MUSIC = (file) => playback.playMusic(playback.getFileObjectURL(file));
     defines.STOP_MUSIC = () => playback.stopMusic();
 

@@ -173,7 +173,7 @@ input + svg {
 }
 
 label.toggle#tile-grid {
-    max-width: 64px;
+    max-width: 52px;
 }
 
 .room-picker-toggle {
@@ -182,7 +182,7 @@ label.toggle#tile-grid {
 
 label.room-picker-toggle {
     flex: 0;
-    min-width: 80px;
+    min-width: 72px;
 }
 
 /* 
@@ -256,7 +256,7 @@ label.room-picker-toggle {
     gap: 8px;
 }
 
-#tile-paint-buttons > .grid3 {
+#tile-paint-buttons > .grid3, #tile-paint-buttons > .horizontal-capsule {
     gap: 2px;
 }
 

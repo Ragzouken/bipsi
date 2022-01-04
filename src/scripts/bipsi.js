@@ -136,6 +136,13 @@ function makeTileToFrameMap(tiles, frame) {
     ]));
 }
 
+/**
+ * @param {CanvasRenderingContext2D} destination
+ * @param {CanvasRenderingContext2D} tileset 
+ * @param {Map<number, number>} tileToFrame 
+ * @param {string[]} palette 
+ * @param {{ tilemap: number[][], backmap: number[][], foremap: number[][] }} layer 
+ */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
     drawRecolorLayer(destination, (backg, color, tiles) => {
         for (let ty = 0; ty < 16; ++ty) {
@@ -165,6 +172,13 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
     });
 }
 
+/**
+ * @param {CanvasRenderingContext2D} destination 
+ * @param {CanvasRenderingContext2D} tileset 
+ * @param {Map<number, number>} tileToFrame 
+ * @param {string[]} palette 
+ * @param {BipsiDataEvent[]} events 
+ */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
     const [background, foreground, highlight] = palette;
 

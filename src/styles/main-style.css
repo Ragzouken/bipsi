@@ -272,6 +272,10 @@ button:disabled {
     flex-direction: column;
 }
 
+.horizontal-capsule > * {
+    border-radius: 0;
+}
+
 .horizontal-capsule > :first-child {
     border-radius: 1em 0 0 1em;
 }
