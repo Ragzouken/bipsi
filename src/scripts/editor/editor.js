@@ -1037,10 +1037,17 @@ class BipsiEditor extends EventTarget {
         this.actions.pasteEvent.disabled = true;
         this.actions.save.disabled = !storage.available;
 
+        /**
+         * @param {HTMLElement} element 
+         */
+        function isElementTextInput(element) {
+            const tag = element.tagName.toLowerCase();
+            return tag === "textarea" || (tag === "input" && element.type === "text");
+        }
+
         // hotkeys
         document.addEventListener("keydown", (event) => {
-            const targetTag = event.target.tagName.toLowerCase();
-            const textedit = targetTag === "input" || targetTag === "textarea";
+            const textedit = isElementTextInput(event.target);
 
             if (event.ctrlKey) {
                 if (event.key === "z" && !textedit) this.actions.undo.invoke();
