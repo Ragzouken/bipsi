@@ -479,7 +479,11 @@ class BipsiPlayback extends EventTarget {
     }
 
     sendVariables() {
-        window.parent.postMessage({ type: "variables", data: this.variables });
+        try {
+            window.parent.postMessage({ type: "variables", data: this.variables });
+        } catch (e) {
+            this.log("> CAN'T TRACK VARIABLES (COMPLEX VALUE)");
+        }
     }
 
     async proceed() {

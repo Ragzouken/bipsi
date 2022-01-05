@@ -1358,7 +1358,7 @@ class BipsiEditor extends EventTarget {
         const refreshVariables = () => {
             if (this.variablesWindow.hidden) return;
             const entries = Array.from(this.savedVariables);
-            this.variablesTextElement.innerText = "VARIABLES:\n" + entries.map(([key, value]) => `${key} = ${value}`).join("\n");
+            this.variablesTextElement.innerText = "VARIABLES:\n" + entries.map(([key, value]) => `${key} = ${JSON.stringify(value)}`).join("\n");
         }
 
         window.addEventListener("message", (event) => {
