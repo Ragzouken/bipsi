@@ -478,6 +478,10 @@ class BipsiPlayback extends EventTarget {
         window.parent.postMessage({ type: "log", data });
     }
 
+    sendVariables() {
+        window.parent.postMessage({ type: "variables", data: this.variables });
+    }
+
     async proceed() {
         if (!this.ready) return;
 
@@ -556,7 +560,9 @@ class BipsiPlayback extends EventTarget {
             const script = new AsyncFunction("COMMANDS", preamble + js);
             await script(defines);
         } catch (e) {
-            console.log(e);
+            const long = `> SCRIPT ERROR "${e}"\n---\n${js}\n---`;
+            this.log(long);
+
             const error = `SCRIPT ERROR:\n${e}`;
             this.showError(error);
         }
@@ -785,7 +791,10 @@ function generateScriptingDefines(playback, event) {
     defines.FIND_EVENT = (tag) => findEventByTag(playback.data, tag); 
 
     defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
-    defines.SET = (key, value) => playback.variables.set(key, value);
+    defines.SET = (key, value) => {
+        playback.variables.set(key, value);
+        playback.sendVariables();
+    }
 
     defines.EVENT_ID = (event) => event.id;
 

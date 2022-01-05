@@ -5,6 +5,7 @@
 #viewport
     include /pages/room-select-window.pug
     include /pages/log-window.pug
+    include /pages/variables-window.pug
     #play-tab-view.viewport-tab-body(hidden)
         canvas#playtest-rendering(width="256" height="256" tabindex="0")
         iframe#playtest(hidden)
@@ -14,7 +15,11 @@
             label.toggle.picker-toggle
                 input(type="checkbox" name="show-log" title="show script log")
                 include /icons/log.svg
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-up-fill" viewBox="0 0 16 16"><path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/></svg>
+                include /icons/caret-up.svg
+            label.toggle.picker-toggle
+                input(type="checkbox" name="show-variables" title="show variables")
+                include /icons/variables.svg
+                include /icons/caret-up.svg
     #palette-tab.viewport-tab-body(hidden)
         canvas#palette-room(width="128" height="128" draggable="false")
         .viewport-toolbar

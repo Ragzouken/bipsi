@@ -898,6 +898,15 @@ class BipsiEditor extends EventTarget {
         autoCloseToggledWindow(this.logWindow, this.showLog, "show-log");
         this.logTextElement = ONE("#log-text");
 
+        this.variablesWindow = ONE("#variables-window");
+        this.showVariables = ui.toggle("show-variables");
+        this.showVariables.addEventListener("change", () => {
+            this.variablesWindow.hidden = !this.showVariables.checked;
+            refreshVariables();
+        });
+        autoCloseToggledWindow(this.variablesWindow, this.showVariables, "show-variables");
+        this.variablesTextElement = ONE("#variables-text");
+
         this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
         this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
@@ -1345,10 +1354,20 @@ class BipsiEditor extends EventTarget {
             this.redraw();
         }, constants.frameInterval);
 
+        this.savedVariables = new Map();
+        const refreshVariables = () => {
+            if (this.variablesWindow.hidden) return;
+            const entries = Array.from(this.savedVariables);
+            this.variablesTextElement.innerText = "VARIABLES:\n" + entries.map(([key, value]) => `${key} = ${value}`).join("\n");
+        }
+
         window.addEventListener("message", (event) => {
             if (event.data?.type === "log") {
                 const text = event.data?.data.toString() + "\n";
                 this.logTextElement.append(text);
+            } else if (event.data?.type === "variables") {
+                this.savedVariables = event.data.data;
+                refreshVariables();
             }
         });
     }
@@ -1841,7 +1860,7 @@ class BipsiEditor extends EventTarget {
         iframe.srcdoc = html;
         iframe.hidden = false;
 
-        this.logTextElement.replaceChildren("RESTARTING PLAYTEST\n");
+        this.logTextElement.replaceChildren("> RESTARTING PLAYTEST\n");
     }
 
     async makeExportHTML() {
