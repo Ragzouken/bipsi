@@ -989,6 +989,8 @@ class BipsiEditor extends EventTarget {
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
 
+            restartPlaytest: ui.action("restart-playtest", () => this.playtest()),
+
             shiftTileUp: ui.action("shift-tile-up", () =>
                 this.processSelectedTile((tile) => cycleRendering2D(tile,  0, -1))),
             shiftTileDown: ui.action("shift-tile-down", () =>
@@ -1090,8 +1092,7 @@ class BipsiEditor extends EventTarget {
             ONE("#playtest").srcdoc = "";
         });
 
-        const playtest = ui.action("playtest", () => this.playtest());
-        ONE("#playtest-rendering").addEventListener("click", () => playtest.invoke());
+        ONE("#playtest-rendering").addEventListener("click", () => this.actions.restartPlaytest.invoke());
 
         this.roomSelect.select.addEventListener("change", () => {
             const { room } = this.getSelections();

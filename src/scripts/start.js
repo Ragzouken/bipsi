@@ -104,7 +104,6 @@ async function makePlayback(font, bundle) {
     }
 
     const turnToKey = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"];
-    const threshold = 512 / 16 * 4;
     let ignoreMouse = false;
 
     window.onblur = () => setTimeout(() => ignoreMouse = true, 0);
@@ -121,6 +120,8 @@ async function makePlayback(font, bundle) {
 
     document.addEventListener("pointerdown", (event) => {
         if (ignoreMouse) return;
+
+        const threshold = playCanvas.getBoundingClientRect().width / 16 * 2;
 
         const drag = ui.drag(event);
         let [x0, y0] = [drag.downEvent.clientX, drag.downEvent.clientY];

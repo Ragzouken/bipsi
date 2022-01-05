@@ -275,3 +275,8 @@ label.room-picker-toggle {
 #tile-paint-body > .row {
     flex: 0;
 }
+
+.icon-button {
+    flex: 0;
+    min-width: 52px;
+}
