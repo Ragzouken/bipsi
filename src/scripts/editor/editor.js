@@ -879,12 +879,32 @@ class BipsiEditor extends EventTarget {
             playtest: ONE("#playtest-rendering").getContext("2d"),
         };
 
+        function autoCloseToggledWindow(windowElement, toggle, toggleName) {
+            window.addEventListener("click", (event) => {
+                const ignore = windowElement.hidden
+                            || !event.isTrusted
+                            || windowElement.contains(event.target)
+                            || event.target.name === toggleName
+                if (ignore) return;
+                toggle.checked = false;
+            });
+        }
+
+        this.logWindow = ONE("#log-window");
+        this.showLog = ui.toggle("show-log");
+        this.showLog.addEventListener("change", () => {
+            this.logWindow.hidden = !this.showLog.checked;
+        });
+        autoCloseToggledWindow(this.logWindow, this.showLog, "show-log");
+        this.logTextElement = ONE("#log-text");
+
         this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
         this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
 
         this.roomSelectWindow = ONE("#room-select-window");
         this.showRoomSelect = ui.toggle("show-room-window");
+        autoCloseToggledWindow(this.roomSelectWindow, this.showRoomSelect, "show-room-window");
 
         this.showRoomSelect.addEventListener("change", () => {
             this.roomSelectWindow.hidden = !this.showRoomSelect.checked;
@@ -893,14 +913,6 @@ class BipsiEditor extends EventTarget {
         this.eventsRoomSelect.select.addEventListener("change", () => {
             this.roomSelect.select.selectedIndex = this.eventsRoomSelect.select.selectedIndex;
             //this.eventsRoomSelectToggle.checked = false;
-        });
-
-        window.addEventListener("click", (event) => {
-            const ignore = !event.isTrusted
-                        || this.roomSelectWindow.contains(event.target)
-                        || event.target.name === "show-room-window"
-            if (ignore) return;
-            this.showRoomSelect.checked = false;
         });
 
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
@@ -1332,6 +1344,13 @@ class BipsiEditor extends EventTarget {
             this.frame = 1 - this.frame;
             this.redraw();
         }, constants.frameInterval);
+
+        window.addEventListener("message", (event) => {
+            if (event.data?.type === "log") {
+                const text = event.data?.data.toString() + "\n";
+                this.logTextElement.append(text);
+            }
+        });
     }
 
     async init() {
@@ -1821,6 +1840,8 @@ class BipsiEditor extends EventTarget {
         const html = await this.makeExportHTML();
         iframe.srcdoc = html;
         iframe.hidden = false;
+
+        this.logTextElement.replaceChildren("RESTARTING PLAYTEST\n");
     }
 
     async makeExportHTML() {

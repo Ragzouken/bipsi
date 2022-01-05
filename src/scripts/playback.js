@@ -473,6 +473,11 @@ class BipsiPlayback extends EventTarget {
         this.ended = true;
     }
 
+    log(...data) {
+        this.dispatchEvent(new CustomEvent("log", { detail: data }));
+        window.parent.postMessage({ type: "log", data });
+    }
+
     async proceed() {
         if (!this.ready) return;
 
@@ -796,7 +801,7 @@ function generateScriptingDefines(playback, event) {
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
 
-    defines.LOG = (text) => console.log(text);
+    defines.LOG = (...data) => playback.log(...data);
     defines.DELAY = async (seconds) => sleep(seconds * 1000);
 
     defines.RESTART = () => playback.end();

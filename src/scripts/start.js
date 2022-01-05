@@ -42,6 +42,10 @@ async function makePlayback(font, bundle) {
         document.documentElement.style.setProperty('--vh', `${window.innerHeight / 100}px`);
     });
 
+    playback.addEventListener("log", (event) => {
+        console.log(...event.detail);
+    });
+
     // update the canvas size whenever the browser window resizes
     window.addEventListener("resize", () => fitCanvasToParent(playCanvas));
     

@@ -205,6 +205,38 @@ label.room-picker-toggle {
     z-index: 100;
 }
 
+#log-window {
+    position: absolute;
+    width: 512px; height: 256px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    /* padding: 1rem; gap: .5rem; */
+
+    background: var(--frame-color);
+    background: black;
+    opacity: 85%;
+
+    cursor: initial;
+    z-index: 100;
+}
+
+#log-text {
+    background: black;
+
+    flex: 1;
+    border-radius: 1rem;
+
+    color: white;
+    font-family: monospace;
+    font-size: large;
+    padding: 0.5em 0.75em;
+
+    overflow-y: scroll;
+
+    white-space: pre-wrap;
+}
+
 .viewport-tab-body {
     display: flex;
     flex-direction: column;
@@ -279,4 +311,9 @@ label.room-picker-toggle {
 .icon-button {
     flex: 0;
     min-width: 52px;
+}
+
+.picker-toggle {
+    flex: 0;
+    max-width: 72px;
 }
