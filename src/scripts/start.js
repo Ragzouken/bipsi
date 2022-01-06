@@ -149,6 +149,24 @@ async function makePlayback(font, bundle) {
         });
     });
 
+    window.addEventListener("message", (event) => {
+        if (event.data.type === "move-avatar") {
+            moveEventById(playback.data, playback.avatarId, event.data.destination);
+        } else if (event.data.type === "key-down") {
+            down(event.data.key, event.data.code);
+        } else if (event.data.type === "key-up") {
+            up(event.data.key, event.data.code);
+        } else if (event.data.type === "touch-location") {
+            playback.touch(getEventAtLocation(playback.data, event.data.location));
+        } else if (event.data.type === "set-variable") {
+            playback.setVariable(event.data.key, event.data.value);
+        } else if (event.data.type === "capture-gif") {
+            const frames = recordFrames(playback);
+            const giffer = window.open("https://kool.tools/tools/gif/");  
+            sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
+        }
+    });
+
     document.documentElement.setAttribute("data-app-mode", "player");
     await playback.loadBundle(bundle);
     playback.start();

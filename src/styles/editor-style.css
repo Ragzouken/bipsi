@@ -168,7 +168,7 @@
     max-width: unset;
 }
 
-input + svg {
+input + svg, input + svg + svg {
     z-index: 6;
 }
 

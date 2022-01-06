@@ -879,6 +879,8 @@ class BipsiEditor extends EventTarget {
             playtest: ONE("#playtest-rendering").getContext("2d"),
         };
 
+        this.playtestIframe = /** @type {HTMLIFrameElement} */ (ONE("#playtest"));
+
         function autoCloseToggledWindow(windowElement, toggle, toggleName) {
             window.addEventListener("click", (event) => {
                 const ignore = windowElement.hidden
@@ -1011,6 +1013,7 @@ class BipsiEditor extends EventTarget {
             update: ui.action("update", () => this.updateEditor()),
 
             restartPlaytest: ui.action("restart-playtest", () => this.playtest()),
+            captureGif: ui.action("capture-gif", () => this.playtestIframe.contentWindow.postMessage({ type: "capture-gif" })),
 
             shiftTileUp: ui.action("shift-tile-up", () =>
                 this.processSelectedTile((tile) => cycleRendering2D(tile,  0, -1))),
@@ -1109,6 +1112,7 @@ class BipsiEditor extends EventTarget {
         this.modeSelect.addEventListener("change", async () => {
             this.redrawTileBrowser();
 
+            this.savedVariables.clear();
             ONE("#playtest").hidden = true;
             ONE("#playtest").srcdoc = "";
         });
@@ -1855,10 +1859,9 @@ class BipsiEditor extends EventTarget {
     }
 
     async playtest() {
-        const iframe = ONE("#playtest");
         const html = await this.makeExportHTML();
-        iframe.srcdoc = html;
-        iframe.hidden = false;
+        this.playtestIframe.srcdoc = html;
+        this.playtestIframe.hidden = false;
 
         this.logTextElement.replaceChildren("> RESTARTING PLAYTEST\n");
     }

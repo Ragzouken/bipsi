@@ -187,7 +187,6 @@ button {
     align-items: center;
 
     padding: .25em;
-    min-width: 52px;
 }
 
 button:active {

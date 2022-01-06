@@ -119,6 +119,16 @@ function moveEvent(data, event, location) {
 
 /**
  * @param {BipsiDataProject} data 
+ * @param {number} eventId 
+ * @param {BipsiDataLocation} location
+ */
+function moveEventById(data, eventId, location) {
+    const event = findEventById(data, eventId);
+    moveEvent(data, event, location);
+}
+
+/**
+ * @param {BipsiDataProject} data 
  * @param {BipsiDataEvent} event
  */
 function removeEvent(data, event) {
@@ -131,6 +141,14 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+/**
+ * @param {BipsiDataProject} data
+ * @param {number} eventId
+ */
+function findEventById(data, eventId) {
+    return allEvents(data).filter((event) => event.id === eventId)[0];
 }
 
 function findEventsByTag(data, tag) {
@@ -478,6 +496,11 @@ class BipsiPlayback extends EventTarget {
         window.parent.postMessage({ type: "log", data });
     }
 
+    setVariable(key, value) {
+        this.variables.set(key, value);
+        this.sendVariables();
+    }
+
     sendVariables() {
         try {
             window.parent.postMessage({ type: "variables", data: this.variables });
@@ -795,10 +818,7 @@ function generateScriptingDefines(playback, event) {
     defines.FIND_EVENT = (tag) => findEventByTag(playback.data, tag); 
 
     defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
-    defines.SET = (key, value) => {
-        playback.variables.set(key, value);
-        playback.sendVariables();
-    }
+    defines.SET = (key, value) => playback.setVariable(key, value);
 
     defines.EVENT_ID = (event) => event.id;
 
