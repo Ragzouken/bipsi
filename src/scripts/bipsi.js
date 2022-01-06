@@ -209,6 +209,28 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
 }
 
 /**
+ * @param {CanvasRenderingContext2D} rendering 
+ * @param {string[]} palette 
+ * @param {BipsiDataRoom} room 
+ */
+ function drawRoomThumbnail(rendering, palette, room) {
+    const [background, foreground, highlight] = palette;
+    for (let y = 0; y < 16; ++y) {
+        for (let x = 0; x < 16; ++x) {
+            const color = room.wallmap[y][x] === 1 ? foreground : background;
+            rendering.fillStyle = color;
+            rendering.fillRect(x, y, 1, 1);
+        }
+    }
+
+    rendering.fillStyle = highlight;
+    room.events.forEach((event) => {
+        const [x, y] = event.position;
+        rendering.fillRect(x, y, 1, 1);
+    });
+}
+
+/**
  * @param {any[][]} map 
  * @param {number} dx 
  * @param {number} dy 

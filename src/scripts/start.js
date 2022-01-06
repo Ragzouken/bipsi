@@ -150,7 +150,7 @@ async function makePlayback(font, bundle) {
     });
 
     window.addEventListener("message", (event) => {
-        if (event.data.type === "move-avatar") {
+        if (event.data.type === "move-to") {
             moveEventById(playback.data, playback.avatarId, event.data.destination);
         } else if (event.data.type === "key-down") {
             down(event.data.key, event.data.code);
@@ -164,6 +164,15 @@ async function makePlayback(font, bundle) {
             const frames = recordFrames(playback);
             const giffer = window.open("https://kool.tools/tools/gif/");  
             sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
+        } else if (event.data.type === "get-room-listing") {
+            const rooms = [];
+            const thumb = createRendering2D(16, 16);
+            playback.data.rooms.forEach((room) => {
+                //drawRoomPreviewPlayback(thumb, playback, room.id);
+                drawRoomThumbPlayback(thumb, playback, room.id);
+                rooms.push({ id: room.id, thumb: thumb.canvas.toDataURL() });
+            });
+            postMessageParent({ type: "room-listing", rooms }, "*");
         }
     });
 

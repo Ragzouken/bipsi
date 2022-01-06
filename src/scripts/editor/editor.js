@@ -93,28 +93,6 @@ function generateColorWheel(width, height) {
     return rendering;
 }
 
-/**
- * @param {CanvasRenderingContext2D} rendering 
- * @param {string[]} palette 
- * @param {BipsiDataRoom} room 
- */
- function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette;
-    for (let y = 0; y < 16; ++y) {
-        for (let x = 0; x < 16; ++x) {
-            const color = room.wallmap[y][x] === 1 ? foreground : background;
-            rendering.fillStyle = color;
-            rendering.fillRect(x, y, 1, 1);
-        }
-    }
-
-    rendering.fillStyle = highlight;
-    room.events.forEach((event) => {
-        const [x, y] = event.position;
-        rendering.fillRect(x, y, 1, 1);
-    });
-}
-
 class PaletteEditor {
     /**
      * @param {BipsiEditor} editor 
@@ -913,6 +891,25 @@ class BipsiEditor extends EventTarget {
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
         this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
 
+        this.moveToDebugRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
+
+        this.moveToWindow = ONE("#move-to-window");
+        this.showMoveTo = ui.toggle("show-move-to-debug");
+        autoCloseToggledWindow(this.moveToWindow, this.showMoveTo, "show-move-to-debug");
+
+        this.showMoveTo.addEventListener("change", () => {
+            this.moveToWindow.hidden = !this.showMoveTo.checked;
+            if (this.showMoveTo.checked) {
+                this.playtestIframe.contentWindow.postMessage({ type: "get-room-listing" });
+            }
+        });
+
+        this.moveToDebugRoomSelect.select.addEventListener("change", () => {
+            this.playtestIframe.contentWindow.postMessage({ type: "move-to", destination: { room: this.moveToDebugRoomSelect.select.valueAsNumber, position: [8, 8] } });
+            this.showMoveTo.checked = false;
+            this.playtestIframe.focus();
+        });
+
         this.roomSelectWindow = ONE("#room-select-window");
         this.showRoomSelect = ui.toggle("show-room-window");
         autoCloseToggledWindow(this.roomSelectWindow, this.showRoomSelect, "show-room-window");
@@ -1365,13 +1362,20 @@ class BipsiEditor extends EventTarget {
             this.variablesTextElement.innerText = "VARIABLES:\n" + entries.map(([key, value]) => `${key} = ${JSON.stringify(value)}`).join("\n");
         }
 
-        window.addEventListener("message", (event) => {
+        window.addEventListener("message", async (event) => {
             if (event.data?.type === "log") {
                 const text = event.data?.data.toString() + "\n";
                 this.logTextElement.append(text);
             } else if (event.data?.type === "variables") {
                 this.savedVariables = event.data.data;
                 refreshVariables();
+            } else if (event.data.type === "room-listing") {
+                const rooms = [];
+                for (let room of event.data.rooms) {
+                    const thumb = imageToRendering2D(await loadImage(room.thumb)).canvas;
+                    rooms.push({ id: room.id, thumb });
+                }
+                this.moveToDebugRoomSelect.updateRooms(rooms);
             }
         });
     }

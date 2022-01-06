@@ -19,11 +19,22 @@
  * @param {number} roomId 
  */
 function drawRoomPreviewPlayback(destination, playback, roomId) {
-    const tileset = this.stateManager.resources.get(playback.data.tileset);
+    const tileset = playback.stateManager.resources.get(playback.data.tileset);
     const room = getRoomById(playback.data, roomId);
     const palette = playback.data.palettes[room.palette];
     const tileToFrame = makeTileToFrameMap(playback.data.tiles, 0);
     drawRoomPreview(destination, tileset, tileToFrame, palette, room);
+}
+
+/**
+ * @param {CanvasRenderingContext2D} destination 
+ * @param {BipsiPlayback} playback 
+ * @param {number} roomId 
+ */
+ function drawRoomThumbPlayback(destination, playback, roomId) {
+    const room = getRoomById(playback.data, roomId);
+    const palette = playback.data.palettes[room.palette];
+    drawRoomThumbnail(destination, palette, room);
 }
 
 async function generateRoomPreviewURL(destination, playback, roomId) {

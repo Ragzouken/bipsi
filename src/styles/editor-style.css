@@ -1,3 +1,7 @@
+svg {
+    pointer-events: none;
+}
+
 #playtest {
     position: absolute;
     width: 512px; height: 512px;
@@ -189,6 +193,25 @@ label.room-picker-toggle {
 .room-picker-toggle * {
     pointer-events: none;
 } */
+
+#move-to-window {
+    position: absolute;
+    width: 512px; height: 256px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
+
+    background: var(--frame-color);
+
+    cursor: initial;
+    z-index: 100;
+
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
 
 #room-select-window {
     position: absolute;
