@@ -891,11 +891,15 @@ class BipsiEditor extends EventTarget {
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
         this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
 
-        this.moveToDebugRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
-
+        this.moveToRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
+        this.moveToPositionSelect = ONE("#move-to-window-position");
+        this.moveToPositionRendering = this.moveToPositionSelect.getContext("2d");
+        
         this.moveToWindow = ONE("#move-to-window");
         this.showMoveTo = ui.toggle("show-move-to-debug");
         autoCloseToggledWindow(this.moveToWindow, this.showMoveTo, "show-move-to-debug");
+
+        this.roomListing = undefined;
 
         this.showMoveTo.addEventListener("change", () => {
             this.moveToWindow.hidden = !this.showMoveTo.checked;
@@ -904,8 +908,30 @@ class BipsiEditor extends EventTarget {
             }
         });
 
-        this.moveToDebugRoomSelect.select.addEventListener("change", () => {
-            this.playtestIframe.contentWindow.postMessage({ type: "move-to", destination: { room: this.moveToDebugRoomSelect.select.valueAsNumber, position: [8, 8] } });
+        const refreshMoveToPosition = () => {
+            const room = this.roomListing.rooms[this.moveToRoomSelect.select.selectedIndex];
+            this.moveToPositionRendering.globalCompositeOperation = "source-over";
+            this.moveToPositionRendering.drawImage(room.preview, 0, 0);
+            
+            if (this.roomListing.current.room === this.moveToRoomSelect.select.valueAsNumber) {
+                const [x, y] = this.roomListing.current.position;
+                this.moveToPositionRendering.globalCompositeOperation = "difference";
+                this.moveToPositionRendering.fillStyle = "white";
+                this.moveToPositionRendering.fillRect(0, y * 8+2, 128, 4);
+                this.moveToPositionRendering.fillRect(x * 8+2, 0, 4, 128);
+            }
+        }
+
+        this.moveToRoomSelect.select.addEventListener("change", () => {
+            refreshMoveToPosition();
+        });
+
+        this.moveToPositionSelect.addEventListener("click", (event) => {
+            const { x, y } = mouseEventToCanvasPixelCoords(this.moveToPositionSelect, event);
+            const tx = Math.floor(x / 8);
+            const ty = Math.floor(y / 8);
+
+            this.playtestIframe.contentWindow.postMessage({ type: "move-to", destination: { room: this.moveToRoomSelect.select.valueAsNumber, position: [tx, ty] } });
             this.showMoveTo.checked = false;
             this.playtestIframe.focus();
         });
@@ -1373,9 +1399,14 @@ class BipsiEditor extends EventTarget {
                 const rooms = [];
                 for (let room of event.data.rooms) {
                     const thumb = imageToRendering2D(await loadImage(room.thumb)).canvas;
-                    rooms.push({ id: room.id, thumb });
+                    const preview = imageToRendering2D(await loadImage(room.preview)).canvas;
+                    rooms.push({ id: room.id, thumb, preview });
                 }
-                this.moveToDebugRoomSelect.updateRooms(rooms);
+
+                this.roomListing = { rooms, current: event.data.current };
+                this.moveToRoomSelect.updateRooms(rooms);
+                this.moveToRoomSelect.select.setValueSilent(event.data.current.room);
+                refreshMoveToPosition();
             }
         });
     }

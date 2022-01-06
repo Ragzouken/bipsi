@@ -165,14 +165,16 @@ async function makePlayback(font, bundle) {
             const giffer = window.open("https://kool.tools/tools/gif/");  
             sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
         } else if (event.data.type === "get-room-listing") {
+            const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
             const rooms = [];
             const thumb = createRendering2D(16, 16);
+            const preview = createRendering2D(128, 128);
             playback.data.rooms.forEach((room) => {
-                //drawRoomPreviewPlayback(thumb, playback, room.id);
+                drawRoomPreviewPlayback(preview, playback, room.id);
                 drawRoomThumbPlayback(thumb, playback, room.id);
-                rooms.push({ id: room.id, thumb: thumb.canvas.toDataURL() });
+                rooms.push({ id: room.id, thumb: thumb.canvas.toDataURL(), preview: preview.canvas.toDataURL() });
             });
-            postMessageParent({ type: "room-listing", rooms }, "*");
+            postMessageParent({ type: "room-listing", rooms, current }, "*");
         }
     });
 
