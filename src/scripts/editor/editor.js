@@ -887,9 +887,8 @@ class BipsiEditor extends EventTarget {
         autoCloseToggledWindow(this.variablesWindow, this.showVariables, "show-variables");
         this.variablesTextElement = ONE("#variables-text");
 
-        this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
-        this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
+        this.roomSelectWindow = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
 
         this.moveToRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
         this.moveToPositionSelect = ONE("#move-to-window-position");
@@ -936,23 +935,19 @@ class BipsiEditor extends EventTarget {
             this.playtestIframe.focus();
         });
 
-        this.roomSelectWindow = ONE("#room-select-window");
+        this.roomSelectWindowElement = ONE("#room-select-window");
         this.showRoomSelect = ui.toggle("show-room-window");
-        autoCloseToggledWindow(this.roomSelectWindow, this.showRoomSelect, "show-room-window");
+        autoCloseToggledWindow(this.roomSelectWindowElement, this.showRoomSelect, "show-room-window");
 
         this.showRoomSelect.addEventListener("change", () => {
-            this.roomSelectWindow.hidden = !this.showRoomSelect.checked;
-        });
-
-        this.eventsRoomSelect.select.addEventListener("change", () => {
-            this.roomSelect.select.selectedIndex = this.eventsRoomSelect.select.selectedIndex;
-            //this.eventsRoomSelectToggle.checked = false;
+            this.roomSelectWindowElement.hidden = !this.showRoomSelect.checked;
         });
 
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
+        this.roomTileBrowser = new EventTileBrowser(this, "draw-room-tile-select", ONE("#draw-room-tile-template"));
 
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
@@ -980,18 +975,19 @@ class BipsiEditor extends EventTarget {
 
         // find all the ui already defined in the html
         this.modeSelect = ui.radio("mode-select");
-        //this.roomSelect = ui.radio("room-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
         this.roomPaletteSelect = ui.select("room-palette");
         this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
 
-        this.modeSelect.tab(ONE("#event-edit"), "events");
+        this.modeSelect.tab(ONE("#edit-events-tab-controls"), "events");
         this.modeSelect.tab(ONE("#room-events-tab"), "events");
 
-        this.modeSelect.tab(ONE("#palette-edit"), "palettes");
+        this.modeSelect.tab(ONE("#edit-colors-tab"), "palettes");
         
-        this.modeSelect.tab(ONE("#room-select-tab"), "draw-room");
-        this.modeSelect.tab(ONE("#tile-select-tab"), "draw-room", "draw-tiles");
+        //this.modeSelect.tab(ONE("#room-select-tab"), "draw-room");
+        this.modeSelect.tab(ONE("#tile-select-tab"), "draw-tiles");
+        
+        this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
 
         this.modeSelect.tab(ONE("#tile-buttons"), "draw-tiles")
         this.modeSelect.tab(ONE("#tile-paint-tab"), "draw-tiles");
@@ -1142,7 +1138,7 @@ class BipsiEditor extends EventTarget {
 
         ONE("#playtest-rendering").addEventListener("click", () => this.actions.restartPlaytest.invoke());
 
-        this.roomSelect.select.addEventListener("change", () => {
+        this.roomSelectWindow.select.addEventListener("change", () => {
             const { room } = this.getSelections();
             this.roomPaletteSelect.selectedIndex = room.palette;
             
@@ -1162,7 +1158,13 @@ class BipsiEditor extends EventTarget {
             }
 
             this.tilePaintFrameSelect.selectedIndex = 0;
+
+            this.roomTileBrowser.select.setSelectedIndexSilent(this.tileBrowser.select.selectedIndex);
         })
+
+        this.roomTileBrowser.select.addEventListener("change", () => {
+            this.tileBrowser.select.setSelectedIndexSilent(this.roomTileBrowser.select.selectedIndex);
+        });
 
         this.roomPaletteSelect.addEventListener("change", () => {
             this.stateManager.makeChange(async (data) => {
@@ -1193,7 +1195,7 @@ class BipsiEditor extends EventTarget {
             // render room
             this.redraw();
             this.tileBrowser.redraw();
-            this.eventTileBrowser.redraw();
+            this.roomTileBrowser.redraw();
 
             // events
             this.eventEditor.refresh();
@@ -1433,7 +1435,7 @@ class BipsiEditor extends EventTarget {
         
         const tileset = this.stateManager.resources.get(data.tileset);
         const tileSize = constants.tileSize;
-        const roomIndex = this.roomSelect.select.selectedIndex;
+        const roomIndex = this.roomSelectWindow.select.selectedIndex;
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
 
@@ -1552,8 +1554,8 @@ class BipsiEditor extends EventTarget {
         this.actions.copyEvent.disabled = this.selectedEventId === undefined;
         this.actions.deleteEvent.disabled = this.selectedEventId === undefined;
 
-        this.actions.reorderRoomBefore.disabled = this.roomSelect.select.selectedIndex <= 0;
-        this.actions.reorderRoomAfter.disabled = this.roomSelect.select.selectedIndex >= this.stateManager.present.rooms.length - 1;
+        this.actions.reorderRoomBefore.disabled = this.roomSelectWindow.select.selectedIndex <= 0;
+        this.actions.reorderRoomAfter.disabled = this.roomSelectWindow.select.selectedIndex >= this.stateManager.present.rooms.length - 1;
 
         this.redrawDialoguePreview();
 
@@ -1570,12 +1572,10 @@ class BipsiEditor extends EventTarget {
             return { id: room.id, thumb: thumb.canvas };
         });
 
-        this.roomSelect.updateRooms(thumbs);
+        this.roomSelectWindow.updateRooms(thumbs);
         this.fieldRoomSelect.updateRooms(thumbs);
-        this.eventsRoomSelect.updateRooms(thumbs);
 
-        this.roomSelect.select.selectedIndex = Math.max(this.roomSelect.select.selectedIndex, 0);
-        this.eventsRoomSelect.select.selectedIndex = this.roomSelect.select.selectedIndex;
+        this.roomSelectWindow.select.selectedIndex = Math.max(this.roomSelectWindow.select.selectedIndex, 0);
     }
 
     redrawDialoguePreview() {
@@ -1629,6 +1629,7 @@ class BipsiEditor extends EventTarget {
 
         await this.tileBrowser.setFrames([frame0.canvas, frame1.canvas]);
         await this.eventTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
+        await this.roomTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
         if (this.tileBrowser.select.selectedIndex === -1) {
             this.tileBrowser.select.selectedIndex = 0;
         }
@@ -1791,7 +1792,7 @@ class BipsiEditor extends EventTarget {
             const room = makeBlankRoom(nextRoomId(data));
             data.rooms.splice(roomIndex+1, 0, room);
         });
-        this.roomSelect.select.selectedIndex += 1;
+        this.roomSelectWindow.select.selectedIndex += 1;
     }
 
     async duplicateRoom() {
@@ -1804,7 +1805,7 @@ class BipsiEditor extends EventTarget {
             const nextId = nextEventId(data);
             copy.events.forEach((event, i) => event.id = nextId+i);
         });
-        this.roomSelect.select.selectedIndex += 1;
+        this.roomSelectWindow.select.selectedIndex += 1;
     }
 
     async reorderRoomBefore() {
@@ -1812,7 +1813,7 @@ class BipsiEditor extends EventTarget {
             const { roomIndex } = this.getSelections(data);
             const nextIndex = roomIndex - 1;
             [data.rooms[nextIndex], data.rooms[roomIndex]] = [data.rooms[roomIndex], data.rooms[nextIndex]];
-            this.roomSelect.select.selectedIndex -= 1;
+            this.roomSelectWindow.select.selectedIndex -= 1;
         });
     }
 
@@ -1821,7 +1822,7 @@ class BipsiEditor extends EventTarget {
             const { roomIndex } = this.getSelections(data);
             const nextIndex = roomIndex + 1;
             [data.rooms[nextIndex], data.rooms[roomIndex]] = [data.rooms[roomIndex], data.rooms[nextIndex]];
-            this.roomSelect.select.selectedIndex += 1;
+            this.roomSelectWindow.select.selectedIndex += 1;
         });
     }
 
@@ -1861,6 +1862,8 @@ class BipsiEditor extends EventTarget {
             event.id = nextEventId(data);
             event.position = [x, y];
             room.events.push(event);
+
+            arrayDiscard(room.events, getEventById(data, this.selectedEventId));
             this.selectedEventId = event.id;
         });
     }

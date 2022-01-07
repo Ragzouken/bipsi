@@ -215,7 +215,7 @@ label.room-picker-toggle {
 
 #room-select-window {
     position: absolute;
-    width: 512px; height: 256px;
+    width: 512px; height: 320px;
     bottom: calc(48px + .5rem);
 
     display: flex; flex-direction: column;
@@ -226,6 +226,8 @@ label.room-picker-toggle {
 
     cursor: initial;
     z-index: 100;
+
+    box-shadow: 0 0 0 2px black;
 }
 
 #log-window {
@@ -371,4 +373,58 @@ label.room-picker-toggle {
 .picker-toggle {
     flex: 0;
     max-width: 72px;
+}
+
+.tile-select {
+    padding: .5rem;
+
+    display: flex; flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-start;
+
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+    overflow: hidden scroll;
+
+    width: 100%;
+    height: 100%;
+}
+
+.tile-select label {
+    min-height: unset;
+
+    width: 40px; height: 40px;
+
+    background-color: var(--tileset-background-color);
+    background-image: var(--tileset-background-image);
+    background-size: var(--tileset-background-size);
+}
+
+.tile-select input[type="radio"]:checked {
+    background: none;
+    z-index: 5;
+
+    box-shadow: 0 0 0 5px white;
+}
+
+.controls-tab {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+}
+
+.controls-tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+
+    height: calc(512px - 48px);
+
+    background-color: var(--frame-color);
+    border-radius: 0 1rem 1rem 1rem;
+}
+
+#play-tab-body {
+    font-size: larger;
 }

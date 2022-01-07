@@ -1,0 +1,19 @@
+#tile-select-tab.controls-tab(hidden)
+    .controls-tab-body
+        #tile-select.radio-select(title="select tiles")
+            template#tile-select-template
+                label
+                    input(type="radio" name="tile-select")
+        .tile-buttons#tile-buttons
+            button(name="add-new-tile" title="add new tile")
+                include /icons/plus.svg
+            button(name="duplicate-tile" title="duplicate selected tile")
+                include /icons/copy.svg
+            button(name="reorder-tile-before" title="reorder tile before")
+                include /icons/arrow-left.svg
+            button(name="reorder-tile-after" title="reorder tile after")
+                include /icons/arrow-right.svg
+            button(name="delete-tile" title="delete selected tile")
+                include /icons/delete.svg
+    .viewport-toolbar
+        include /pages/room-select-toggle.pug
