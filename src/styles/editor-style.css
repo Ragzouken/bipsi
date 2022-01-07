@@ -382,6 +382,7 @@ label.room-picker-toggle {
     flex-wrap: wrap;
     gap: 5px;
     justify-content: flex-start;
+    align-content: flex-start;
 
     border-radius: .5rem;
     background: var(--trans-gradient);
