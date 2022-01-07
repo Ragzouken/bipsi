@@ -6,3 +6,6 @@
                     input(type="radio" name="draw-room-tile-select")
     .viewport-toolbar
         include /pages/room-select-toggle.pug
+        select(name="room-palette")
+            each index in [0, 1, 2, 3, 4, 5, 6, 7]
+                option(value=`${index}`)= `palette ${index}`

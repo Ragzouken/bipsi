@@ -109,9 +109,6 @@
             label.toggle#tile-grid
                 input(type="checkbox" name="room-grid" title="toggle grid")
                 include /icons/grid.svg
-            select(name="room-palette")
-                each index in [0, 1, 2, 3, 4, 5, 6, 7]
-                    option(value=`${index}`)= `palette ${index}`
     #palette-picker(hidden)
         #palette-picker-palettes.column.radio-select(title="select palette")
             label#palette-picker-template(hidden)
