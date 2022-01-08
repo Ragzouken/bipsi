@@ -47,13 +47,15 @@ async function generateRoomPreviewURL(destination, playback, roomId) {
  * @returns {[string, number][]}
  */
 function recordFrames(playback) {
-        const frames = [];
+    const frames = [];
+    const temp = createRendering2D(512, 512);
 
-        playback.render();
-        frames.push([playback.rendering.canvas.toDataURL(), 400]);
-        playback.update(.4);
-        playback.render();
-        frames.push([playback.rendering.canvas.toDataURL(), 400]);
-        
-        return frames;
+    playback.update(.4);
+    temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
+    frames.push([temp.canvas.toDataURL(), 400]);
+    playback.update(.4);
+    temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
+    frames.push([temp.canvas.toDataURL(), 400]);
+    
+    return frames;
 }

@@ -162,7 +162,11 @@ async function makePlayback(font, bundle) {
             playback.setVariable(event.data.key, event.data.value);
         } else if (event.data.type === "capture-gif") {
             const frames = recordFrames(playback);
-            const giffer = window.open("https://kool.tools/tools/gif/");  
+            const giffer = window.open(
+                "https://kool.tools/tools/gif/",
+                "gif maker",
+                "left=10,top=10,width=512,height=512,resizable=no,location=no",
+            );
             sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
         } else if (event.data.type === "get-room-listing") {
             const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));

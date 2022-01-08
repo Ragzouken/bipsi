@@ -1,3 +1,7 @@
+:root {
+    --black-outline-shadow: 0 0 0 2px black;
+}
+
 svg {
     pointer-events: none;
 }
@@ -438,4 +442,24 @@ label.room-picker-toggle {
 #room-events-toolbar {
     flex: 0;
     min-height: 48px;
+}
+
+.popup-window {
+    box-shadow: var(--black-outline-shadow);
+}
+
+.viewport-body {
+    position: relative;
+}
+
+#playtest-snapshot-window {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+
+    background-color: var(--frame-color);
+    border-radius: 1rem;
+
+    display: flex; flex-direction: column;
+    padding: 1rem;
 }
