@@ -429,3 +429,13 @@ label.room-picker-toggle {
 #play-tab-body {
     font-size: larger;
 }
+
+.horizontal-capsule {
+    flex: 1;
+    gap: 2px;
+}
+
+#room-events-toolbar {
+    flex: 0;
+    min-height: 48px;
+}
