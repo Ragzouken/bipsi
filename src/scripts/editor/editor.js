@@ -853,8 +853,6 @@ class BipsiEditor extends EventTarget {
             tilePaintRoom: ONE("#tile-paint-room").getContext("2d"),
             paletteRoom: ONE("#palette-room").getContext("2d"),
             eventsRoom: ONE("#events-room").getContext("2d"),
-
-            playtest: ONE("#playtest-rendering").getContext("2d"),
         };
 
         this.playtestIframe = /** @type {HTMLIFrameElement} */ (ONE("#playtest"));
@@ -1134,9 +1132,11 @@ class BipsiEditor extends EventTarget {
             this.savedVariables.clear();
             ONE("#playtest").hidden = true;
             ONE("#playtest").srcdoc = "";
-        });
 
-        ONE("#playtest-rendering").addEventListener("click", () => this.actions.restartPlaytest.invoke());
+            if (this.modeSelect.value === "playtest") {
+                this.playtest();
+            }
+        });
 
         this.roomSelectWindow.select.addEventListener("change", () => {
             const { room } = this.getSelections();
@@ -1419,12 +1419,6 @@ class BipsiEditor extends EventTarget {
 
         this.EVENT_TILE = await loadImage(constants.eventTile);
         this.WALL_TILE = await loadImage(constants.wallTile);
-
-        this.dialoguePreviewPlayer.clear();
-        this.dialoguePreviewPlayer.queue("click here to playtest", { panelColor: "#ffd800", textColor: "#000000" });
-        this.dialoguePreviewPlayer.skip();
-        this.dialoguePreviewPlayer.render();
-        this.playtestSplash = copyRendering2D(this.dialoguePreviewPlayer.dialogueRendering);
     }
 
     /**
@@ -1558,9 +1552,6 @@ class BipsiEditor extends EventTarget {
         this.actions.reorderRoomAfter.disabled = this.roomSelectWindow.select.selectedIndex >= this.stateManager.present.rooms.length - 1;
 
         this.redrawDialoguePreview();
-
-        fillRendering2D(this.renderings.playtest);
-        this.renderings.playtest.drawImage(this.playtestSplash.canvas, 0, 0);
     } 
 
     refreshRoomSelect() {
@@ -1889,6 +1880,8 @@ class BipsiEditor extends EventTarget {
 
         await this.stateManager.loadBundle(bundle);
         this.unsavedChanges = false;
+
+        this.playtest();
     }
 
     /** @returns {string[]} */

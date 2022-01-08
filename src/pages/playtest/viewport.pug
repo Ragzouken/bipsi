@@ -1,8 +1,7 @@
 #play-tab-view.viewport-tab-body(hidden)
     .viewport-body
         //- include snapshot-window.pug
-        canvas#playtest-rendering(width="256" height="256" tabindex="0")
-        iframe#playtest(hidden)
+        iframe#playtest
     .viewport-toolbar
         button.icon-button(name="restart-playtest" title="restart playtest")
             include /icons/refresh.svg

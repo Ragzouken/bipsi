@@ -612,7 +612,6 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileID, layer, x, y) {
-        console.log(fileID);
         const image = await this.getFileImageElement(fileID);
         this.images.set(imageID, { image, layer, x, y });
     }
@@ -850,6 +849,8 @@ function generateScriptingDefines(playback, event) {
 
     defines.SHOW_IMAGE = (id, file, layer, x, y) => playback.showImage(id, file, layer, x, y);
     defines.HIDE_IMAGE = (id) => playback.hideImage(id);
+
+    defines.FILE_TEXT = (file) => playback.stateManager.resources.get(file).text();
 
     defines.FIELD_OR_LIBRARY = (field, event=defines.EVENT) => {
         let file = oneField(event, field, "file")?.data;

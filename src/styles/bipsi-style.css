@@ -26,10 +26,6 @@ input[type="text"], textarea {
     flex: 1;
 }
 
-#playtest-rendering {
-    background: var(--trans-gradient);
-}
-
 #player-menu {
     display: grid;
     grid-auto-flow: column;
