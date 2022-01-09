@@ -159,6 +159,13 @@ function findEventByTag(data, tag) {
     return allEvents(data).filter((event) => eventIsTagged(event, tag))[0];
 }
 
+/**
+ * @param {BipsiDataEvent} event 
+ */
+function allEventTags(event) {
+    return event.fields.filter((field) => field.type === "tag").map((field) => field.key);
+}
+
 const ERROR_STYLE = {
     glyphRevealDelay: 0,
     lines: 8,
@@ -531,6 +538,7 @@ class BipsiPlayback extends EventTarget {
     }
 
     async say(script, options={}) {
+        this.log(`> SAYING "${script}"`);
         await this.dialoguePlayback.queue(script, options);
     }
 
@@ -568,7 +576,12 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
     }
 
+    /**
+     * @param {BipsiDataEvent} event 
+     */
     async touch(event) {
+        const tags = allEventTags(event).join(", ");
+        this.log(`> TOUCHING EVENT (tags: ${tags}) @ ${event.position}`);
         const touch = oneField(event, "touch", "javascript")?.data;
 
         if (touch !== undefined) {
