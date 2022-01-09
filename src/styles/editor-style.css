@@ -1,10 +1,15 @@
 :root {
-    --black-outline-shadow: 0 0 0 2px black;
-}
+    /** diagonal stripes for showing clearly transparent pixels of the paint area */
+    --trans-color-1: rgb(32, 32, 32);
+    --trans-color-2: rgb(48, 48, 48);
+    --trans-gradient: repeating-linear-gradient( -45deg, var(--trans-color-1), var(--trans-color-1) .5em, var(--trans-color-2) .5em, var(--trans-color-2) 1em );
 
-:root {
+    font-family: sans-serif;
+
     --button-color: #ffd800;
     --frame-color: #367b6b;
+
+    --black-outline-shadow: 0 0 0 2px black;
 }
 
 body {
@@ -16,8 +21,51 @@ canvas {
     touch-action: none;
 }
 
+svg {
+    pointer-events: none;
+}
+
 input[type="text"], textarea {
     font-size: large;
+}
+
+details > summary {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--button-color);
+}
+
+h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--button-color);
+}
+
+a {
+    color: var(--button-color);
+    font-weight: bold;
+}
+
+a:hover {
+    color: white;
+}
+
+a:visited {
+    color: #cef0df;
+}
+
+em {
+    font-weight: bold;
+    color: var(--button-color);
+}
+
+select {
+    padding: .5em;
+
+    border: none;
+    border-radius: 1rem;
+
+    background-color: var(--button-color);
 }
 
 .row {
@@ -28,6 +76,221 @@ input[type="text"], textarea {
 .column {
     display: flex; flex-direction: column;
     flex: 1;
+}
+
+.horizontal-capsule {
+    flex: 1;
+    gap: 2px;
+}
+
+.popup-window {
+    box-shadow: var(--black-outline-shadow);
+}
+
+.viewport-body {
+    position: relative;
+}
+
+.controls-tab {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+}
+
+.controls-tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+
+    height: calc(512px - 48px);
+
+    background-color: var(--frame-color);
+    border-radius: 0 1rem 1rem 1rem;
+}
+
+.icon-button {
+    flex: 0;
+    min-width: 52px;
+}
+
+.picker-toggle {
+    flex: 0;
+    max-width: 72px;
+}
+
+.tile-select {
+    flex: 1;
+
+    padding: .5rem;
+
+    display: flex; flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-start;
+    align-content: flex-start;
+
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+    overflow: hidden scroll;
+}
+
+.tile-select label {
+    min-height: unset;
+
+    width: 40px; height: 40px;
+
+    background-color: var(--tileset-background-color);
+    background-image: var(--tileset-background-image);
+    background-size: var(--tileset-background-size);
+}
+
+.tile-select input[type="radio"]:checked {
+    background: none;
+    z-index: 5;
+
+    box-shadow: 0 0 0 5px white;
+}
+
+.tile-select label > input {
+    background: none;
+}
+
+.room-select label > input {
+    background: none;
+}
+
+.viewport-tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.viewport-toolbar {
+    display: flex; flex-direction: row;
+    gap: .5rem;
+    height: 48px;
+}
+
+label.toggle {
+    flex: 1;
+    flex-direction: row;
+    white-space: nowrap;
+    border: none;
+    border-radius: 1em;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: .25em;
+
+    color: black;
+    position: relative;
+}
+
+input + svg, input + svg + svg {
+    z-index: 6;
+}
+
+label.toggle#tile-grid {
+    max-width: 52px;
+}
+
+.room-picker-toggle {
+    gap: .25rem;
+}
+
+label.room-picker-toggle {
+    flex: 0;
+    min-width: 72px;
+}
+
+.toggle input {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    border-radius: inherit;
+
+    position: absolute;
+    width: 100%; height: 100%;
+
+    background-color: var(--button-color);
+}
+
+.toggle input + svg {
+    color: black;
+
+    pointer-events: none;
+    width: 32px; height: 32px;
+}
+
+.toggle input:checked {
+    background: blue;
+}
+
+.toggle input:checked + svg, .toggle input:checked + svg + svg {
+    color: white;
+}
+
+
+.room-buttons {
+    display: flex; flex-direction: row;
+    gap: .5rem;
+}
+
+.room-buttons > * {
+    width: 56px;
+    height: 40px;
+
+    border-radius: .75rem;
+}
+
+.room-select {
+    --room-size: calc(16px * 3);
+
+    flex: 1;
+
+    padding: .5rem;
+
+    display: flex; flex-direction: row;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: flex-start;
+    align-content: flex-start;
+
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+    overflow: hidden scroll;
+}
+
+.room-select label {
+    min-height: unset;
+
+    width: var(--room-size);
+    height: var(--room-size);
+}
+
+.room-select input[type="radio"]:checked {
+    background: none;
+    z-index: 5;
+
+    box-shadow: 0 0 0 5px white;
+}
+
+.room-select canvas {
+    width: 100%; height: 100%;
+}
+
+.tile-buttons {
+    display: flex; flex-direction: row;
+    gap: .5rem;
+}
+
+.tile-buttons > * {
+    width: 56px;
+    height: 40px;
+
+    border-radius: .75rem;
 }
 
 #player-menu {
@@ -55,11 +318,6 @@ input[type="text"], textarea {
 
 #upper-toolbar .button-row > * {
     min-width: 48px;
-}
-
-#renderer {
-    height: 512px;
-    background: none;
 }
 
 #mode-body {
@@ -97,7 +355,7 @@ input[type="text"], textarea {
 #palette-edit {
     flex: 1;
 
-    border-radius: 1rem;
+    border-radius: .5rem;
     background: var(--trans-gradient);
 
     padding: 1rem;
@@ -134,50 +392,6 @@ input[type="text"], textarea {
 
 #color-edit {
     gap: 1rem;
-}
-
-label.toggle {
-    flex: 1;
-    flex-direction: row;
-    white-space: nowrap;
-    border: none;
-    border-radius: 1em;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: .25em;
-
-    color: black;
-    position: relative;
-}
-
-.toggle input {
-    appearance: none;
-    -moz-appearance: none;
-    -webkit-appearance: none;
-    margin: 0;
-    border-radius: inherit;
-
-    position: absolute;
-    width: 100%; height: 100%;
-
-    background-color: var(--button-color);
-}
-
-.toggle input + svg {
-    color: black;
-
-    pointer-events: none;
-    width: 32px; height: 32px;
-}
-
-.toggle input:checked {
-    background: blue;
-}
-
-.toggle input:checked + svg, .toggle input:checked + svg + svg {
-    color: white;
 }
 
 #controls {
@@ -261,15 +475,6 @@ label.toggle {
 #tile-paint-canvases input:not(:checked) + canvas {
     pointer-events: none;
     opacity: 50%;
-}
-
-select {
-    padding: .5em;
-
-    border: none;
-    border-radius: 1rem;
-
-    background-color: var(--button-color);
 }
 
 #room-events-tab {
@@ -472,44 +677,11 @@ select {
 
 #field-tile-editor {
     height: 192px;
+    display: flex;
 }
 
 #play-tab-view canvas {
     width: 512px; height: 512px;
-}
-
-details > summary {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--button-color);
-}
-
-h2 {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--button-color);
-}
-
-a {
-    color: var(--button-color);
-    font-weight: bold;
-}
-
-a:hover {
-    color: white;
-}
-
-a:visited {
-    color: #cef0df;
-}
-
-em {
-    font-weight: bold;
-    color: var(--button-color);
-}
-
-svg {
-    pointer-events: none;
 }
 
 #playtest {
@@ -562,22 +734,6 @@ svg {
     overflow: hidden;
 }
 
-.tile-buttons {
-    display: flex; flex-direction: row;
-    gap: .5rem;
-}
-
-.tile-buttons > * {
-    width: 56px;
-    height: 40px;
-
-    border-radius: .75rem;
-}
-
-#tile-select {
-    flex: 1;
-}
-
 #room-select-tab {
     display: flex; flex-direction: column;
     gap: .5rem;
@@ -585,54 +741,6 @@ svg {
     padding-bottom: 1rem;
 
     height: 240px;
-}
-
-.room-buttons {
-    display: flex; flex-direction: row;
-    gap: .5rem;
-}
-
-.room-buttons > * {
-    width: 56px;
-    height: 40px;
-
-    border-radius: .75rem;
-}
-
-.room-select {
-    --room-size: calc(16px * 3);
-
-    flex: 1;
-
-    padding: .5rem;
-
-    display: flex; flex-direction: row;
-    flex-wrap: wrap;
-    gap: .5rem;
-    justify-content: flex-start;
-    align-content: flex-start;
-
-    border-radius: .5rem;
-    background: var(--trans-gradient);
-    overflow: hidden scroll;
-}
-
-.room-select label {
-    min-height: unset;
-
-    width: var(--room-size);
-    height: var(--room-size);
-}
-
-.room-select input[type="radio"]:checked {
-    background: none;
-    z-index: 5;
-
-    box-shadow: 0 0 0 5px white;
-}
-
-.room-select canvas {
-    width: 100%; height: 100%;
 }
 
 #field-location-editor {
@@ -651,28 +759,6 @@ svg {
 #tile-paint-buttons > * {
     max-width: unset;
 }
-
-input + svg, input + svg + svg {
-    z-index: 6;
-}
-
-label.toggle#tile-grid {
-    max-width: 52px;
-}
-
-.room-picker-toggle {
-    gap: .25rem;
-}
-
-label.room-picker-toggle {
-    flex: 0;
-    min-width: 72px;
-}
-
-/* 
-.room-picker-toggle * {
-    pointer-events: none;
-} */
 
 #move-to-window {
     position: absolute;
@@ -774,18 +860,6 @@ label.room-picker-toggle {
     white-space: pre-wrap;
 }
 
-.viewport-tab-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.viewport-toolbar {
-    display: flex; flex-direction: row;
-    gap: .5rem;
-    height: 48px;
-}
-
 #tile-paint-body {
     display: flex; flex-direction: column;
     gap: 1rem;
@@ -825,7 +899,7 @@ label.room-picker-toggle {
     gap: 8px;
 }
 
-#tile-paint-buttons > .grid3, #tile-paint-buttons > .horizontal-capsule {
+#tile-paint-buttons > .grid3 {
     gap: 2px;
 }
 
@@ -845,96 +919,17 @@ label.room-picker-toggle {
     flex: 0;
 }
 
-.icon-button {
-    flex: 0;
-    min-width: 52px;
-}
-
-.picker-toggle {
-    flex: 0;
-    max-width: 72px;
-}
-
-.tile-select {
-    padding: .5rem;
-
-    display: flex; flex-direction: row;
-    flex-wrap: wrap;
-    gap: 5px;
-    justify-content: flex-start;
-    align-content: flex-start;
-
-    border-radius: .5rem;
-    background: var(--trans-gradient);
-    overflow: hidden scroll;
-}
-
-.tile-select label {
-    min-height: unset;
-
-    width: 40px; height: 40px;
-
-    background-color: var(--tileset-background-color);
-    background-image: var(--tileset-background-image);
-    background-size: var(--tileset-background-size);
-}
-
-.tile-select input[type="radio"]:checked {
-    background: none;
-    z-index: 5;
-
-    box-shadow: 0 0 0 5px white;
-}
-
-.tile-select label > input {
-    background: none;
-}
-
-.room-select label > input {
-    background: none;
-}
-
 #color-select label > input {
     background: none;
-}
-
-.controls-tab {
-    display: flex; flex-direction: column;
-    gap: .5rem;
-}
-
-.controls-tab-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-
-    height: calc(512px - 48px);
-
-    background-color: var(--frame-color);
-    border-radius: 0 1rem 1rem 1rem;
 }
 
 #play-tab-body {
     font-size: larger;
 }
 
-.horizontal-capsule {
-    flex: 1;
-    gap: 2px;
-}
-
 #room-events-toolbar {
     flex: 0;
     min-height: 48px;
-}
-
-.popup-window {
-    box-shadow: var(--black-outline-shadow);
-}
-
-.viewport-body {
-    position: relative;
 }
 
 #playtest-snapshot-window {
