@@ -158,30 +158,6 @@ button:disabled {
     z-index: 5;
 }
 
-.grid4 {
-    display: grid;
-    grid-template-columns: repeat(4, auto);
-}
-
-.grid8 {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-}
-
-.grid4 label { border-radius: 0; }
-.grid4 label:nth-child(1) { border-top-left-radius: 1em; }
-.grid4 label:nth-child(4) { border-top-right-radius: 1em; }
-.grid4 label:nth-last-child(4) { border-bottom-left-radius: 1em; }
-.grid4 label:nth-last-child(1) { border-bottom-right-radius: 1em; }
-
-.grid8 label { border-radius: 0; }
-.grid8 label:nth-child(1) { border-top-left-radius: 1em; }
-.grid8 label:nth-child(8) { border-top-right-radius: 1em; }
-.grid8 label:nth-last-child(8) { border-bottom-left-radius: 1em; }
-.grid8 label:nth-last-child(1) { border-bottom-right-radius: 1em; }
-
-.grid8 label :not(input) { border-radius: inherit; }
-
 input[type="text"], textarea {
     font-family: monospace;
 
