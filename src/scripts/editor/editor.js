@@ -436,11 +436,20 @@ class EventEditor {
             delete: ui.action("remove-event-field", () => this.removeField()),
         }
 
+        ui.action("upload-field-javascript", async () => {
+            const [file] = await maker.pickFiles("text/*");
+            const text = await file.text();
+            this.valueEditors.javascript.value = text;
+            const event = new Event('change');
+            this.valueEditors.javascript.dispatchEvent(event);
+        });
+
         this.eventEmptyElement = ONE("#event-empty");
         this.eventPropertiesElement = ONE("#event-properties");
         this.valueEditors = {
             json: ONE("#field-json-editor textarea"),
             dialogue: ONE("#field-dialogue-editor textarea"),
+            javascript: ONE("#field-javascript-editor textarea"),
         };
 
         this.positionSelect = ONE("#field-position-select");
@@ -460,6 +469,13 @@ class EventEditor {
                 } else {
                     field.data = this.valueEditors.json.value;
                 }
+            });
+        });
+
+        this.valueEditors.javascript.addEventListener("change", () => {
+            this.editor.stateManager.makeChange(async (data) => {
+                const { field } = this.getSelections(data);
+                field.data = this.valueEditors.javascript.value;
             });
         });
 
@@ -554,6 +570,7 @@ class EventEditor {
             this.eventPropertiesElement.hidden = false;
 
             ONE("#field-json-editor").hidden = true;
+            ONE("#field-javascript-editor").hidden = true;
             ONE("#field-dialogue-editor").hidden = true;
             ONE("#field-tile-editor").hidden = true;
             ONE("#field-location-editor").hidden = true;
@@ -591,6 +608,9 @@ class EventEditor {
                 } else if (field.type === "json") {
                     this.valueEditors.json.value = JSON.stringify(field.data);
                     ONE("#field-json-editor").hidden = false;
+                } else if (field.type === "javascript") {
+                    this.valueEditors.javascript.value = field.data;
+                    ONE("#field-javascript-editor").hidden = false;
                 } else {
                     this.valueEditors.json.value = field.data;
                     ONE("#field-json-editor").hidden = false;
@@ -1129,12 +1149,10 @@ class BipsiEditor extends EventTarget {
         this.modeSelect.addEventListener("change", async () => {
             this.redrawTileBrowser();
 
-            this.savedVariables.clear();
-            ONE("#playtest").hidden = true;
-            ONE("#playtest").srcdoc = "";
-
             if (this.modeSelect.value === "playtest") {
                 this.playtest();
+            } else {
+                this.playtestIframe.srcdoc = "";
             }
         });
 
@@ -1897,6 +1915,14 @@ class BipsiEditor extends EventTarget {
         this.logTextElement.replaceChildren("> RESTARTING PLAYTEST\n");
     }
 
+    gatherPluginsJavascript() {
+        const { data } = this.getSelections();
+        const event = findEventByTag(data, "is-plugins") ?? { fields: [] };
+        const fields = event.fields.filter((field) => field.type === "javascript");
+        const javascript = fields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
+        return javascript;
+    }
+
     async makeExportHTML() {
         // make a standalone bundle of the current project state and the 
         // resources it depends upon
@@ -1909,6 +1935,9 @@ class BipsiEditor extends EventTarget {
         ALL("[data-editor-only]", clone).forEach((element) => element.remove());
         // insert the project bundle data into the page copy 
         ONE("#bundle-embed", clone).innerHTML = JSON.stringify(bundle);
+
+        // insert plugins
+        ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript();
 
         // track how many remixes this is (remixes have soft-limits to encourage finding updates)
         const generation = parseInt(clone.getAttribute("data-remix-generation"));

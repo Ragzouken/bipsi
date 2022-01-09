@@ -21,6 +21,8 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bi
             include scripts/playback.js
         script
             include scripts/debug.js
+        script
+            include scripts/preload.js
         script(data-editor-only)
             include scripts/editor/utility.js
         script(data-editor-only)
@@ -50,8 +52,8 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bi
                 canvas#player-canvas(width=256 height=256)
         #editor(data-editor-only)
             include editor.pug
-        script#preload
-            include scripts/preload.js
+        script#plugins
+        script preload();
         script#bundle-embed(type="application/json")
         script#editor-embed(type="application/json" data-editor-only)
             include default.json

@@ -462,3 +462,27 @@ label.room-picker-toggle {
     display: flex; flex-direction: column;
     padding: 1rem;
 }
+
+#field-javascript-editor {
+    flex: 1;
+    display: flex;
+}
+
+#field-javascript-editor > .row {
+    gap: 0.5rem;
+}
+
+#field-javascript-editor textarea {
+    border-radius: 0.5rem 1rem 1rem 0.5rem;
+}
+
+#javascript-editor-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 48px;
+}
+
+#javascript-editor-toolbar button {
+    border-radius: 0.5rem;
+}
