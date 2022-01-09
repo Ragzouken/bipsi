@@ -404,7 +404,6 @@ label.room-picker-toggle {
     color: white;
 }
 
-
 .room-buttons {
     display: flex; flex-direction: row;
     gap: .5rem;
@@ -465,17 +464,6 @@ label.room-picker-toggle {
     border-radius: .75rem;
 }
 
-#player-menu {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    gap: 1em;
-
-    height: 32px;
-
-    align-self: center;
-}
-
 #editor {
     display: flex; flex-direction: row;
     flex-wrap: wrap;
@@ -490,12 +478,6 @@ label.room-picker-toggle {
 
 #upper-toolbar .button-row > * {
     min-width: 48px;
-}
-
-#mode-body {
-    height: 100%;
-
-    display: flex; flex-direction: column;
 }
 
 #mode-select {
