@@ -191,9 +191,12 @@ button:disabled {
     appearance: none;
     -moz-appearance: none;
     -webkit-appearance: none;
-    background-color: var(--button-color);
 
     min-height: 3em;
+}
+
+.radio-select label > input {
+    background-color: var(--button-color);
 }
 
 .radio-select input[type="radio"] {
