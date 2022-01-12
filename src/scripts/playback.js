@@ -270,8 +270,8 @@ if (event) {
 `;
 
 const BEHAVIOUR_ADD_BEHAVIOUR = `
-let scripts = FIELDS(EVENT, "add-behaviour", "javascript");
-ADD_BEHAVIOURS(...scripts);
+ADD_BEHAVIOURS(...FIELDS(EVENT, "add-behaviour", "javascript"));
+ADD_BEHAVIOURS(...FIELDS(EVENT, "add-behavior", "javascript"));
 `;
 
 const STANDARD_SCRIPTS = [
@@ -419,6 +419,9 @@ class BipsiPlayback extends EventTarget {
         this.libraryId = findEventByTag(this.data, "is-library")?.id;
         this.ready = true;
 
+        const setup = findEventByTag(this.data, "is-setup");
+        if (setup) await this.touch(setup);
+
         // game starts by running the touch behaviour of the player avatar
         await this.touch(avatar);
     }
@@ -539,6 +542,7 @@ class BipsiPlayback extends EventTarget {
 
     async say(script, options={}) {
         this.log(`> SAYING "${script}"`);
+        script = replaceVariables(script, this.variables);
         await this.dialoguePlayback.queue(script, options);
     }
 
@@ -576,12 +580,18 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
     }
 
+    eventDebugInfo(event) {
+        const tags = allEventTags(event).join(", ");
+        const info = tags.length > 0 ? `(tags: ${tags}) ` : "";
+        return `${info}@ ${event.position}`;
+    }
+
     /**
      * @param {BipsiDataEvent} event 
      */
     async touch(event) {
-        const tags = allEventTags(event).join(", ");
-        this.log(`> TOUCHING EVENT (tags: ${tags}) @ ${event.position}`);
+        this.log(`> TOUCHING EVENT ${this.eventDebugInfo(event)}`);
+
         const touch = oneField(event, "touch", "javascript")?.data;
 
         if (touch !== undefined) {
@@ -767,6 +777,10 @@ function replace(format) {
     const values = Array.prototype.slice.call(arguments, 1);
     return format.replace(/\[\s*(\d+)\s*\]/g, (match, index) => values[index] ?? match);
 };
+
+function replaceVariables(text, variables) {
+    return text.replace(/\[\[([^\]]+)\]\]/g, (match, key) => variables.get(key) ?? match);
+}
 
 const WALK_DIRECTIONS = {
     "L": [-1,  0],

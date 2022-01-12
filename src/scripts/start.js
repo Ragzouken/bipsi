@@ -42,10 +42,6 @@ async function makePlayback(font, bundle) {
         document.documentElement.style.setProperty('--vh', `${window.innerHeight / 100}px`);
     });
 
-    playback.addEventListener("log", (event) => {
-        console.log(...event.detail);
-    });
-
     // update the canvas size whenever the browser window resizes
     window.addEventListener("resize", () => fitCanvasToParent(playCanvas));
     
@@ -149,37 +145,51 @@ async function makePlayback(font, bundle) {
         });
     });
 
+    function captureGif() {
+        const frames = recordFrames(playback);
+        const giffer = window.open(
+            "https://kool.tools/tools/gif/",
+            "gif maker",
+            "left=10,top=10,width=512,height=512,resizable=no,location=no",
+        );
+        sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
+    }
+
+    function getRoomListing() {
+        const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
+        const rooms = [];
+        const thumb = createRendering2D(16, 16);
+        const preview = createRendering2D(128, 128);
+        playback.data.rooms.forEach((room) => {
+            drawRoomPreviewPlayback(preview, playback, room.id);
+            drawRoomThumbPlayback(thumb, playback, room.id);
+            rooms.push({ id: room.id, thumb: thumb.canvas.toDataURL(), preview: preview.canvas.toDataURL() });
+        });
+        postMessageParent({ type: "room-listing", rooms, current }, "*");
+    }
+
+    /** @type {Map<string, (any) => void>} */
+    const debugHandlers = new Map();
+
+    debugHandlers.set("move-to", (message) => moveEventById(playback.data, playback.avatarId, message.destination));
+    debugHandlers.set("key-down", (message) => down(message.key, message.code));
+    debugHandlers.set("key-up", (message) => up(message.key, message.code));
+    debugHandlers.set("capture-gif", (message) => captureGif());
+    debugHandlers.set("get-room-listing", (message) => getRoomListing());
+
+    // only allow these when playtesting from editor
+    if (document.documentElement.getAttribute("data-debug")) {
+        debugHandlers.set("touch-location", (message) => playback.touch(getEventAtLocation(playback.data, message.location)));
+
+        // if the game runs javascript from variables then this would be a 
+        // vector to run arbitrary javascript on the game's origin giving
+        // read/write access to storage for that origin and the power to e.g
+        // erase all game saves etc
+        debugHandlers.set("set-variable", (message) => playback.setVariable(message.key, message.value));
+    }
+
     window.addEventListener("message", (event) => {
-        if (event.data.type === "move-to") {
-            moveEventById(playback.data, playback.avatarId, event.data.destination);
-        } else if (event.data.type === "key-down") {
-            down(event.data.key, event.data.code);
-        } else if (event.data.type === "key-up") {
-            up(event.data.key, event.data.code);
-        } else if (event.data.type === "touch-location") {
-            playback.touch(getEventAtLocation(playback.data, event.data.location));
-        } else if (event.data.type === "set-variable") {
-            playback.setVariable(event.data.key, event.data.value);
-        } else if (event.data.type === "capture-gif") {
-            const frames = recordFrames(playback);
-            const giffer = window.open(
-                "https://kool.tools/tools/gif/",
-                "gif maker",
-                "left=10,top=10,width=512,height=512,resizable=no,location=no",
-            );
-            sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
-        } else if (event.data.type === "get-room-listing") {
-            const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
-            const rooms = [];
-            const thumb = createRendering2D(16, 16);
-            const preview = createRendering2D(128, 128);
-            playback.data.rooms.forEach((room) => {
-                drawRoomPreviewPlayback(preview, playback, room.id);
-                drawRoomThumbPlayback(thumb, playback, room.id);
-                rooms.push({ id: room.id, thumb: thumb.canvas.toDataURL(), preview: preview.canvas.toDataURL() });
-            });
-            postMessageParent({ type: "room-listing", rooms, current }, "*");
-        }
+        debugHandlers.get(event.data.type)?.call(this, event.data);
     });
 
     document.documentElement.setAttribute("data-app-mode", "player");

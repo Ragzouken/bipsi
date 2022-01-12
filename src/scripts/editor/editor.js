@@ -370,6 +370,17 @@ const EVENT_TEMPLATES = {
     code: [
         { key: "touch", type: "javascript", data: "await DO_STANDARD();" },
     ],
+    setup: [
+        { key: "is-setup", type: "tag", data: true },
+        { key: "add-behavior", type: "javascript", data: 
+`let test = FIELD(EVENT, "test-field", "dialogue");
+if (test) {
+    await SAY(test);
+}`}
+    ],
+    library: [
+        { key: "is-library", type: "tag", data: true },
+    ],
 };
 
 function prepareTemplate(element) {
@@ -424,6 +435,28 @@ class EventEditor {
                 this.editor.stateManager.makeChange(async (data) => {
                     const room = roomFromEvent(data, avatar);
                     arrayDiscard(room.events, avatar);
+                });
+            }
+        });
+        ui.action("create-event-setup", () => {
+            const setup = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-setup"));
+            this.editor.createEvent(setup?.fields ?? EVENT_TEMPLATES.setup);
+            
+            if (setup) {
+                this.editor.stateManager.makeChange(async (data) => {
+                    const room = roomFromEvent(data, setup);
+                    arrayDiscard(room.events, setup);
+                });
+            }
+        });
+        ui.action("create-event-library", () => {
+            const library = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-library"));
+            this.editor.createEvent(library?.fields ?? EVENT_TEMPLATES.library);
+            
+            if (library) {
+                this.editor.stateManager.makeChange(async (data) => {
+                    const room = roomFromEvent(data, library);
+                    arrayDiscard(room.events, library);
                 });
             }
         });
@@ -1908,7 +1941,7 @@ class BipsiEditor extends EventTarget {
     }
 
     async playtest() {
-        const html = await this.makeExportHTML();
+        const html = await this.makeExportHTML(true);
         this.playtestIframe.srcdoc = html;
         this.playtestIframe.hidden = false;
 
@@ -1923,7 +1956,7 @@ class BipsiEditor extends EventTarget {
         return javascript;
     }
 
-    async makeExportHTML() {
+    async makeExportHTML(debug=false) {
         // make a standalone bundle of the current project state and the 
         // resources it depends upon
         const bundle = await this.stateManager.makeBundle();
@@ -1945,6 +1978,10 @@ class BipsiEditor extends EventTarget {
 
         // default to player mode
         clone.setAttribute("data-app-mode", "player");
+
+        if (debug) {
+            clone.setAttribute("data-debug", "true");
+        }
 
         return clone.outerHTML;
     }
