@@ -1,67 +1,298 @@
-#playtest {
-    position: absolute;
-    width: 512px; height: 100%;
-    left: 0; top: 0;
+:root {
+    /** diagonal stripes for showing clearly transparent pixels of the paint area */
+    --trans-color-1: rgb(32, 32, 32);
+    --trans-color-2: rgb(48, 48, 48);
+    --trans-gradient: repeating-linear-gradient( -45deg, var(--trans-color-1), var(--trans-color-1) .5em, var(--trans-color-2) .5em, var(--trans-color-2) 1em );
+
+    font-family: sans-serif;
+
+    --button-color: #C25C5C;
+    --frame-color: #ECECEC;
+
+    --black-outline-shadow: 0 0 0 2px black;
+}
+
+:root[data-app-mode="editor"] [data-hidden-in-editor] {
+    display: none !important;
+    visibility: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}
+
+.button-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+}
+
+button {
+    flex: 1;
+    flex-direction: column;
+    white-space: nowrap;
 
     border: none;
-}
+    border-radius: 1em;
+    color: white;
+    background-color: var(--button-color);
 
-#palette-picker {
-    position: absolute;
-    right: 0; bottom: 56px;
-    width: 256px;
-    height: 256px;
-
-    background: var(--button-color);
-    border-radius: 1.5rem 0 0 1.5rem;
-    padding: .5rem;
+    font-weight: 400;
 
     display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: .25em;
 }
 
-#palette-picker-palettes {
-    background: var(--trans-gradient);
-    border-radius: 1rem;
-    padding: .5rem;
-    gap: .5rem;
-
-    overflow: hidden scroll;
+button:active {
+    background-color: #972f26;
 }
 
-#palette-picker label {
-    border-radius: 1rem;
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
 }
 
-#palette-picker input[type="radio"]:checked {
-    background: none;
-    z-index: 5;
-    animation: none;
-    box-shadow: 0 0 0 0.5em white;
-}
-
-#tile-select-tab {
-    flex: 1;
-
+.radio-select label {
     position: relative;
+
+    margin: 0;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+
+    min-height: 3em;
+}
+
+.radio-select label > input {
+    background-color: var(--button-color);
+}
+
+.radio-select input[type="radio"] {
+    margin: 0;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    border-radius: inherit;
+
+    position: absolute;
+    width: 100%; height: 100%;
+}
+
+.radio-select label img, .radio-select label svg, button img, button svg {
+    pointer-events: none;
+    width: 32px; height: 32px;
+}
+
+.radio-select label img, .radio-select label svg {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.radio-select input[type="radio"]:checked {
+    border: none;
+    background: #972f26;
+}
+
+.radio-select img {
+    filter: brightness(0);
+}
+
+.radio-select svg {
+    color: black;
+}
+
+.radio-select input[type="radio"]:checked + svg {
+    color: white;
+}
+
+.radio-select input[type="radio"]:checked + img {
+    filter: none;
+}
+
+.horizontal-capsule > *, .vertical-capsule > * {
+    flex: 1;
+}
+
+.horizontal-capsule {
+    display: flex;
+    flex-direction: row;
+}
+
+.vertical-capsule {
+    display: flex;
+    flex-direction: column;
+}
+
+.horizontal-capsule > * {
+    border-radius: 0;
+}
+
+.horizontal-capsule > :first-child {
+    border-radius: 1em 0 0 1em;
+}
+
+.horizontal-capsule > :last-child {
+    border-radius: 0 1em 1em 0;
+}
+
+.vertical-capsule > :first-child {
+    border-radius: 1em 1em 0 0;
+}
+
+.vertical-capsule > :last-child {
+    border-radius: 0 0 1em 1em;
+}
+
+:focus {
+    outline: thick solid white;
+    z-index: 5;
+}
+:focus:not(:focus-visible) { 
+    outline: unset 
+}
+
+:focus + * {
+    z-index: 5;
+}
+
+input[type="text"], textarea {
+    font-family: monospace;
+
+    flex: 1;
+    flex-basis: 100%;
+    min-width: 0;
+    padding: .5em .75em;
+    border: 0;
+    border-radius: .5em;
+    color: white;
+    background: black;
+
+    margin: 0;
+}
+
+.grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+}
+
+.grid3 > * { border-radius: 0; }
+.grid3 > *:nth-child(1) { border-top-left-radius: 1em; }
+.grid3 > *:nth-child(3) { border-top-right-radius: 1em; }
+.grid3 > *:nth-last-child(3) { border-bottom-left-radius: 1em; }
+.grid3 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
+
+body {
+    touch-action: none;
+    background: var(--page-color, black);
+    color: black;
+}
+
+canvas {
+    touch-action: none;
+}
+
+svg {
+    pointer-events: none;
+}
+
+input[type="text"], textarea {
+    font-size: large;
+}
+
+details > summary {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--button-color);
+}
+
+h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--button-color);
+}
+
+a {
+    color: var(--button-color);
+    font-weight: bold;
+}
+
+a:hover {
+    color: var(--button-color);
+}
+
+a:visited {
+    color: var(--button-color);;
+}
+
+em {
+    font-weight: bold;
+    color: var(--button-color);
+}
+
+select {
+    padding: .5em;
+
+    border: none;
+    border-radius: 1rem;
+
+    background-color: var(--button-color);
+}
+
+.row {
+    display: flex; flex-direction: row;
+    flex: 1;
+}
+
+.column {
+    display: flex; flex-direction: column;
+    flex: 1;
+}
+
+.horizontal-capsule {
+    flex: 1;
+    gap: 2px;
+}
+
+.popup-window {
+    box-shadow: var(--black-outline-shadow);
+}
+
+.viewport-body {
+    position: relative;
+}
+
+.controls-tab {
     display: flex; flex-direction: column;
     gap: .5rem;
-
-    overflow: hidden;
 }
 
-.tile-buttons {
-    display: flex; flex-direction: row;
-    gap: .5rem;
+.controls-tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+
+    height: calc(512px - 48px);
+
+    background-color: var(--frame-color);
+    border-radius: 0 1rem 1rem 1rem;
 }
 
-.tile-buttons > * {
-    width: 56px;
-    height: 40px;
-
-    border-radius: .75rem;
+.icon-button {
+    flex: 0;
+    min-width: 52px;
 }
 
-#tile-select {
+.picker-toggle {
+    flex: 0;
+    max-width: 72px;
+}
+
+.tile-select {
     flex: 1;
 
     padding: .5rem;
@@ -77,7 +308,7 @@
     overflow: hidden scroll;
 }
 
-#tile-select label {
+.tile-select label {
     min-height: unset;
 
     width: 40px; height: 40px;
@@ -87,20 +318,92 @@
     background-size: var(--tileset-background-size);
 }
 
-#tile-select input[type="radio"]:checked {
+.tile-select input[type="radio"]:checked {
     background: none;
     z-index: 5;
 
     box-shadow: 0 0 0 5px white;
 }
 
-#room-select-tab {
-    display: flex; flex-direction: column;
+.tile-select label > input {
+    background: none;
+}
+
+.room-select label > input {
+    background: none;
+}
+
+.viewport-tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.viewport-toolbar {
+    display: flex; flex-direction: row;
     gap: .5rem;
+    height: 48px;
+}
 
-    padding-bottom: 1rem;
+label.toggle {
+    flex: 1;
+    flex-direction: row;
+    white-space: nowrap;
+    border: none;
+    border-radius: 1em;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: .25em;
 
-    height: 240px;
+    color: black;
+    position: relative;
+}
+
+input + svg, input + svg + svg {
+    z-index: 6;
+}
+
+label.toggle#tile-grid {
+    max-width: 52px;
+}
+
+.room-picker-toggle {
+    gap: .25rem;
+}
+
+label.room-picker-toggle {
+    flex: 0;
+    min-width: 72px;
+}
+
+.toggle input {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    border-radius: inherit;
+
+    position: absolute;
+    width: 100%; height: 100%;
+
+    background-color: var(--button-color);
+}
+
+.toggle input + svg {
+    color: black;
+
+    pointer-events: none;
+    width: 32px; height: 32px;
+}
+
+.toggle input:checked {
+    background: blue;
+}
+
+.toggle input:checked + svg, .toggle input:checked + svg + svg {
+    color: white;
 }
 
 .room-buttons {
@@ -151,6 +454,451 @@
     width: 100%; height: 100%;
 }
 
+.tile-buttons {
+    display: flex; flex-direction: row;
+    gap: .5rem;
+}
+
+.tile-buttons > * {
+    width: 56px;
+    height: 40px;
+
+    border-radius: .75rem;
+}
+
+#editor {
+    display: flex; flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+#upper-toolbar {
+    display: flex; flex-direction: row;
+    gap: .5rem;
+}
+
+#upper-toolbar .button-row > * {
+    min-width: 48px;
+}
+
+#mode-select {
+    gap: 0;
+}
+
+#mode-select > * {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#mode-select.radio-select input[type="radio"]:checked {
+    background: #367b6b;
+}
+
+#undo-row {
+    padding-bottom: .5rem;
+    gap: .5rem;
+}
+
+#undo-row > * {
+    border-radius: .75rem;
+}
+
+#menu {
+    margin-top: .5rem;
+}
+
+#palette-edit {
+    flex: 1;
+
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+
+    padding: 1rem;
+    gap: 1rem;
+}
+
+#palette-edit-select > :first-child {
+    border-radius: 1rem 0 0 0;
+}
+
+#palette-edit-select > :last-child {
+    border-radius: 0 1rem 0 0;
+}
+
+#palette-edit-select label img {
+    filter: none;
+}
+
+#color-select {
+    gap: .5rem;
+}
+
+#color-select label {
+    min-height: 0;
+}
+
+#color-select input[type="radio"]:checked {
+    background: none;
+    z-index: 5;
+
+    animation: none;
+    box-shadow: 0 0 0 .5em white;
+}
+
+#color-edit {
+    gap: 1rem;
+}
+
+#controls {
+    position: relative;
+
+    width: 512px;
+    height: calc(512px + 48px + .5rem);
+    background: none;
+
+    padding: 0;
+    border-radius: 0;
+    overflow: visible;
+
+    display: flex; flex-direction: column;
+
+    justify-content: unset;
+    align-items: unset;
+    gap: 0;
+}
+
+#viewport {
+    position: relative;
+
+    width: 512px;
+    height: calc(512px + 48px + .5rem);
+    background: none;
+
+    padding: 0;
+    border-radius: 0;
+    overflow: visible;
+
+    display: flex; flex-direction: column;
+
+    justify-content: unset;
+    align-items: unset;
+
+    gap: .5rem;
+}
+
+#palette-room, #tile-map-paint, #events-room {
+    width: 512px; height: 512px;
+}
+
+#room-paint-buttons label {
+    min-height: unset;
+}
+
+#room-paint-buttons .radio-select svg {
+    min-height: unset;
+    transform: translate(-50%, -50%) scale(75%);
+}
+
+#palette-room {
+    cursor: not-allowed;
+}
+
+#tile-map-tab {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+}
+
+#tile-map-paint {
+    cursor: crosshair;
+}
+
+#tile-paint-room {
+    width: 256px; height: 256px;
+
+    cursor: crosshair;
+}
+
+#tile-paint-canvases * {
+    background: none;
+}
+
+#tile-paint-canvases input:checked {
+    pointer-events: none;
+    background: none;
+}
+
+#tile-paint-canvases input:not(:checked) + canvas {
+    pointer-events: none;
+    opacity: 50%;
+}
+
+#room-events-tab {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+
+    cursor: pointer;
+}
+
+#event-empty {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+}
+
+.event-template-list > button {
+    flex: 0;
+
+    display: flex; flex-direction: row;
+    padding: .5rem; gap: .5rem;
+    justify-content: flex-start;
+}
+
+.event-template-list {
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+#event-properties {
+    flex: 1;
+    display: flex; flex-direction: column;
+    gap: 1rem;
+
+    /* overflow: hidden; */
+}
+
+#event-properties > .row {
+    overflow: hidden;
+}
+
+#event-properties textarea {
+    flex: 1;
+    resize: none;
+    border-radius: 1rem;
+}
+
+.event-sheet {
+    flex: 1;
+
+    display: flex; flex-direction: column;
+
+    border-radius: 1rem 0 0 1rem;
+    background: black;
+    overflow: hidden scroll;
+}
+
+.event-sheet > :nth-child(2n+0) {
+    background: var(--trans-color-1);
+}
+
+.event-sheet > :nth-child(2n+1) {
+    background: var(--trans-color-2);
+}
+
+.event-sheet #event-sheet-add {
+    flex: 0;
+    margin: .5rem;
+    background: var(--button-color);
+}
+
+.event-line {
+    display: flex; flex-direction: row;
+    gap: .25rem;
+
+    height: 32px;
+    min-height: 32px;
+
+    cursor: pointer;
+
+    gap: .25rem;
+    padding: 0 .25rem;
+}
+
+.event-line > input, .event-line > select { 
+    color: white;
+    flex: 1;
+    border-radius: 0;
+    background: inherit;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.event-line:not(.active) > * {
+    pointer-events: none;
+}
+
+.event-line.active {
+    filter: invert();
+}
+
+.event-line :focus {
+    outline: thick solid var(--button-color);
+    z-index: 5;
+}
+
+.event-lines-toolbar {
+    flex: unset;
+    width: 48px;
+    height: 180px;
+    gap: .5rem;
+
+    display: flex; flex-direction: column;
+}
+
+.event-lines-toolbar > button {
+    border-radius: 0 .5rem .5rem 0;
+    padding: 0;
+    height: 40px;
+}
+
+#field-json-editor {
+    height: 192px;
+
+    display: flex;
+}
+
+#field-file-editor {
+    display: flex;
+    flex-direction: row;
+    gap: .5rem;
+}
+
+#field-file-editor button {
+    height: 40px;
+    border-radius: .75rem;
+    padding-left: .75rem;
+    padding-right: .75rem;
+}
+
+#field-file-sidebar {
+    width: 128px;
+
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+#field-dialogue-editor {
+    height: 96px;
+
+    display: flex;
+}
+
+#field-dialogue-editor > .row {
+    gap: .5rem;
+}
+
+#field-dialogue-editor textarea {
+    border-radius: .5rem 1rem 1rem .5rem;
+}
+
+#dialogue-editor-toolbar {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+
+    width: 48px;
+}
+
+#dialogue-editor-toolbar .toggle {
+    border-radius: .5rem;
+}
+
+
+#event-edit, #game-fields-edit {
+    gap: 1rem;
+    overflow: hidden;
+}
+
+#event-edit > *, #game-fields-edit > * {
+    flex: 1;
+}
+
+#event-action-type-select {
+    padding: .5em;
+
+    border: none;
+    border-radius: 1rem 0 0 1rem;
+
+    background-color: var(--button-color);
+
+    font-weight: bold;
+
+    height: 48px;
+}
+
+#event-selected-toolbar {
+    gap: 1rem;
+    padding-right: 1rem;
+}
+
+#field-tile-editor {
+    height: 192px;
+    display: flex;
+}
+
+#play-tab-view canvas {
+    width: 512px; height: 512px;
+}
+
+#playtest {
+    width: 512px; height: 512px;
+
+    border: none;
+    background: var(--trans-gradient);
+}
+
+#palette-picker {
+    position: absolute;
+    right: 0; bottom: 56px;
+    width: 256px;
+    height: 256px;
+
+    background: var(--button-color);
+    border-radius: 1.5rem 0 0 1.5rem;
+    padding: .5rem;
+
+    display: flex;
+}
+
+#palette-picker-palettes {
+    background: var(--trans-gradient);
+    border-radius: 1rem;
+    padding: .5rem;
+    gap: .5rem;
+
+    overflow: hidden scroll;
+}
+
+#palette-picker label {
+    border-radius: 1rem;
+}
+
+#palette-picker input[type="radio"]:checked {
+    background: none;
+    z-index: 5;
+    animation: none;
+    box-shadow: 0 0 0 0.5em white;
+}
+
+#tile-select-tab {
+    flex: 1;
+
+    position: relative;
+    display: flex; flex-direction: column;
+    gap: .5rem;
+
+    overflow: hidden;
+}
+
+#room-select-tab {
+    display: flex; flex-direction: column;
+    gap: .5rem;
+
+    padding-bottom: 1rem;
+
+    height: 240px;
+}
+
 #field-location-editor {
     display: flex; flex-direction: row;
     gap: 1rem;
@@ -168,19 +916,7 @@
     max-width: unset;
 }
 
-input + svg {
-    z-index: 6;
-}
-
-label.toggle#tile-grid {
-    max-width: 64px;
-}
-
-#room-picker-toggle {
-    gap: .25rem;
-}
-
-#events-room-select-window {
+#move-to-window {
     position: absolute;
     width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
@@ -192,4 +928,198 @@ label.toggle#tile-grid {
     background: var(--frame-color);
 
     cursor: initial;
+    z-index: 100;
+
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+#room-select-window {
+    position: absolute;
+    width: 512px; height: 320px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
+
+    background: var(--frame-color);
+
+    cursor: initial;
+    z-index: 100;
+
+    box-shadow: 0 0 0 2px black;
+}
+
+#log-window {
+    position: absolute;
+    width: 512px; height: 256px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    /* padding: 1rem; gap: .5rem; */
+
+    background: var(--frame-color);
+    background: black;
+    opacity: 85%;
+
+    cursor: initial;
+    z-index: 100;
+}
+
+#log-text {
+    background: black;
+
+    flex: 1;
+    border-radius: 1rem;
+
+    color: white;
+    font-family: monospace;
+    font-size: large;
+    padding: 0.5em 0.75em;
+
+    overflow-y: scroll;
+
+    white-space: pre-wrap;
+}
+
+#variables-window {
+    position: absolute;
+    width: 512px; height: 256px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    /* padding: 1rem; gap: .5rem; */
+
+    background: var(--frame-color);
+    background: black;
+    opacity: 85%;
+
+    cursor: initial;
+    z-index: 100;
+}
+
+#variables-text {
+    background: black;
+
+    flex: 1;
+    border-radius: 1rem;
+
+    color: white;
+    font-family: monospace;
+    font-size: large;
+    padding: 0.5em 0.75em;
+
+    overflow-y: scroll;
+
+    white-space: pre-wrap;
+}
+
+#tile-paint-body {
+    display: flex; flex-direction: column;
+    gap: 1rem;
+    height: 512px;
+}
+
+#tile-paint-previews {
+    display: flex; flex-direction: row;
+    gap: 1rem;
+}
+
+#tile-paint-canvases {
+    flex: 0;
+
+    display: flex; flex-direction: row;
+
+    padding: 1rem; gap: 1rem;
+    background: var(--trans-gradient);
+    border-radius: 1rem;
+
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+#tile-paint-canvases canvas {
+    width: 160px; height: 160px;
+    cursor: crosshair;
+}
+
+#tile-paint-buttons {
+    flex: 1;
+    gap: .5rem;
+    display: flex; flex-direction: column;
+}
+
+#tile-paint-buttons > .row {
+    gap: 8px;
+}
+
+#tile-paint-buttons > .grid3 {
+    gap: 2px;
+}
+
+#tile-paint-buttons button {
+    height: 48px;
+}
+
+#tile-paint-a {
+    cursor: not-allowed;
+    margin: auto;
+
+    width: 96px;
+    height: 96px;
+}
+
+#tile-paint-body > .row {
+    flex: 0;
+}
+
+#color-select label > input {
+    background: none;
+}
+
+#play-tab-body {
+    font-size: larger;
+}
+
+#room-events-toolbar {
+    flex: 0;
+    min-height: 48px;
+}
+
+#playtest-snapshot-window {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+
+    background-color: var(--frame-color);
+    border-radius: 1rem;
+
+    display: flex; flex-direction: column;
+    padding: 1rem;
+}
+
+#field-javascript-editor {
+    flex: 1;
+    display: flex;
+}
+
+#field-javascript-editor > .row {
+    gap: 0.5rem;
+}
+
+#field-javascript-editor textarea {
+    border-radius: 0.5rem 1rem 1rem 0.5rem;
+}
+
+#javascript-editor-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 48px;
+}
+
+#javascript-editor-toolbar button {
+    border-radius: 0.5rem;
 }

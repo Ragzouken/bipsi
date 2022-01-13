@@ -1,0 +1,30 @@
+- var now = new Date();
+- var date = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+- var version = "0.2-alpha";
+
+#play-tab-body.controls-tab-body(hidden)
+    div
+        p
+            .button-row
+                h3 Import
+                button(name="import_html" title="import from webpage" data-original-only) html
+                button(name="import_bipsi" title="import a bipsi" data-original-only) bipsi bundle
+                button(name="import_story" title="import an ink story" data-original-only) ink story
+        p
+            .button-row
+                h3 Export 
+                button(name="export" title="export as webpage") release as html
+                button(name="export_json" title="export as json") bipsi bundle
+        p
+            .button-row
+                h3 Extra 
+                button(name="update" title="open this flickgame study in the latest version" data-remix-only) update
+                button(name="reset" title="reset project to default") reset to default
+        h2= `binksi -- ${version} (${date})`
+        p propulse your <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi</a> games with narration engine <a href="https://www.inklestudios.com/ink/">ink</a>
+        p quick links to : <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi user guide</a>,  
+                            <a href="https://kool.tools/bipsi/scripting-guide.pdf">bipsi scripting guide</a>,
+                            <a href="https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md">writing with Ink</a>
+                            and <a href="https://smwhr.github.io/binksi/docs">binksi user guide</a>
+        p to get started, use <a href="https://github.com/smwhr/binksi">the binksi repo</a> as a template
+        p many thanks and kudos to <a href="https://kool.tools/">candle</a> creator of bipsi !

@@ -1,0 +1,17 @@
+#edit-colors-tab.controls-tab(hidden)
+    .controls-tab-body
+        #palette-edit.row
+            #color-select.column.radio-select(title="select palette")
+                each _, y in (new Array(8).fill(0))
+                    .horizontal-capsule
+                        each _, x in (new Array(3).fill(0))
+                            label
+                                input(type="radio" name="color-select" value=`${y},${x}` title=`select palette ${y}, color ${x}`)
+            #color-edit.column
+                canvas#color-huesat(width="216" height="216")
+                input(name="color-value" type="range" min="0" max="1" step=".01")
+                .button-row
+                    input(name="color-hex" type="text" value="#ffffff")
+    .viewport-toolbar
+        include /pages/room-select-toggle.pug
+    

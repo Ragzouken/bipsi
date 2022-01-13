@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-html(lang="en" data-remix-generation="0" data-app-mode="editor")
+html(lang="en" data-remix-generation="0" data-editor-live="https://smwhr.github.io/binksi")
     head
         title binksi
         meta(name="viewport" content="width=device-width, initial-scale=1.0")
@@ -22,7 +22,11 @@ html(lang="en" data-remix-generation="0" data-app-mode="editor")
         script
             include scripts/playback.js
         script
+            include scripts/debug.js
+        script
             include ../node_modules/inkjs/dist/ink.js
+        script
+            include scripts/preload.js
         script(data-editor-only)
             include scripts/editor/utility.js
         script(data-editor-only)
@@ -38,14 +42,10 @@ html(lang="en" data-remix-generation="0" data-app-mode="editor")
         script
             include scripts/start.js
         // styles
-        style#base-style
+        style
             include styles/base-style.css
-        style#main-style
-            include styles/main-style.css
         style
             include styles/playback-style.css
-        style(data-editor-only)
-            include styles/bipsi-style.css
         style(data-editor-only)
             include styles/editor-style.css
     body(onload="start()").no-select
@@ -56,8 +56,8 @@ html(lang="en" data-remix-generation="0" data-app-mode="editor")
                     ul#player-choices-list
         #editor(data-editor-only)
             include editor.pug
-        script#preload
-            include scripts/preload.js
+        script#plugins
+        script preload();
         script#bundle-embed(type="application/json")
         script#editor-embed(type="application/json" data-editor-only)
             include ../data/bipsi.json

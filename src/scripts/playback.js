@@ -127,6 +127,16 @@ function moveEvent(data, event, location) {
 
 /**
  * @param {BipsiDataProject} data 
+ * @param {number} eventId 
+ * @param {BipsiDataLocation} location
+ */
+function moveEventById(data, eventId, location) {
+    const event = findEventById(data, eventId);
+    moveEvent(data, event, location);
+}
+
+/**
+ * @param {BipsiDataProject} data 
  * @param {BipsiDataEvent} event
  */
 function removeEvent(data, event) {
@@ -141,12 +151,27 @@ function shuffleArray(array) {
     }
 }
 
+/**
+ * @param {BipsiDataProject} data
+ * @param {number} eventId
+ */
+function findEventById(data, eventId) {
+    return allEvents(data).filter((event) => event.id === eventId)[0];
+}
+
 function findEventsByTag(data, tag) {
     return allEvents(data).filter((event) => eventIsTagged(event, tag));
 }
 
 function findEventByTag(data, tag) {
     return allEvents(data).filter((event) => eventIsTagged(event, tag))[0];
+}
+
+/**
+ * @param {BipsiDataEvent} event 
+ */
+function allEventTags(event) {
+    return event.fields.filter((field) => field.type === "tag").map((field) => field.key);
 }
 
 const ERROR_STYLE = {
@@ -252,6 +277,11 @@ if (event) {
 }
 `;
 
+const BEHAVIOUR_ADD_BEHAVIOUR = `
+ADD_BEHAVIOURS(...FIELDS(EVENT, "add-behaviour", "javascript"));
+ADD_BEHAVIOURS(...FIELDS(EVENT, "add-behavior", "javascript"));
+`;
+
 const STANDARD_SCRIPTS = [
     BEHAVIOUR_PAGE_COLOR,
     BEHAVIOUR_IMAGES,
@@ -263,6 +293,7 @@ const STANDARD_SCRIPTS = [
     BEHAVIOUR_ENDING, 
     BEHAVIOUR_SET_AVATAR,
     BEHAVIOUR_TOUCH_LOCATION,
+    BEHAVIOUR_ADD_BEHAVIOUR,
 ];
 
 const BACKG_PAGE = createRendering2D(128, 128); 
@@ -303,7 +334,6 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
         this.error = false;
 
-
         this.objectURLs = new Map();
         this.imageElements = new Map();
 
@@ -314,8 +344,10 @@ class BipsiPlayback extends EventTarget {
         this.variables = new Map();
         this.images = new Map();
 
-        this.story = undefined
+        this.extra_behaviours = [];
+        
         this.preventMoving = false;
+        this.story = undefined
     }
 
     async init() {
@@ -364,6 +396,7 @@ class BipsiPlayback extends EventTarget {
         this.music.removeAttribute("src");
         this.music.pause();
         this.images.clear();
+        this.extra_behaviours.length = 0;
         this.imageElements.clear();
         this.objectURLs.forEach((url) => URL.revokeObjectURL(url));
     }
@@ -402,6 +435,9 @@ class BipsiPlayback extends EventTarget {
         this.avatarId = avatar.id;
         this.libraryId = findEventByTag(this.data, "is-library")?.id;
         this.ready = true;
+
+        const setup = findEventByTag(this.data, "is-setup");
+        if (setup) await this.touch(setup);
 
         // game starts by running the touch behaviour of the player avatar
         //await this.touch(avatar);
@@ -565,6 +601,24 @@ class BipsiPlayback extends EventTarget {
         this.ended = true;
     }
 
+    log(...data) {
+        this.dispatchEvent(new CustomEvent("log", { detail: data }));
+        window.parent.postMessage({ type: "log", data });
+    }
+
+    setVariable(key, value) {
+        this.variables.set(key, value);
+        this.sendVariables();
+    }
+
+    sendVariables() {
+        try {
+            window.parent.postMessage({ type: "variables", data: this.variables });
+        } catch (e) {
+            this.log("> CAN'T TRACK VARIABLES (COMPLEX VALUE)");
+        }
+    }
+
     async proceed() {
         if (!this.ready) return;
 
@@ -587,6 +641,8 @@ class BipsiPlayback extends EventTarget {
     }
 
     async say(script, options={}) {
+        this.log(`> SAYING "${script}"`);
+        script = replaceVariables(script, this.variables);
         await this.dialoguePlayback.queue(script, options);
     }
 
@@ -624,7 +680,18 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
     }
 
+    eventDebugInfo(event) {
+        const tags = allEventTags(event).join(", ");
+        const info = tags.length > 0 ? `(tags: ${tags}) ` : "";
+        return `${info}@ ${event.position}`;
+    }
+
+    /**
+     * @param {BipsiDataEvent} event 
+     */
     async touch(event) {
+        this.log(`> TOUCHING EVENT ${this.eventDebugInfo(event)}`);
+
         const touch = oneField(event, "touch", "javascript")?.data;
 
         const tags = allTags(event);
@@ -659,7 +726,9 @@ class BipsiPlayback extends EventTarget {
             const script = new AsyncFunction("COMMANDS", preamble + js);
             await script(defines);
         } catch (e) {
-            console.log(e);
+            const long = `> SCRIPT ERROR "${e}"\n---\n${js}\n---`;
+            this.log(long);
+
             const error = `SCRIPT ERROR:\n${e}`;
             this.showError(error);
         }
@@ -682,7 +751,6 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileID, layer, x, y) {
-        console.log(fileID);
         const image = await this.getFileImageElement(fileID);
         this.images.set(imageID, { image, layer, x, y });
     }
@@ -716,6 +784,10 @@ class BipsiPlayback extends EventTarget {
  */
 async function standardEventTouch(playback, event) {
     for (let script of STANDARD_SCRIPTS) {
+        await playback.runJS(event, script);
+    }
+
+    for (let script of playback.extra_behaviours) {
         await playback.runJS(event, script);
     }
 }
@@ -822,6 +894,10 @@ function replace(format) {
     return format.replace(/\[\s*(\d+)\s*\]/g, (match, index) => values[index] ?? match);
 };
 
+function replaceVariables(text, variables) {
+    return text.replace(/\[\[([^\]]+)\]\]/g, (match, key) => variables.get(key) ?? match);
+}
+
 const WALK_DIRECTIONS = {
     "L": [-1,  0],
     "R": [ 1,  0],
@@ -884,7 +960,7 @@ function generateScriptingDefines(playback, event) {
     defines.FIND_EVENT = (tag) => findEventByTag(playback.data, tag); 
 
     defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
-    defines.SET = (key, value) => playback.variables.set(key, value);
+    defines.SET = (key, value) => playback.setVariable(key, value);
 
     defines.EVENT_ID = (event) => event.id;
 
@@ -900,7 +976,7 @@ function generateScriptingDefines(playback, event) {
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
 
-    defines.LOG = (text) => console.log(text);
+    defines.LOG = (...data) => playback.log(...data);
     defines.DELAY = async (seconds) => sleep(seconds * 1000);
 
     defines.RESTART = () => playback.end();
@@ -909,12 +985,15 @@ function generateScriptingDefines(playback, event) {
     defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
 
     defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
-
+    defines.ADD_BEHAVIOURS = (...scripts) => playback.extra_behaviours.push(...scripts);
+    
     defines.PLAY_MUSIC = (file) => playback.playMusic(playback.getFileObjectURL(file));
     defines.STOP_MUSIC = () => playback.stopMusic();
 
     defines.SHOW_IMAGE = (id, file, layer, x, y) => playback.showImage(id, file, layer, x, y);
     defines.HIDE_IMAGE = (id) => playback.hideImage(id);
+
+    defines.FILE_TEXT = (file) => playback.stateManager.resources.get(file).text();
 
     defines.FIELD_OR_LIBRARY = (field, event=defines.EVENT) => {
         let file = oneField(event, field, "file")?.data;

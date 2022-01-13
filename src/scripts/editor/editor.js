@@ -93,28 +93,6 @@ function generateColorWheel(width, height) {
     return rendering;
 }
 
-/**
- * @param {CanvasRenderingContext2D} rendering 
- * @param {string[]} palette 
- * @param {BipsiDataRoom} room 
- */
- function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette;
-    for (let y = 0; y < 16; ++y) {
-        for (let x = 0; x < 16; ++x) {
-            const color = room.wallmap[y][x] === 1 ? foreground : background;
-            rendering.fillStyle = color;
-            rendering.fillRect(x, y, 1, 1);
-        }
-    }
-
-    rendering.fillStyle = highlight;
-    room.events.forEach((event) => {
-        const [x, y] = event.position;
-        rendering.fillRect(x, y, 1, 1);
-    });
-}
-
 class PaletteEditor {
     /**
      * @param {BipsiEditor} editor 
@@ -392,6 +370,17 @@ const EVENT_TEMPLATES = {
     code: [
         { key: "touch", type: "javascript", data: "await DO_STANDARD();" },
     ],
+    setup: [
+        { key: "is-setup", type: "tag", data: true },
+        { key: "add-behavior", type: "javascript", data: 
+`let test = FIELD(EVENT, "test-field", "dialogue");
+if (test) {
+    await SAY(test);
+}`}
+    ],
+    library: [
+        { key: "is-library", type: "tag", data: true },
+    ],
 };
 
 function prepareTemplate(element) {
@@ -449,6 +438,28 @@ class EventEditor {
                 });
             }
         });
+        ui.action("create-event-setup", () => {
+            const setup = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-setup"));
+            this.editor.createEvent(setup?.fields ?? EVENT_TEMPLATES.setup);
+            
+            if (setup) {
+                this.editor.stateManager.makeChange(async (data) => {
+                    const room = roomFromEvent(data, setup);
+                    arrayDiscard(room.events, setup);
+                });
+            }
+        });
+        ui.action("create-event-library", () => {
+            const library = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-library"));
+            this.editor.createEvent(library?.fields ?? EVENT_TEMPLATES.library);
+            
+            if (library) {
+                this.editor.stateManager.makeChange(async (data) => {
+                    const room = roomFromEvent(data, library);
+                    arrayDiscard(room.events, library);
+                });
+            }
+        });
 
         this.actions = {
             add: ui.action("add-event-field", () => this.addField()),
@@ -458,11 +469,20 @@ class EventEditor {
             delete: ui.action("remove-event-field", () => this.removeField()),
         }
 
+        ui.action("upload-field-javascript", async () => {
+            const [file] = await maker.pickFiles("text/*");
+            const text = await file.text();
+            this.valueEditors.javascript.value = text;
+            const event = new Event('change');
+            this.valueEditors.javascript.dispatchEvent(event);
+        });
+
         this.eventEmptyElement = ONE("#event-empty");
         this.eventPropertiesElement = ONE("#event-properties");
         this.valueEditors = {
             json: ONE("#field-json-editor textarea"),
             dialogue: ONE("#field-dialogue-editor textarea"),
+            javascript: ONE("#field-javascript-editor textarea"),
         };
 
         this.positionSelect = ONE("#field-position-select");
@@ -482,6 +502,13 @@ class EventEditor {
                 } else {
                     field.data = this.valueEditors.json.value;
                 }
+            });
+        });
+
+        this.valueEditors.javascript.addEventListener("change", () => {
+            this.editor.stateManager.makeChange(async (data) => {
+                const { field } = this.getSelections(data);
+                field.data = this.valueEditors.javascript.value;
             });
         });
 
@@ -576,6 +603,7 @@ class EventEditor {
             this.eventPropertiesElement.hidden = false;
 
             ONE("#field-json-editor").hidden = true;
+            ONE("#field-javascript-editor").hidden = true;
             ONE("#field-dialogue-editor").hidden = true;
             ONE("#field-tile-editor").hidden = true;
             ONE("#field-location-editor").hidden = true;
@@ -613,6 +641,9 @@ class EventEditor {
                 } else if (field.type === "json") {
                     this.valueEditors.json.value = JSON.stringify(field.data);
                     ONE("#field-json-editor").hidden = false;
+                } else if (field.type === "javascript") {
+                    this.valueEditors.javascript.value = field.data;
+                    ONE("#field-javascript-editor").hidden = false;
                 } else {
                     this.valueEditors.json.value = field.data;
                     ONE("#field-json-editor").hidden = false;
@@ -875,38 +906,99 @@ class BipsiEditor extends EventTarget {
             tilePaintRoom: ONE("#tile-paint-room").getContext("2d"),
             paletteRoom: ONE("#palette-room").getContext("2d"),
             eventsRoom: ONE("#events-room").getContext("2d"),
-
-            playtest: ONE("#playtest-rendering").getContext("2d"),
         };
 
-        this.roomSelect = new RoomSelect("room-select", ONE("#room-select-template"));
+        this.playtestIframe = /** @type {HTMLIFrameElement} */ (ONE("#playtest"));
+
+        function autoCloseToggledWindow(windowElement, toggle, toggleName) {
+            window.addEventListener("click", (event) => {
+                const ignore = windowElement.hidden
+                            || !event.isTrusted
+                            || windowElement.contains(event.target)
+                            || event.target.name === toggleName
+                if (ignore) return;
+                toggle.checked = false;
+            });
+        }
+
+        this.logWindow = ONE("#log-window");
+        this.showLog = ui.toggle("show-log");
+        this.showLog.addEventListener("change", () => {
+            this.logWindow.hidden = !this.showLog.checked;
+        });
+        autoCloseToggledWindow(this.logWindow, this.showLog, "show-log");
+        this.logTextElement = ONE("#log-text");
+
+        this.variablesWindow = ONE("#variables-window");
+        this.showVariables = ui.toggle("show-variables");
+        this.showVariables.addEventListener("change", () => {
+            this.variablesWindow.hidden = !this.showVariables.checked;
+            refreshVariables();
+        });
+        autoCloseToggledWindow(this.variablesWindow, this.showVariables, "show-variables");
+        this.variablesTextElement = ONE("#variables-text");
+
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
-        this.eventsRoomSelect = new RoomSelect("events-room-select", ONE("#events-room-select-template"));
+        this.roomSelectWindow = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
 
-        this.eventsRoomSelectWindow = ONE("#events-room-select-window");
-        this.eventsRoomSelectToggle = ui.toggle("events-switch-room");
+        this.moveToRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
+        this.moveToPositionSelect = ONE("#move-to-window-position");
+        this.moveToPositionRendering = this.moveToPositionSelect.getContext("2d");
+        
+        this.moveToWindow = ONE("#move-to-window");
+        this.showMoveTo = ui.toggle("show-move-to-debug");
+        autoCloseToggledWindow(this.moveToWindow, this.showMoveTo, "show-move-to-debug");
 
-        this.eventsRoomSelectToggle.addEventListener("change", () => {
-            this.eventsRoomSelectWindow.hidden = !this.eventsRoomSelectToggle.checked;
+        this.roomListing = undefined;
+
+        this.showMoveTo.addEventListener("change", () => {
+            this.moveToWindow.hidden = !this.showMoveTo.checked;
+            if (this.showMoveTo.checked) {
+                this.playtestIframe.contentWindow.postMessage({ type: "get-room-listing" });
+            }
         });
 
-        this.eventsRoomSelect.select.addEventListener("change", () => {
-            this.roomSelect.select.selectedIndex = this.eventsRoomSelect.select.selectedIndex;
-            //this.eventsRoomSelectToggle.checked = false;
+        const refreshMoveToPosition = () => {
+            const room = this.roomListing.rooms[this.moveToRoomSelect.select.selectedIndex];
+            this.moveToPositionRendering.globalCompositeOperation = "source-over";
+            this.moveToPositionRendering.drawImage(room.preview, 0, 0);
+            
+            if (this.roomListing.current.room === this.moveToRoomSelect.select.valueAsNumber) {
+                const [x, y] = this.roomListing.current.position;
+                this.moveToPositionRendering.globalCompositeOperation = "difference";
+                this.moveToPositionRendering.fillStyle = "white";
+                this.moveToPositionRendering.fillRect(0, y * 8+2, 128, 4);
+                this.moveToPositionRendering.fillRect(x * 8+2, 0, 4, 128);
+            }
+        }
+
+        this.moveToRoomSelect.select.addEventListener("change", () => {
+            refreshMoveToPosition();
         });
 
-        window.addEventListener("click", (event) => {
-            const ignore = !event.isTrusted
-                        || this.eventsRoomSelectWindow.contains(event.target)
-                        || ONE("#room-picker-toggle").contains(event.target);
-            if (ignore) return;
-            this.eventsRoomSelectToggle.checked = false;
+        this.moveToPositionSelect.addEventListener("click", (event) => {
+            const { x, y } = mouseEventToCanvasPixelCoords(this.moveToPositionSelect, event);
+            const tx = Math.floor(x / 8);
+            const ty = Math.floor(y / 8);
+
+            this.playtestIframe.contentWindow.postMessage({ type: "move-to", destination: { room: this.moveToRoomSelect.select.valueAsNumber, position: [tx, ty] } });
+            this.showMoveTo.checked = false;
+            this.playtestIframe.focus();
+        });
+
+        this.roomSelectWindowElement = ONE("#room-select-window");
+        this.showRoomSelect = ui.toggle("show-room-window");
+        autoCloseToggledWindow(this.roomSelectWindowElement, this.showRoomSelect, "show-room-window");
+
+        this.showRoomSelect.addEventListener("change", () => {
+            this.roomSelectWindowElement.hidden = !this.showRoomSelect.checked;
         });
 
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
+        this.roomTileBrowser = new EventTileBrowser(this, "draw-room-tile-select", ONE("#draw-room-tile-template"));
 
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
@@ -934,18 +1026,19 @@ class BipsiEditor extends EventTarget {
 
         // find all the ui already defined in the html
         this.modeSelect = ui.radio("mode-select");
-        //this.roomSelect = ui.radio("room-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
         this.roomPaletteSelect = ui.select("room-palette");
         this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
 
-        this.modeSelect.tab(ONE("#event-edit"), "events");
+        this.modeSelect.tab(ONE("#edit-events-tab-controls"), "events");
         this.modeSelect.tab(ONE("#room-events-tab"), "events");
 
-        this.modeSelect.tab(ONE("#palette-edit"), "palettes");
+        this.modeSelect.tab(ONE("#edit-colors-tab"), "palettes");
         
-        this.modeSelect.tab(ONE("#room-select-tab"), "draw-room");
-        this.modeSelect.tab(ONE("#tile-select-tab"), "draw-room", "draw-tiles");
+        //this.modeSelect.tab(ONE("#room-select-tab"), "draw-room");
+        this.modeSelect.tab(ONE("#tile-select-tab"), "draw-tiles");
+        
+        this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
 
         this.modeSelect.tab(ONE("#tile-buttons"), "draw-tiles")
         this.modeSelect.tab(ONE("#tile-paint-tab"), "draw-tiles");
@@ -991,6 +1084,9 @@ class BipsiEditor extends EventTarget {
             import_story: ui.action("import_story", () => this.importStory()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
+
+            restartPlaytest: ui.action("restart-playtest", () => this.playtest()),
+            captureGif: ui.action("capture-gif", () => this.playtestIframe.contentWindow.postMessage({ type: "capture-gif" })),
 
             shiftTileUp: ui.action("shift-tile-up", () =>
                 this.processSelectedTile((tile) => cycleRendering2D(tile,  0, -1))),
@@ -1040,10 +1136,17 @@ class BipsiEditor extends EventTarget {
         this.actions.pasteEvent.disabled = true;
         this.actions.save.disabled = !storage.available;
 
+        /**
+         * @param {HTMLElement} element 
+         */
+        function isElementTextInput(element) {
+            const tag = element.tagName.toLowerCase();
+            return tag === "textarea" || (tag === "input" && element.type === "text");
+        }
+
         // hotkeys
         document.addEventListener("keydown", (event) => {
-            const targetTag = event.target.tagName.toLowerCase();
-            const textedit = targetTag === "input" || targetTag === "textarea";
+            const textedit = isElementTextInput(event.target);
 
             if (event.ctrlKey) {
                 if (event.key === "z" && !textedit) this.actions.undo.invoke();
@@ -1082,14 +1185,14 @@ class BipsiEditor extends EventTarget {
         this.modeSelect.addEventListener("change", async () => {
             this.redrawTileBrowser();
 
-            ONE("#playtest").hidden = true;
-            ONE("#playtest").srcdoc = "";
+            if (this.modeSelect.value === "playtest") {
+                this.playtest();
+            } else {
+                this.playtestIframe.srcdoc = "";
+            }
         });
 
-        const playtest = ui.action("playtest", () => this.playtest());
-        ONE("#playtest-rendering").addEventListener("click", () => playtest.invoke());
-
-        this.roomSelect.select.addEventListener("change", () => {
+        this.roomSelectWindow.select.addEventListener("change", () => {
             const { room } = this.getSelections();
             this.roomPaletteSelect.selectedIndex = room.palette;
             
@@ -1109,7 +1212,13 @@ class BipsiEditor extends EventTarget {
             }
 
             this.tilePaintFrameSelect.selectedIndex = 0;
+
+            this.roomTileBrowser.select.setSelectedIndexSilent(this.tileBrowser.select.selectedIndex);
         })
+
+        this.roomTileBrowser.select.addEventListener("change", () => {
+            this.tileBrowser.select.setSelectedIndexSilent(this.roomTileBrowser.select.selectedIndex);
+        });
 
         this.roomPaletteSelect.addEventListener("change", () => {
             this.stateManager.makeChange(async (data) => {
@@ -1140,7 +1249,7 @@ class BipsiEditor extends EventTarget {
             // render room
             this.redraw();
             this.tileBrowser.redraw();
-            this.eventTileBrowser.redraw();
+            this.roomTileBrowser.redraw();
 
             // events
             this.eventEditor.refresh();
@@ -1168,7 +1277,13 @@ class BipsiEditor extends EventTarget {
             const tool = this.roomPaintTool.value;
 
             const prevTile = room.tilemap[y][x];
-            const nextTile = prevTile !== tile.id ? tile.id : 0;
+
+            const pal = tool === "high" ? 2 : 1;
+            const same = room.tilemap[y][x] === tile.id 
+                      && room.backmap[y][x] === 0
+                      && room.foremap[y][x] === pal;
+
+            const nextTile = same ? 0 : tile.id;
             const nextWall = 1 - room.wallmap[y][x];
 
             if (tool === "pick" || forcePick) {
@@ -1182,8 +1297,6 @@ class BipsiEditor extends EventTarget {
                 const setIfWithin = (map, x, y, value) => {
                     if (x >= 0 && x < 16 && y >= 0 && y < 16) map[y][x] = value ?? 0;
                 } 
-
-                const pal = tool === "high" ? 2 : 1;
 
                 const plots = {
                     tile: (x, y) => { 
@@ -1323,6 +1436,35 @@ class BipsiEditor extends EventTarget {
             this.frame = 1 - this.frame;
             this.redraw();
         }, constants.frameInterval);
+
+        this.savedVariables = new Map();
+        const refreshVariables = () => {
+            if (this.variablesWindow.hidden) return;
+            const entries = Array.from(this.savedVariables);
+            this.variablesTextElement.innerText = "VARIABLES:\n" + entries.map(([key, value]) => `${key} = ${JSON.stringify(value)}`).join("\n");
+        }
+
+        window.addEventListener("message", async (event) => {
+            if (event.data?.type === "log") {
+                const text = event.data?.data.toString() + "\n";
+                this.logTextElement.append(text);
+            } else if (event.data?.type === "variables") {
+                this.savedVariables = event.data.data;
+                refreshVariables();
+            } else if (event.data.type === "room-listing") {
+                const rooms = [];
+                for (let room of event.data.rooms) {
+                    const thumb = imageToRendering2D(await loadImage(room.thumb)).canvas;
+                    const preview = imageToRendering2D(await loadImage(room.preview)).canvas;
+                    rooms.push({ id: room.id, thumb, preview });
+                }
+
+                this.roomListing = { rooms, current: event.data.current };
+                this.moveToRoomSelect.updateRooms(rooms);
+                this.moveToRoomSelect.select.setValueSilent(event.data.current.room);
+                refreshMoveToPosition();
+            }
+        });
     }
 
     async init() {
@@ -1331,12 +1473,6 @@ class BipsiEditor extends EventTarget {
 
         this.EVENT_TILE = await loadImage(constants.eventTile);
         this.WALL_TILE = await loadImage(constants.wallTile);
-
-        this.dialoguePreviewPlayer.clear();
-        this.dialoguePreviewPlayer.queue("click here to playtest", { panelColor: "#ffd800", textColor: "#000000" });
-        this.dialoguePreviewPlayer.skip();
-        this.dialoguePreviewPlayer.render();
-        this.playtestSplash = copyRendering2D(this.dialoguePreviewPlayer.dialogueRendering);
     }
 
     /**
@@ -1347,7 +1483,7 @@ class BipsiEditor extends EventTarget {
         
         const tileset = this.stateManager.resources.get(data.tileset);
         const tileSize = constants.tileSize;
-        const roomIndex = this.roomSelect.select.selectedIndex;
+        const roomIndex = this.roomSelectWindow.select.selectedIndex;
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
 
@@ -1466,13 +1602,10 @@ class BipsiEditor extends EventTarget {
         this.actions.copyEvent.disabled = this.selectedEventId === undefined;
         this.actions.deleteEvent.disabled = this.selectedEventId === undefined;
 
-        this.actions.reorderRoomBefore.disabled = this.roomSelect.select.selectedIndex <= 0;
-        this.actions.reorderRoomAfter.disabled = this.roomSelect.select.selectedIndex >= this.stateManager.present.rooms.length - 1;
+        this.actions.reorderRoomBefore.disabled = this.roomSelectWindow.select.selectedIndex <= 0;
+        this.actions.reorderRoomAfter.disabled = this.roomSelectWindow.select.selectedIndex >= this.stateManager.present.rooms.length - 1;
 
         this.redrawDialoguePreview();
-
-        fillRendering2D(this.renderings.playtest);
-        this.renderings.playtest.drawImage(this.playtestSplash.canvas, 0, 0);
     } 
 
     refreshRoomSelect() {
@@ -1484,12 +1617,10 @@ class BipsiEditor extends EventTarget {
             return { id: room.id, thumb: thumb.canvas };
         });
 
-        this.roomSelect.updateRooms(thumbs);
+        this.roomSelectWindow.updateRooms(thumbs);
         this.fieldRoomSelect.updateRooms(thumbs);
-        this.eventsRoomSelect.updateRooms(thumbs);
 
-        this.roomSelect.select.selectedIndex = Math.max(this.roomSelect.select.selectedIndex, 0);
-        this.eventsRoomSelect.select.selectedIndex = this.roomSelect.select.selectedIndex;
+        this.roomSelectWindow.select.selectedIndex = Math.max(this.roomSelectWindow.select.selectedIndex, 0);
     }
 
     redrawDialoguePreview() {
@@ -1543,6 +1674,7 @@ class BipsiEditor extends EventTarget {
 
         await this.tileBrowser.setFrames([frame0.canvas, frame1.canvas]);
         await this.eventTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
+        await this.roomTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
         if (this.tileBrowser.select.selectedIndex === -1) {
             this.tileBrowser.select.selectedIndex = 0;
         }
@@ -1705,7 +1837,7 @@ class BipsiEditor extends EventTarget {
             const room = makeBlankRoom(nextRoomId(data));
             data.rooms.splice(roomIndex+1, 0, room);
         });
-        this.roomSelect.select.selectedIndex += 1;
+        this.roomSelectWindow.select.selectedIndex += 1;
     }
 
     async duplicateRoom() {
@@ -1718,7 +1850,7 @@ class BipsiEditor extends EventTarget {
             const nextId = nextEventId(data);
             copy.events.forEach((event, i) => event.id = nextId+i);
         });
-        this.roomSelect.select.selectedIndex += 1;
+        this.roomSelectWindow.select.selectedIndex += 1;
     }
 
     async reorderRoomBefore() {
@@ -1726,7 +1858,7 @@ class BipsiEditor extends EventTarget {
             const { roomIndex } = this.getSelections(data);
             const nextIndex = roomIndex - 1;
             [data.rooms[nextIndex], data.rooms[roomIndex]] = [data.rooms[roomIndex], data.rooms[nextIndex]];
-            this.roomSelect.select.selectedIndex -= 1;
+            this.roomSelectWindow.select.selectedIndex -= 1;
         });
     }
 
@@ -1735,7 +1867,7 @@ class BipsiEditor extends EventTarget {
             const { roomIndex } = this.getSelections(data);
             const nextIndex = roomIndex + 1;
             [data.rooms[nextIndex], data.rooms[roomIndex]] = [data.rooms[roomIndex], data.rooms[nextIndex]];
-            this.roomSelect.select.selectedIndex += 1;
+            this.roomSelectWindow.select.selectedIndex += 1;
         });
     }
 
@@ -1775,6 +1907,8 @@ class BipsiEditor extends EventTarget {
             event.id = nextEventId(data);
             event.position = [x, y];
             room.events.push(event);
+
+            arrayDiscard(room.events, getEventById(data, this.selectedEventId));
             this.selectedEventId = event.id;
         });
     }
@@ -1800,6 +1934,8 @@ class BipsiEditor extends EventTarget {
 
         await this.stateManager.loadBundle(bundle);
         this.unsavedChanges = false;
+
+        this.playtest();
     }
 
     async loadStory(story) {
@@ -1813,13 +1949,22 @@ class BipsiEditor extends EventTarget {
     }
 
     async playtest() {
-        const iframe = ONE("#playtest");
-        const html = await this.makeExportHTML();
-        iframe.srcdoc = html;
-        iframe.hidden = false;
+        const html = await this.makeExportHTML(true);
+        this.playtestIframe.srcdoc = html;
+        this.playtestIframe.hidden = false;
+
+        this.logTextElement.replaceChildren("> RESTARTING PLAYTEST\n");
     }
 
-    async makeExportHTML() {
+    gatherPluginsJavascript() {
+        const { data } = this.getSelections();
+        const event = findEventByTag(data, "is-plugins") ?? { fields: [] };
+        const fields = event.fields.filter((field) => field.type === "javascript");
+        const javascript = fields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
+        return javascript;
+    }
+
+    async makeExportHTML(debug=false) {
         // make a standalone bundle of the current project state and the 
         // resources it depends upon
         const bundle = await this.stateManager.makeBundle();
@@ -1832,12 +1977,19 @@ class BipsiEditor extends EventTarget {
         // insert the project bundle data into the page copy 
         ONE("#bundle-embed", clone).innerHTML = JSON.stringify(bundle);
 
+        // insert plugins
+        ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript();
+
         // track how many remixes this is (remixes have soft-limits to encourage finding updates)
         const generation = parseInt(clone.getAttribute("data-remix-generation"));
         clone.setAttribute("data-remix-generation", `${generation + 1}`);
 
         // default to player mode
         clone.setAttribute("data-app-mode", "player");
+
+        if (debug) {
+            clone.setAttribute("data-debug", "true");
+        }
 
         return clone.outerHTML;
     }

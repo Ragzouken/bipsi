@@ -136,6 +136,13 @@ function makeTileToFrameMap(tiles, frame) {
     ]));
 }
 
+/**
+ * @param {CanvasRenderingContext2D} destination
+ * @param {CanvasRenderingContext2D} tileset 
+ * @param {Map<number, number>} tileToFrame 
+ * @param {string[]} palette 
+ * @param {{ tilemap: number[][], backmap: number[][], foremap: number[][] }} layer 
+ */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
     drawRecolorLayer(destination, (backg, color, tiles) => {
         for (let ty = 0; ty < 16; ++ty) {
@@ -165,6 +172,13 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
     });
 }
 
+/**
+ * @param {CanvasRenderingContext2D} destination 
+ * @param {CanvasRenderingContext2D} tileset 
+ * @param {Map<number, number>} tileToFrame 
+ * @param {string[]} palette 
+ * @param {BipsiDataEvent[]} events 
+ */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
     const [background, foreground, highlight] = palette;
 
@@ -191,6 +205,28 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
                 );
             }
         });
+    });
+}
+
+/**
+ * @param {CanvasRenderingContext2D} rendering 
+ * @param {string[]} palette 
+ * @param {BipsiDataRoom} room 
+ */
+ function drawRoomThumbnail(rendering, palette, room) {
+    const [background, foreground, highlight] = palette;
+    for (let y = 0; y < 16; ++y) {
+        for (let x = 0; x < 16; ++x) {
+            const color = room.wallmap[y][x] === 1 ? foreground : background;
+            rendering.fillStyle = color;
+            rendering.fillRect(x, y, 1, 1);
+        }
+    }
+
+    rendering.fillStyle = highlight;
+    room.events.forEach((event) => {
+        const [x, y] = event.position;
+        rendering.fillRect(x, y, 1, 1);
     });
 }
 

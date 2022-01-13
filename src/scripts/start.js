@@ -105,7 +105,6 @@ async function makePlayback(font, bundle, story) {
     }
 
     const turnToKey = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"];
-    const threshold = 512 / 16 * 4;
     let ignoreMouse = false;
 
     window.onblur = () => setTimeout(() => ignoreMouse = true, 0);
@@ -122,6 +121,8 @@ async function makePlayback(font, bundle, story) {
 
     document.addEventListener("pointerdown", (event) => {
         if (ignoreMouse) return;
+
+        const threshold = playCanvas.getBoundingClientRect().width / 16 * 2;
 
         const drag = ui.drag(event);
         let [x0, y0] = [drag.downEvent.clientX, drag.downEvent.clientY];
@@ -143,6 +144,53 @@ async function makePlayback(font, bundle, story) {
                 y0 = y1;
             } 
         });
+    });
+
+    function captureGif() {
+        const frames = recordFrames(playback);
+        const giffer = window.open(
+            "https://kool.tools/tools/gif/",
+            "gif maker",
+            "left=10,top=10,width=512,height=512,resizable=no,location=no",
+        );
+        sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
+    }
+
+    function getRoomListing() {
+        const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
+        const rooms = [];
+        const thumb = createRendering2D(16, 16);
+        const preview = createRendering2D(128, 128);
+        playback.data.rooms.forEach((room) => {
+            drawRoomPreviewPlayback(preview, playback, room.id);
+            drawRoomThumbPlayback(thumb, playback, room.id);
+            rooms.push({ id: room.id, thumb: thumb.canvas.toDataURL(), preview: preview.canvas.toDataURL() });
+        });
+        postMessageParent({ type: "room-listing", rooms, current }, "*");
+    }
+
+    /** @type {Map<string, (any) => void>} */
+    const debugHandlers = new Map();
+
+    debugHandlers.set("move-to", (message) => moveEventById(playback.data, playback.avatarId, message.destination));
+    debugHandlers.set("key-down", (message) => down(message.key, message.code));
+    debugHandlers.set("key-up", (message) => up(message.key, message.code));
+    debugHandlers.set("capture-gif", (message) => captureGif());
+    debugHandlers.set("get-room-listing", (message) => getRoomListing());
+
+    // only allow these when playtesting from editor
+    if (document.documentElement.getAttribute("data-debug")) {
+        debugHandlers.set("touch-location", (message) => playback.touch(getEventAtLocation(playback.data, message.location)));
+
+        // if the game runs javascript from variables then this would be a 
+        // vector to run arbitrary javascript on the game's origin giving
+        // read/write access to storage for that origin and the power to e.g
+        // erase all game saves etc
+        debugHandlers.set("set-variable", (message) => playback.setVariable(message.key, message.value));
+    }
+
+    window.addEventListener("message", (event) => {
+        debugHandlers.get(event.data.type)?.call(this, event.data);
     });
 
     document.documentElement.setAttribute("data-app-mode", "player");

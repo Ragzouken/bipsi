@@ -1,0 +1,25 @@
+#play-tab-view.viewport-tab-body(hidden)
+    .viewport-body
+        //- include snapshot-window.pug
+        iframe#playtest
+    .viewport-toolbar
+        button.icon-button(name="restart-playtest" title="restart playtest")
+            include /icons/refresh.svg
+        button.icon-button(name="capture-gif" title="capture gif")
+            include /icons/camera.svg
+        label.toggle.picker-toggle
+            input(type="checkbox" name="show-move-to-debug" title="move to location")
+            include /icons/door.svg
+            include /icons/caret-up.svg
+        label.toggle.picker-toggle(hidden)
+            input(type="checkbox" name="show-touch-location-debug" title="touch event at location")
+            include /icons/touch.svg
+            include /icons/caret-up.svg
+        label.toggle.picker-toggle
+            input(type="checkbox" name="show-log" title="show script log")
+            include /icons/log.svg
+            include /icons/caret-up.svg
+        label.toggle.picker-toggle
+            input(type="checkbox" name="show-variables" title="show variables")
+            include /icons/variables.svg
+            include /icons/caret-up.svg

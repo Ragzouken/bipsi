@@ -37,3 +37,20 @@ button, a, input[type="radio"], input[type="checkbox"], select, option, label, s
 body {
     overscroll-behavior-y: contain;
 }
+
+html, body {
+    margin: 0; padding: 0;
+    min-height: calc(var(--vh, 1vh) * 100);
+
+    overflow: hidden auto;
+    overscroll-behavior-y: contain;
+}
+
+body {
+    display: flex; flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: black;
+    color: white;
+}
