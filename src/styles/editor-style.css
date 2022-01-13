@@ -363,8 +363,13 @@ input + svg, input + svg + svg {
     z-index: 6;
 }
 
+input + svg + svg {
+    margin-left: 4px;
+    margin-right: -4px;
+}
+
 label.toggle#tile-grid {
-    max-width: 52px;
+    max-width: 64px;
 }
 
 .room-picker-toggle {
@@ -1082,7 +1087,6 @@ label.room-picker-toggle {
 }
 
 #room-events-toolbar {
-    flex: 0;
     min-height: 48px;
 }
 
@@ -1120,4 +1124,9 @@ label.room-picker-toggle {
 
 #javascript-editor-toolbar button {
     border-radius: 0.5rem;
+}
+
+#draw-room-events-controls {
+    flex: 1;
+    display: flex; flex-direction: column;
 }
