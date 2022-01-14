@@ -556,7 +556,8 @@ class EventEditor {
     get showDialoguePreview() {
         const { field } = this.getSelections();
 
-        return this.editor.modeSelect.value === "events"
+        return this.editor.modeSelect.value === "draw-room"
+            && this.editor.roomPaintTool.value === "events"
             && field?.type === "dialogue"
             && this.dialoguePreviewToggle.checked;
     }
@@ -905,7 +906,6 @@ class BipsiEditor extends EventTarget {
             tileMapPaint: ONE("#tile-map-paint").getContext("2d"),
             tilePaintRoom: ONE("#tile-paint-room").getContext("2d"),
             paletteRoom: ONE("#palette-room").getContext("2d"),
-            eventsRoom: ONE("#events-room").getContext("2d"),
         };
 
         this.playtestIframe = /** @type {HTMLIFrameElement} */ (ONE("#playtest"));
@@ -1274,7 +1274,7 @@ class BipsiEditor extends EventTarget {
             }
 
             const { room } = this.getSelections();
-            const scale = this.renderings.eventsRoom.canvas.width / (8 * 16);
+            const scale = this.renderings.tileMapPaint.canvas.width / (8 * 16);
 
             const round = (position) => {
                 return {
@@ -1448,7 +1448,6 @@ class BipsiEditor extends EventTarget {
         this.renderings.tileMapPaint.canvas.addEventListener("pointerdown", (event) => onRoomPointer(event, this.renderings.tileMapPaint.canvas));
         this.renderings.tilePaintRoom.canvas.addEventListener("pointerdown", (event) => onRoomPointer(event, this.renderings.tilePaintRoom.canvas, true));
 
-        this.renderings.eventsRoom.canvas.addEventListener("pointerdown", (event) => onEventsPointer(event, this.renderings.eventsRoom.canvas));
         this.frame = 0;
 
         window.setInterval(() => {
@@ -1598,9 +1597,10 @@ class BipsiEditor extends EventTarget {
         this.drawRoom(TEMP_128, roomIndex, { palette });
         this.renderings.paletteRoom.drawImage(TEMP_128.canvas, 0, 0);
         this.renderings.tilePaintRoom.drawImage(TEMP_128.canvas, 0, 0);
-        this.renderings.eventsRoom.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
 
         if (!this.eventEditor.showDialoguePreview) {
+            this.eventEditor.dialoguePreviewToggle.checked = false;
+
             fillRendering2D(TEMP_256);
     
             room.events.forEach((event) => {
@@ -1614,10 +1614,6 @@ class BipsiEditor extends EventTarget {
                 TEMP_256.fillRect(0, y * 16 + 6, 256, 4);
                 TEMP_256.fillRect(x * 16 + 6, 0, 4, 256);
             }
-
-            this.renderings.eventsRoom.globalAlpha = .5;
-            this.renderings.eventsRoom.drawImage(TEMP_256.canvas, 0, 0);
-            this.renderings.eventsRoom.globalAlpha = 1;
 
             if (this.roomPaintTool.value === "events" || this.roomPaintTool.value === "shift") {
                 this.renderings.tileMapPaint.globalAlpha = .5;
@@ -1656,7 +1652,7 @@ class BipsiEditor extends EventTarget {
 
             this.dialoguePreviewPlayer.options.anchorY = top ? 0 : 1;
             this.dialoguePreviewPlayer.render();
-            this.renderings.eventsRoom.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 0, 0);
+            this.renderings.tileMapPaint.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 0, 0);
         }
     }
 
@@ -1664,7 +1660,7 @@ class BipsiEditor extends EventTarget {
         const { data, room, tileset } = this.getSelections();
         const [, foreground, highlight] = data.palettes[room.palette];
 
-        const hi = this.roomPaintTool.value === "high" || this.modeSelect.value === "events";
+        const hi = this.roomPaintTool.value === "high" || this.roomPaintTool.value === "events";
         const color = hi ? highlight : foreground;
         const tilesetC = recolorMask(tileset, color, TEMP_TILESET0);
 
