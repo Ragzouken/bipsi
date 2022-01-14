@@ -908,6 +908,8 @@ class BipsiEditor extends EventTarget {
             paletteRoom: ONE("#palette-room").getContext("2d"),
         };
 
+        this.tilesetDataURIs = [];
+
         this.playtestIframe = /** @type {HTMLIFrameElement} */ (ONE("#playtest"));
 
         function autoCloseToggledWindow(windowElement, toggle, toggleName) {
@@ -1695,9 +1697,22 @@ class BipsiEditor extends EventTarget {
             }
         });
 
-        await this.tileBrowser.setFrames([frame0.canvas, frame1.canvas]);
-        await this.eventTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
-        await this.roomTileBrowser.setFrames([frame0.canvas, frame1.canvas]);
+        // regenerate tileset uris
+        const canvases = [frame0.canvas, frame1.canvas];
+        const prev = [...this.tilesetDataURIs];
+        const blobs = await Promise.all(canvases.map(canvasToBlob));
+        const uris = blobs.map(URL.createObjectURL);
+        await Promise.all(uris.map(loadImage)).then(() => {
+            this.tilesetDataURIs = uris;
+
+            this.tileBrowser.setURIs(uris, canvases);
+            this.eventTileBrowser.setURIs(uris, canvases);
+            this.roomTileBrowser.setURIs(uris, canvases);
+
+            prev.map(URL.revokeObjectURL);
+        });
+
+
         if (this.tileBrowser.select.selectedIndex === -1) {
             this.tileBrowser.select.selectedIndex = 0;
         }
