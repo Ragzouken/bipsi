@@ -11,6 +11,18 @@
     fillRendering2D(destination, background);
     drawTilemapLayer(destination, tileset, tileToFrame, palette, room);
     drawEventLayer(destination, tileset, tileToFrame, palette, room.events);
+
+    room.events.forEach((event) => {
+        const [x, y] = event.position;
+
+        destination.fillStyle = "white";
+        destination.globalAlpha = .5;
+        destination.fillRect(
+            x * 8 + 1, y * 8 + 1, 
+            6, 6,
+        );
+    });
+    destination.globalAlpha = 1;
 }
 
 /**

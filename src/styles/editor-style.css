@@ -473,7 +473,9 @@ label.room-picker-toggle {
     display: flex; flex-direction: row;
     flex-wrap: wrap;
     gap: 1rem;
+
     align-items: stretch;
+    justify-content: center;
 }
 
 #upper-toolbar {

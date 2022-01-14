@@ -1053,6 +1053,7 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.tab(ONE("#room-events-toolbar"), "events");
 
         this.roomPaintTool.tab(ONE("#draw-room-tile-select"), "tile", "high", "pick", "shift", "wall");
+        this.roomPaintTool.tab(ONE("#room-palette-select"), "tile", "high", "pick", "shift", "wall");
 
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.redraw());
@@ -1159,7 +1160,7 @@ class BipsiEditor extends EventTarget {
                     this.actions.save.invoke();
                 }
             } else if (!textedit) {
-                const topkeys = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT"]; 
+                const topkeys = ["KeyQ", "KeyW", "KeyE", "KeyR"]; 
                 topkeys.forEach((code, i) => {
                     if (event.code === code) {
                         this.modeSelect.selectedIndex = i;
@@ -1207,6 +1208,8 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.addEventListener("change", () => {
             this.redraw();
             this.redrawTileBrowser();
+
+            this.renderings.tileMapPaint.canvas.style.cursor = this.roomPaintTool.value === "events" ? "pointer" : "crosshair";
         });
 
         this.tileBrowser.select.addEventListener("change", () => {
@@ -1300,7 +1303,6 @@ class BipsiEditor extends EventTarget {
             const events_ = getEventsAt(room.events, x, y);
             const event_ = events_[events_.length - 1];
             this.selectedEventId = event_?.id;
-            const events = event_ === undefined ? room.events : [event_];
             
             this.eventEditor.refresh();
 
@@ -1317,11 +1319,18 @@ class BipsiEditor extends EventTarget {
                     this.stateManager.makeCheckpoint();
                 }
 
-                cycleEvents(events, dx, dy);
-                this.selectedEventCell = { x: (x1 + 16) % 16, y: (y1 + 16) % 16 };
+                const x = Math.max(0, Math.min(x1, 15));
+                const y = Math.max(0, Math.min(y1, 15));
+                const existing = getEventsAt(room.events, x, y)[0];
 
-                if (move) {
-                    this.stateManager.changed();
+                if (event_ && !existing) {
+                    event_.position = [x, y];
+                    this.selectedEventCell = { x, y };
+
+                    if (move) {
+                        this.selectedEventId = getEventsAt(room.events, x, y)[0]?.id;
+                        this.stateManager.changed();
+                    }
                 }
             });
         };
@@ -1363,7 +1372,6 @@ class BipsiEditor extends EventTarget {
             const nextWall = 1 - room.wallmap[y][x];
 
             if (tool === "pick" || forcePick) {
-                console.log(prevTile)
                 if (prevTile !== 0) {
                     this.tileBrowser.selectedTileIndex = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
                     this.tileBrowser.redraw();
@@ -1431,6 +1439,7 @@ class BipsiEditor extends EventTarget {
                     cycleMap(room.wallmap, dx, dy);
                     cycleMap(room.backmap, dx, dy);
                     cycleMap(room.foremap, dx, dy);
+                    cycleEvents(room.events, -dx, -dy);
                     redraw();
                 });
             }
@@ -1599,7 +1608,7 @@ class BipsiEditor extends EventTarget {
                 TEMP_256.drawImage(this.EVENT_TILE, x * tileSize * 2, y * tileSize * 2);
             });
 
-            if (this.selectedEventCell) {
+            if (this.selectedEventCell && this.roomPaintTool.value === "events") {
                 const { x, y } = this.selectedEventCell;
                 TEMP_256.fillStyle = "white";
                 TEMP_256.fillRect(0, y * 16 + 6, 256, 4);
@@ -1610,7 +1619,7 @@ class BipsiEditor extends EventTarget {
             this.renderings.eventsRoom.drawImage(TEMP_256.canvas, 0, 0);
             this.renderings.eventsRoom.globalAlpha = 1;
 
-            if (this.roomPaintTool.value === "events") {
+            if (this.roomPaintTool.value === "events" || this.roomPaintTool.value === "shift") {
                 this.renderings.tileMapPaint.globalAlpha = .5;
                 this.renderings.tileMapPaint.drawImage(TEMP_256.canvas, 0, 0);
                 this.renderings.tileMapPaint.globalAlpha = 1;
@@ -1989,6 +1998,8 @@ class BipsiEditor extends EventTarget {
         ALL("[data-editor-only]", clone).forEach((element) => element.remove());
         // insert the project bundle data into the page copy 
         ONE("#bundle-embed", clone).innerHTML = JSON.stringify(bundle);
+
+        ONE("#player", clone).hidden = false;
 
         // insert plugins
         ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript();
