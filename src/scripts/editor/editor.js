@@ -1054,7 +1054,7 @@ class BipsiEditor extends EventTarget {
         // this.roomPaintTool.tab(ONE("#room-events-tab"), "events");
         this.roomPaintTool.tab(ONE("#room-events-toolbar"), "events");
 
-        this.roomPaintTool.tab(ONE("#draw-room-tile-select"), "tile", "high", "pick", "shift", "wall");
+        this.roomPaintTool.tab(ONE("#draw-room-tile-select"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#room-palette-select"), "tile", "high", "pick", "shift", "wall");
 
         this.roomGrid = ui.toggle("room-grid");
@@ -1211,7 +1211,16 @@ class BipsiEditor extends EventTarget {
             this.redraw();
             this.redrawTileBrowser();
 
-            this.renderings.tileMapPaint.canvas.style.cursor = this.roomPaintTool.value === "events" ? "pointer" : "crosshair";
+            const cursors = {
+                "tile": "crosshair",
+                "high": "crosshair",
+                "pick": "crosshair",
+                "wall": "crosshair",
+                "events": "pointer",
+                "shift": "move"
+            }
+
+            this.renderings.tileMapPaint.canvas.style.cursor = cursors[this.roomPaintTool.value];
         });
 
         this.tileBrowser.select.addEventListener("change", () => {
@@ -1646,6 +1655,14 @@ class BipsiEditor extends EventTarget {
         this.fieldRoomSelect.updateRooms(thumbs);
 
         this.roomSelectWindow.select.selectedIndex = Math.max(this.roomSelectWindow.select.selectedIndex, 0);
+
+        const thumb = thumbs[this.roomSelectWindow.select.selectedIndex].thumb;
+        const canvases = ALL(`[name="show-room-window"] + canvas`);
+        canvases.forEach((canvas) => {
+            const rendering = canvas.getContext("2d");
+            rendering.imageSmoothingEnabled = false;
+            rendering.drawImage(thumb, 0, 0, 16, 16);
+        });
     }
 
     redrawDialoguePreview() {
