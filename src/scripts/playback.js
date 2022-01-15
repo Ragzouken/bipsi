@@ -347,7 +347,7 @@ class BipsiPlayback extends EventTarget {
 
         this.extra_behaviours = [];
         
-        this.preventMoving = false;
+        this.choiceExpected = false;
         this.story = undefined
     }
 
@@ -473,8 +473,13 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async continueStory(touchedEvent){
+    async continueStory(EVENT){
         const story = this.story;
+        const AVATAR = findEventByTag(this.data, "is-player");
+        const sayStyle = oneField(EVENT, "say-style", "json")?.data 
+                        || oneField(AVATAR, "say-style", "json")?.data 
+                        || {};
+
         while(story.canContinue) {
             // Get ink to generate the next paragraph
             var paragraphText = this.story.Continue().trim();
@@ -489,10 +494,7 @@ class BipsiPlayback extends EventTarget {
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
-                    const avatar = findEventByTag(this.data, "is-player");
-                    const sayStyle = oneField(touchedEvent, "say-style", "json")?.data 
-                                    || oneField(avatar, "say-style", "json")?.data 
-                                    || {};
+                    
                     const portrait = tags.find(t => t.match(/[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
                     if(portrait){
                         const matchPortrait = portrait.match(/([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
@@ -512,7 +514,7 @@ class BipsiPlayback extends EventTarget {
         const autoChoice = choices.find( (choice) => choice.text.startsWith("auto:"))
         if(autoChoice !== undefined){
             story.ChooseChoiceIndex(autoChoice.index)
-            return await this.continueStory(touchedEvent);
+            return await this.continueStory(EVENT);
         }
 
         const dialogChoices = choices.filter( (choice) => {
@@ -524,35 +526,50 @@ class BipsiPlayback extends EventTarget {
         const continueStory = this.continueStory.bind(this)
 
         if(dialogChoices.length > 0){
-            const choiceListContainer = ONE("#player-choices-list");
-            this.preventMoving = true;
-            dialogChoices.forEach(function(choice) {
+            const availableArrows = [
+                ["ArrowUp", "↑"],
+                ["ArrowDown", "↓"],
+                ["ArrowLeft", "←"],
+                ["ArrowRight", "→"]
+            ];
+            this.choiceExpected = true;
+            const dialogChoicesTexts = [];
+            const playback = this;
 
-                // Create paragraph with anchor element
-                var choiceParagraphElement = document.createElement('li');
-                choiceParagraphElement.classList.add("choice");
-                choiceParagraphElement.innerHTML = `<a href='#'>${choice.text}</a>`
-                choiceListContainer.appendChild(choiceParagraphElement);
-    
-                // Click on choice
-                var choiceAnchorEl = choiceParagraphElement.querySelectorAll("a")[0];
-                choiceAnchorEl.addEventListener("click", function(event) {
-    
-                    // Don't follow <a> link
-                    event.preventDefault();
-    
-                    // Remove all existing choices
-                    choiceListContainer.innerHTML = "";
-    
-                    // Tell the story where to go next
-                    story.ChooseChoiceIndex(choice.index);
-    
-                    // Aaand loop
-                    continueStory(touchedEvent);
-                });
+            const choiceEvents = new Map();
+            
+            dialogChoices.forEach(function(choice) {
+                const [arrowEvent, glyph] = availableArrows.shift();
+                if(arrowEvent){
+                    dialogChoicesTexts.push(`${glyph} ${choice.text}`);
+                    choiceEvents.set(arrowEvent,  () => {
+                        console.log(`Making choice ${choice.index}`)
+                        story.ChooseChoiceIndex(choice.index);
+                    });
+                }
             });
+            //always display choices at the bottom
+            this.say(dialogChoicesTexts.join("\n"), {
+                ...sayStyle, 
+                ...{"noMargin": true,
+                    "anchorX": 0, "anchorY": 1, lineWidth: 40*6,
+                    "lines": dialogChoicesTexts.length,
+                    }
+                })
+            const listenToChoice = (event) =>{
+                const choiceAction = choiceEvents.get(event.detail)
+                if(choiceAction){
+                    choiceAction();
+                    playback.proceed();
+                    playback.removeEventListener('choice', listenToChoice);
+                    playback.choiceExpected = false;
+                    continueStory(EVENT);
+                }
+            }
+            console.log(`We have ${choiceEvents.size} events to listen to`)
+            this.addEventListener("choice", listenToChoice);
         }else{
-            this.preventMoving = false
+            this.choiceExpected = false
         }
     }
 
