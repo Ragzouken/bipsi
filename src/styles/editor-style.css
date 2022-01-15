@@ -10,6 +10,7 @@
     --frame-color: #ECECEC;
 
     --black-outline-shadow: 0 0 0 2px black;
+    --white-outline-shadow: 0 0 0 2px white;
 }
 
 :root[data-app-mode="editor"] [data-hidden-in-editor] {
@@ -354,11 +355,16 @@ label.toggle {
     position: relative;
 }
 
-input + svg, input + svg + svg {
+input + *, input + * + * {
     z-index: 6;
 }
 
-input + svg + svg {
+.picker-toggle > canvas {
+    width: 32px;
+    height: 32px;
+}
+
+.picker-toggle > * + * + svg {
     margin-left: 4px;
     margin-right: -4px;
 }
@@ -373,8 +379,27 @@ label.toggle#tile-grid {
 
 label.room-picker-toggle {
     flex: 0;
-    min-width: 72px;
+    /* min-width: 72px; */
+    border-radius: .5rem 1rem 1rem .5rem;
+    padding: 8px;
+    gap: 6px;
 }
+
+label.room-picker-toggle > svg {
+    margin: 0;
+    margin-left: 2px;
+}
+
+.picker-toggle > canvas {
+    border-radius: .25rem;
+    box-shadow: var(--black-outline-shadow);
+    pointer-events: none;
+}
+
+.picker-toggle > *:checked + canvas {
+    box-shadow: var(--white-outline-shadow);
+}
+
 
 .toggle input {
     appearance: none;
@@ -400,7 +425,7 @@ label.room-picker-toggle {
     background: blue;
 }
 
-.toggle input:checked + svg, .toggle input:checked + svg + svg {
+.toggle input:checked + svg, .toggle input:checked + * + svg {
     color: white;
 }
 
@@ -673,7 +698,7 @@ label.room-picker-toggle {
 
     display: flex; flex-direction: column;
 
-    border-radius: 1rem 0 0 1rem;
+    border-radius: .5rem 0 0 .5rem;
     background: black;
     overflow: hidden scroll;
 }
@@ -898,8 +923,12 @@ label.room-picker-toggle {
 
 #field-position-select {
     background: var(--trans-gradient);
-
+    cursor: pointer;
     height: 236px;
+}
+
+#move-to-window-position {
+    cursor: pointer;
 }
 
 #tile-paint-buttons > * {
