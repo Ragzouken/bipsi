@@ -16,6 +16,10 @@ The editor comes preloaded with an example story. You can find [the example file
 * `GET_INK_VAR(varname)` : extract the value of the variable `varname` from inside of ink.
 * `DIVERT_TO(knot_name)` : jump to the knot `knot_name` and continue the story from there. (this is equivalent to `ChoosePathString`)
 
+## Additional Bipsi event properties
+
+* `say-style, JSON` : `say-style` will behave for all text said by ink as if it were said by regular `dialog`. If a `say-style` is defined on the player character, all said text will default to that style.
+
 ## Custom ink syntax
 
 ### Choices
@@ -40,7 +44,14 @@ The editor comes preloaded with an example story. You can find [the example file
 * `#TITLE` :  
     If a text is tagged with `#TITLE`, it will be displayed in bipsi's `TITLE` format (text only in the middle of the bipsi game area).
 
-### Custom syntax
+* `#character-sentiment` :
+    If a text is tagged with `#character-sentiment`, it will try to find an event tagged `character` and look for a file field named `sentiment` (sentiment will default to `"neutral"` if given sentiment file is not found.)
+    _Example 1_: You cannot go there ! # guard-angry
+    _Example 2_: Thank you for the chocolate, please come in ! # guard-happy
+
+### Custom syntax in ink
+Just write those in your ink script as if it were text.  
+They should be written alone on a single line.
 
 * `SPAWN_AT(teleport_name)` :  
     When encoutered in the text of the story, bipsi will try to teleport the avatar on an event tagged with `teleport_name`.  

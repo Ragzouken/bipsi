@@ -153,7 +153,7 @@ class DialoguePlayback extends EventTarget {
         const { width: displayWidth, height: displayHeight } = this.dialogueRendering.canvas;
         const spaceX = displayWidth - width;
         const spaceY = displayHeight - height;
-        const margin = Math.ceil(Math.min(spaceX, spaceY) / 2);
+        const margin = options.noMargin ? 0 : Math.ceil(Math.min(spaceX, spaceY) / 2);
 
         const minX = margin;
         const maxX = displayWidth - margin;

@@ -235,7 +235,8 @@ let id = FIELD(EVENT, "say-shared-id", "text") ?? "SAY-ITERATORS/" + EVENT_ID(EV
 let mode = FIELD(EVENT, "say-mode", "text") ?? "cycle";
 let say = SAMPLE(id, mode, FIELDS(EVENT, "say", "dialogue"));
 if (say) {
-    await SAY(say, FIELD(EVENT, "say-style", "json"));
+    const sayStyle = FIELD(EVENT, "say-style", "json");
+    await SAY(say, sayStyle);
 }
 `;
 
@@ -441,7 +442,7 @@ class BipsiPlayback extends EventTarget {
 
         // game starts by running the touch behaviour of the player avatar
         //await this.touch(avatar);
-        await this.continueStory();
+        await this.continueStory(avatar);
     }
 
     async spawnAt(target, event){
@@ -455,7 +456,24 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async continueStory(){
+    async sayWithPortrait(text, character, sentiment, options){
+        const characterEvent = findEventByTag(this.data, character);
+        let portraitShown = false;
+        if(characterEvent){
+            const sentimentImageId =  oneField(characterEvent, sentiment, "file")?.data
+                                   || oneField(characterEvent, "neutral", "file")?.data
+            if(sentimentImageId){
+                await this.showImage("portrait", sentimentImageId, 3, 104, 102);
+                portraitShown = true;
+            }
+        }
+        await this.say(text, options);
+        if(portraitShown){
+            await this.hideImage("portrait");
+        }
+    }
+
+    async continueStory(touchedEvent){
         const story = this.story;
         while(story.canContinue) {
             // Get ink to generate the next paragraph
@@ -464,7 +482,6 @@ class BipsiPlayback extends EventTarget {
 
             if(paragraphText.length > 0){
                 const matchSpawn = paragraphText.trim().match(/SPAWN_AT\(([^),\s]*)([\s]*,[\s]*([^)]*)*)*\)/)
-                console.log(matchSpawn)
                 if( matchSpawn ){
                     const target = matchSpawn[1];
                     const event = matchSpawn[3] || "is-player";
@@ -472,7 +489,20 @@ class BipsiPlayback extends EventTarget {
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
-                    await this.say(paragraphText);
+                    const avatar = findEventByTag(this.data, "is-player");
+                    const sayStyle = oneField(touchedEvent, "say-style", "json")?.data 
+                                    || oneField(avatar, "say-style", "json")?.data 
+                                    || {};
+                    const portrait = tags.find(t => t.match(/[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
+                    if(portrait){
+                        const matchPortrait = portrait.match(/([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
+                        const character = matchPortrait[1];
+                        const sentiment = matchPortrait[2];
+                        await this.sayWithPortrait(paragraphText, character, sentiment, sayStyle)
+                    }else{
+                        await this.say(paragraphText, sayStyle);
+                    }
+                    
                 }
             }
         }
@@ -482,7 +512,7 @@ class BipsiPlayback extends EventTarget {
         const autoChoice = choices.find( (choice) => choice.text.startsWith("auto:"))
         if(autoChoice !== undefined){
             story.ChooseChoiceIndex(autoChoice.index)
-            return await this.continueStory();
+            return await this.continueStory(touchedEvent);
         }
 
         const dialogChoices = choices.filter( (choice) => {
@@ -518,7 +548,7 @@ class BipsiPlayback extends EventTarget {
                     story.ChooseChoiceIndex(choice.index);
     
                     // Aaand loop
-                    continueStory();
+                    continueStory(touchedEvent);
                 });
             });
         }else{
@@ -711,7 +741,7 @@ class BipsiPlayback extends EventTarget {
             await this.runJS(event, touch);
         }else if(taggedChoice !== undefined){
             this.story.ChooseChoiceIndex(taggedChoice.index)
-            await this.continueStory();
+            await this.continueStory(event);
         } else {
             await standardEventTouch(this, event);
         }
@@ -1016,7 +1046,7 @@ function generateScriptingDefines(playback, event) {
     defines.GET_INK_VAR = (field) => playback.story.variablesState.$(field);
     defines.DIVERT_TO = (knot_name) => {
         playback.story.ChoosePathString(knot_name);
-        return playback.continueStory();
+        return playback.continueStory(event);
     }
 
     return defines;
