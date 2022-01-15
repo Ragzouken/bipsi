@@ -49,7 +49,7 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://smwhr.github.
         style(data-editor-only)
             include styles/editor-style.css
     body(onload="start()").no-select
-        #player(data-hidden-in-editor)
+        #player(hidden)
             #player-container
                 canvas#player-canvas(width=256 height=256)
                 div#player-choices
