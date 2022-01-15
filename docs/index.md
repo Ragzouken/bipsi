@@ -36,7 +36,8 @@ The editor comes preloaded with an example story. You can find [the example file
 * `Classic choices` :  
     When the bipsi players encounters a non-tagged choice, it will stop everything happening in the bipsi scene.  
     The avatar won't be able to move until an option has bee chosen.  
-    Choices will appear below the bipsi game area as clickable/touchable text, one per line.
+    A maximum of 4 choices will be displayed, each a recommended maximum of 38 characters (this is not enforced but adding longer text can lead to unforseen consequences).  
+    The player will be able to chose an option using arrow or swipes in the 4 directions.
 
 
 ### Ink tags
