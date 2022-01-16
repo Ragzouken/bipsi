@@ -793,7 +793,7 @@ class TileEditor {
 
         const redraw = () => {
             drawTile(tileset, index, temp);
-            this.redraw();
+            this.editor.redraw();
         };
 
         const drag = ui.drag(event);
