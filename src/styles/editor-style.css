@@ -955,8 +955,9 @@ label.room-picker-toggle > svg {
 
 #frame-adjust-window {
     position: absolute;
-    width: 512px;
-    bottom: calc(48px + .5rem);
+    width: 256px;
+    left: 128px;
+    bottom: calc(72px + .5rem);
 
     display: flex; flex-direction: column;
     border-radius: 1rem;
@@ -1184,11 +1185,27 @@ label.room-picker-toggle > svg {
     max-width: 48px;
 }
 
+#tile-management > * {
+    border-radius: 0;
+}
+
+#tile-management > :first-child {
+    border-radius: 0 1rem 0 0;
+}
+
+#tile-management > :last-child {
+    border-radius: 0 0 1rem 0;
+}
+
 #frame-column {
     gap: .5rem;
     flex: 1;
+
+    justify-content: center;
 }
 
-#frame-column label {
+#frame-column label, #frame-column button {
     max-width: none;
+    min-height: 48px;
+    flex: 0;
 }
