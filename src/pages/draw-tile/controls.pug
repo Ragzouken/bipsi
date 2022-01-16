@@ -7,13 +7,14 @@
                 label
                     input(type="radio" name="tile-paint-frame")
                     canvas#tile-paint-0(width="160" height="160" draggable="false" title="edit tile frame 0")
-                .column
+                .column#frame-column
                     button(name="swap-tile-frames" title="swap frames")
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/></svg>
                     label.toggle
                         input(type="checkbox" name="tile-animated" title="toggle animated")
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/></svg>
-                    label.toggle
+                    include /pages/draw-tile/frame-adjust-toggle.pug
+                    label.toggle(hidden)
                         input(type="checkbox" name="tile-grid" title="toggle grid")
                         include /icons/grid.svg
                 label
@@ -37,4 +38,4 @@
                     include /icons/delete.svg
     .viewport-toolbar
         include /pages/room-select-toggle.pug
-        include /pages/draw-tile/frame-adjust-toggle.pug
+        //- include /pages/draw-tile/frame-adjust-toggle.pug

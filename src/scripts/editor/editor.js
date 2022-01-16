@@ -842,13 +842,14 @@ class TileEditor {
 
         this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
         this.editor.actions.swapTileFrames.disabled = tile.frames.length === 1;
+        this.editor.renderings.tilePaint1.canvas.style.opacity = tile.frames.length === 1 ? "0%" : null;
 
         const [bg, fg, hi] = data.palettes[room.palette];
 
         const color = this.editor.roomPaintTool.selectedIndex === 1 ? hi : fg;
         const tilesetC = recolorMask(tileset, color);
 
-        const grid = this.editor.tileGrid.checked;
+        const grid = true || this.editor.tileGrid.checked;
 
         [this.editor.renderings.tilePaint0, this.editor.renderings.tilePaint1].forEach((rendering, i) => {
             fillRendering2D(rendering, bg);
@@ -1864,6 +1865,7 @@ class BipsiEditor extends EventTarget {
                 drawTile(tileset, tile.frames[1], frame);
             } else {
                 tile.frames = [tile.frames[0]];
+                this.tilePaintFrameSelect.selectedIndex = 0;
             }
         });
     }
