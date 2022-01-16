@@ -19,6 +19,7 @@
             include ../edit-events/controls-nest.pug
     .viewport-toolbar
         include /pages/room-select-toggle.pug
+        include /pages/draw-tile/frame-adjust-toggle.pug
         select#room-palette-select(name="room-palette")
             each index in [0, 1, 2, 3, 4, 5, 6, 7]
                 option(value=`${index}`)= `palette ${index}`

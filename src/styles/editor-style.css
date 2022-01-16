@@ -616,21 +616,21 @@ label.room-picker-toggle > svg {
 }
 
 #tile-paint-room {
-    width: 256px; height: 256px;
+    width: 512px; height: 512px;
 
     cursor: crosshair;
 }
 
-#tile-paint-canvases * {
+#tile-paint-canvases > label * {
     background: none;
 }
 
-#tile-paint-canvases input:checked {
+#tile-paint-canvases > label input:checked {
     pointer-events: none;
     background: none;
 }
 
-#tile-paint-canvases input:not(:checked) + canvas {
+#tile-paint-canvases > label input:not(:checked) + canvas {
     pointer-events: none;
     opacity: 50%;
 }
@@ -917,10 +917,6 @@ label.room-picker-toggle > svg {
     cursor: pointer;
 }
 
-#tile-paint-buttons > * {
-    max-width: unset;
-}
-
 #move-to-window {
     position: absolute;
     width: 512px; height: 256px;
@@ -943,6 +939,23 @@ label.room-picker-toggle > svg {
 #room-select-window {
     position: absolute;
     width: 512px; height: 320px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
+
+    background: var(--frame-color);
+
+    cursor: initial;
+    z-index: 100;
+
+    box-shadow: 0 0 0 2px black;
+}
+
+#frame-adjust-window {
+    position: absolute;
+    width: 512px;
     bottom: calc(48px + .5rem);
 
     display: flex; flex-direction: column;
@@ -1032,6 +1045,18 @@ label.room-picker-toggle > svg {
     gap: 1rem;
 }
 
+#tile-paint-row {
+    gap: .5rem;
+
+    margin-bottom: .5rem;
+    flex: 0;
+}
+
+#tile-paint-row > .column {
+    gap: .5rem;
+    max-width: 64px;
+}
+
 #tile-paint-canvases {
     flex: 0;
 
@@ -1039,10 +1064,15 @@ label.room-picker-toggle > svg {
 
     padding: 1rem; gap: 1rem;
     background: var(--trans-gradient);
-    border-radius: 1rem;
+    border-radius: .5rem;
 
     align-items: center;
     justify-content: space-evenly;
+}
+
+
+#tile-paint-canvases > label {
+    height: 160px;
 }
 
 #tile-paint-canvases canvas {
@@ -1050,22 +1080,26 @@ label.room-picker-toggle > svg {
     cursor: crosshair;
 }
 
-#tile-paint-buttons {
+.tile-paint-buttons {
     flex: 1;
     gap: .5rem;
     display: flex; flex-direction: column;
 }
 
-#tile-paint-buttons > .row {
+.tile-paint-buttons > .row {
     gap: 8px;
 }
 
-#tile-paint-buttons > .grid3 {
+.tile-paint-buttons > .grid3 {
     gap: 2px;
 }
 
-#tile-paint-buttons button {
+.tile-paint-buttons button {
     height: 48px;
+}
+
+.tile-paint-buttons > * {
+    max-width: unset;
 }
 
 #tile-paint-a {
@@ -1131,4 +1165,13 @@ label.room-picker-toggle > svg {
 #draw-room-events-controls {
     flex: 1;
     display: flex; flex-direction: column;
+}
+
+#tile-select-row {
+    overflow: hidden;
+}
+
+#tile-management {
+    flex: 0; gap: 2px;
+    flex-direction: column;
 }

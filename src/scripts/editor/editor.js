@@ -841,6 +841,7 @@ class TileEditor {
         if (!tile) return;
 
         this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
+        this.editor.actions.swapTileFrames.disabled = tile.frames.length === 1;
 
         const [bg, fg, hi] = data.palettes[room.palette];
 
@@ -922,6 +923,13 @@ class BipsiEditor extends EventTarget {
                 toggle.checked = false;
             });
         }
+
+        this.frameAdjustWindow = ONE("#frame-adjust-window");
+        this.showFrameAdjust = ui.toggle("show-frame-adjust");
+        this.showFrameAdjust.addEventListener("change", () => {
+            this.frameAdjustWindow.hidden = !this.showFrameAdjust.checked;
+        });
+        autoCloseToggledWindow(this.frameAdjustWindow, this.showFrameAdjust, "show-frame-adjust");
 
         this.logWindow = ONE("#log-window");
         this.showLog = ui.toggle("show-log");
@@ -1027,10 +1035,10 @@ class BipsiEditor extends EventTarget {
         timer();
 
         // find all the ui already defined in the html
+        this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
         this.roomPaletteSelect = ui.select("room-palette");
-        this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
 
         // this.modeSelect.tab(ONE("#edit-events-tab-controls"), "events");
         // this.modeSelect.tab(ONE("#room-events-tab"), "events");
@@ -1222,6 +1230,14 @@ class BipsiEditor extends EventTarget {
             this.renderings.tileMapPaint.canvas.style.cursor = cursors[this.roomPaintTool.value];
         });
 
+        const setSelectedTile = (index) => {
+            this.tilePaintFrameSelect.selectedIndex = 0;
+
+            this.tileBrowser.select.setSelectedIndexSilent(index);
+            this.roomTileBrowser.select.setSelectedIndexSilent(index);
+            this.tileEditor.redraw();
+        }
+
         this.tileBrowser.select.addEventListener("change", () => {
             if (this.roomPaintTool.selectedIndex > 1) {
                 this.roomPaintTool.selectedIndex = 0;
@@ -1229,11 +1245,11 @@ class BipsiEditor extends EventTarget {
 
             this.tilePaintFrameSelect.selectedIndex = 0;
 
-            this.roomTileBrowser.select.setSelectedIndexSilent(this.tileBrowser.select.selectedIndex);
+            setSelectedTile(this.tileBrowser.select.selectedIndex);
         })
 
         this.roomTileBrowser.select.addEventListener("change", () => {
-            this.tileBrowser.select.setSelectedIndexSilent(this.roomTileBrowser.select.selectedIndex);
+            setSelectedTile(this.roomTileBrowser.select.selectedIndex);
         });
 
         this.roomPaletteSelect.addEventListener("change", () => {
@@ -1383,10 +1399,9 @@ class BipsiEditor extends EventTarget {
 
             if (tool === "pick" || forcePick) {
                 if (prevTile !== 0) {
-                    this.tileBrowser.selectedTileIndex = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
-                    this.tileBrowser.redraw();
-                    this.roomTileBrowser.selectedTileIndex = this.tileBrowser.selectedTileIndex;
-                    this.roomTileBrowser.redraw();
+                    const index = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
+
+                    setSelectedTile(index);
                 }
             } else if (tool === "wall" || tool === "tile" || tool === "high") {    
                 this.stateManager.makeCheckpoint();

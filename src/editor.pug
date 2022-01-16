@@ -2,60 +2,14 @@
     include /pages/move-to-window.pug
     include /pages/log-window.pug
     include /pages/variables-window.pug
-    
+
     include /pages/playtest/viewport.pug
     #palette-tab.viewport-tab-body(hidden)
         canvas#palette-room(width="128" height="128" draggable="false")
     #tile-paint-tab.viewport-tab-body(hidden)
         #tile-paint-body
-            .row
-                canvas#tile-paint-a(width="8" height="8" draggable="false" title="tile animation preview")
-                #tile-paint-canvases.radio-select
-                    label
-                        input(type="radio" name="tile-paint-frame")
-                        canvas#tile-paint-0(width="160" height="160" draggable="false" title="edit tile frame 0")
-                    label
-                        input(type="radio" name="tile-paint-frame")
-                        canvas#tile-paint-1(width="160" height="160" draggable="false" title="edit tile frame 1")
             #tile-paint-previews
                 canvas#tile-paint-room(width="128" height="128" draggable="false")
-                #tile-paint-buttons
-                    .grid3
-                        button(name="rotate-tile-anticlockwise" title="rotate tile anticlockwise")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4z"/></svg>
-                        button(name="shift-tile-up" title="shift tile up")
-                            include /icons/arrow-up.svg
-                        button(name="rotate-tile-clockwise" title="rotate tile clockwise")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14.854 4.854a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 4H3.5A2.5 2.5 0 0 0 1 6.5v8a.5.5 0 0 0 1 0v-8A1.5 1.5 0 0 1 3.5 5h9.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4z"/></svg>
-                        button(name="shift-tile-left" title="shift tile left")
-                            include /icons/arrow-left.svg
-                        button(name="shift-tile-down" title="shift tile down")
-                            include /icons/arrow-down.svg
-                        button(name="shift-tile-right" title="shift tile right")
-                            include /icons/arrow-right.svg
-                    .horizontal-capsule
-                        button(name="mirror-tile" title="mirror tile")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2.5a.5.5 0 0 0-.939-.24l-6 11A.5.5 0 0 0 .5 14h6a.5.5 0 0 0 .5-.5v-11zm2.376-.484a.5.5 0 0 1 .563.245l6 11A.5.5 0 0 1 15.5 14h-6a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .376-.484zM10 4.46V13h4.658L10 4.46z"/></svg>
-                        button(name="flip-tile" title="flip tile")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.5 7a.5.5 0 0 0 .24-.939l-11-6A.5.5 0 0 0 2 .5v6a.5.5 0 0 0 .5.5h11zm.485 2.376a.5.5 0 0 1-.246.563l-11 6A.5.5 0 0 1 2 15.5v-6a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .485.376zM11.539 10H3v4.658L11.54 10z"/></svg>
-                        button(name="invert-tile" title="invert tile")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098L9.05.435zM8 .989c.127 0 .253.049.35.145l6.516 6.516a.495.495 0 0 1 0 .7L8.35 14.866a.493.493 0 0 1-.35.145V.989z"/></svg>
-                    .horizontal-capsule
-                        button(name="copy-tile-frame" title="copy frame")
-                            include /icons/copy.svg
-                        button(name="paste-tile-frame" title="paste frame")
-                            include /icons/paste.svg
-                        button(name="clear-tile-frame" title="clear frame")
-                            include /icons/delete.svg
-                    .row
-                        button(name="swap-tile-frames" title="swap frames")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/></svg>
-                        label.toggle
-                            input(type="checkbox" name="tile-animated" title="toggle animated")
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/></svg>
-                        label.toggle
-                            input(type="checkbox" name="tile-grid" title="toggle grid")
-                            include /icons/grid.svg
     #tile-map-tab(hidden)
         canvas#tile-map-paint(width="256" height="256" draggable="false")
         #tile-map-toolbar.viewport-toolbar
@@ -87,6 +41,7 @@
                 input(type="radio" name="palette-picker-select" value=`${y},${x}` title=`select palette ${y}`)
 #controls
     include /pages/room-select-window.pug
+    include /pages/draw-tile/frame-adjust-window.pug
     #upper-toolbar
         #mode-select.horizontal-capsule.radio-select(title="mode-select")
             label
