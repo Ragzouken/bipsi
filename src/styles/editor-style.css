@@ -956,11 +956,11 @@ label.room-picker-toggle > svg {
 #frame-adjust-window {
     position: absolute;
     width: 256px;
-    left: 128px;
+    right: 0;
     bottom: calc(72px + .5rem);
 
     display: flex; flex-direction: column;
-    border-radius: 1rem;
+    border-radius: 1.5rem;
     padding: 1rem; gap: .5rem;
 
     background: var(--frame-color);
@@ -1048,14 +1048,12 @@ label.room-picker-toggle > svg {
 
 #tile-paint-row {
     gap: .5rem;
-
-    margin-bottom: .5rem;
     flex: 0;
 }
 
 #tile-paint-row > .column {
     gap: .5rem;
-    max-width: 64px;
+    max-width: 72px;
 }
 
 #tile-paint-canvases {
@@ -1063,8 +1061,8 @@ label.room-picker-toggle > svg {
 
     display: flex; flex-direction: row;
 
-    padding: 0; gap: 1rem;
-    /* background: var(--trans-gradient); */
+    padding: .5rem; gap: 1rem;
+    background: var(--trans-gradient);
     border-radius: .5rem;
 
     align-items: stretch;
@@ -1073,11 +1071,12 @@ label.room-picker-toggle > svg {
 
 
 #tile-paint-canvases > label {
-    height: calc(160px + 1rem);
+    /* height: calc(160px + 1rem); */
+    height: 160px;
 
-    padding: .5rem;
-    border-radius: .5rem;
-    background: var(--trans-gradient);
+    /* padding: .5rem; */
+    /* border-radius: .5rem; */
+    /* background: var(--trans-gradient); */
 }
 
 #tile-paint-canvases canvas {
@@ -1208,4 +1207,11 @@ label.room-picker-toggle > svg {
     max-width: none;
     min-height: 48px;
     flex: 0;
+}
+
+#draw-room-tile-controls {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
 }

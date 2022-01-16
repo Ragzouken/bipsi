@@ -1,0 +1,35 @@
+.row#tile-paint-row
+    canvas#tile-paint-a(width="8" height="8" draggable="false" title="tile animation preview" hidden)
+    #tile-paint-canvases.radio-select
+        label
+            input(type="radio" name="tile-paint-frame")
+            canvas#tile-paint-0(width="160" height="160" draggable="false" title="edit tile frame 0")
+        label
+            input(type="radio" name="tile-paint-frame")
+            canvas#tile-paint-1(width="160" height="160" draggable="false" title="edit tile frame 1")
+    .column#frame-column
+        label.toggle
+            input(type="checkbox" name="tile-animated" title="toggle animated")
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/></svg>
+        button(name="swap-tile-frames" title="swap frames")
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/></svg>
+        include /pages/draw-tile/frame-adjust-toggle.pug
+        label.toggle(hidden)
+            input(type="checkbox" name="tile-grid" title="toggle grid")
+            include /icons/grid.svg
+.row#tile-select-row
+    #tile-select.tile-select.radio-select(title="select tiles")
+        template#tile-select-template
+            label
+                input(type="radio" name="tile-select")
+    #tile-management.item-management-buttons.column
+        button(name="add-new-tile" title="add new tile")
+            include /icons/plus.svg
+        button(name="duplicate-tile" title="duplicate selected tile")
+            include /icons/copy.svg
+        button(name="reorder-tile-before" title="reorder tile before")
+            include /icons/arrow-left.svg
+        button(name="reorder-tile-after" title="reorder tile after")
+            include /icons/arrow-right.svg
+        button(name="delete-tile" title="delete selected tile")
+            include /icons/delete.svg
