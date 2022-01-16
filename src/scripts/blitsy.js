@@ -485,6 +485,12 @@ async function loadImage(src) {
     });
 }
 
+function loadImageLazy(src) {
+    const image = document.createElement("img");
+    image.src = src;
+    return image;
+}
+
 /**
  * In the given rendering, replace every instance of a color in the prev palette
  * with the corresponding color in the next palette, ignoring colors that don't
