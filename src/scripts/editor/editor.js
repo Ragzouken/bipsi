@@ -1064,7 +1064,9 @@ class BipsiEditor extends EventTarget {
         // this.roomPaintTool.tab(ONE("#draw-room-tile-select"), "tile", "high", "pick");
         // this.roomPaintTool.tab(ONE("#draw-room-tile-manage"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
-        this.roomPaintTool.tab(ONE("#room-palette-select"), "tile", "high", "pick", "shift", "wall");
+        this.roomPaintTool.tab(ONE("#highlight-toggle"), "tile", "high", "pick");
+        this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
+        this.roomPaintTool.tab(ONE("#room-palette-select"), "tile", "high", "pick");
 
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.redraw());
@@ -1073,6 +1075,7 @@ class BipsiEditor extends EventTarget {
         this.tileGrid.addEventListener("change", () => this.redraw());
 
         this.highlight = ui.toggle("highlight");
+        this.picker = ui.toggle("tile-picker");
 
         // initial selections
         this.modeSelect.selectedIndex = 0;
@@ -1182,19 +1185,27 @@ class BipsiEditor extends EventTarget {
                 });
             }
 
-            if (event.altKey && this.heldColorPick === undefined) {
-                this.heldColorPick = this.roomPaintTool.selectedIndex;
-                this.roomPaintTool.selectedIndex = 1;
+            // if (event.altKey && this.heldColorPick === undefined) {
+            //     this.heldColorPick = this.roomPaintTool.selectedIndex;
+            //     this.roomPaintTool.selectedIndex = 1;
+            //     event.preventDefault();
+            // }
+            if (event.altKey && this.modeSelect.value === "draw-room" && this.roomPaintTool.value === "tile") {
+                this.picker.checked = true;
                 event.preventDefault();
             }
         });
 
         // stop temporarily color picking if the alt key is released
         document.addEventListener("keyup", (event) => {
-            if (!event.altKey && this.heldColorPick !== undefined) {
-                this.roomPaintTool.selectedIndex = this.heldColorPick;
-                this.heldColorPick = undefined;
-                event.preventDefault();
+            // if (!event.altKey && this.heldColorPick !== undefined) {
+            //     this.roomPaintTool.selectedIndex = this.heldColorPick;
+            //     this.heldColorPick = undefined;
+            //     event.preventDefault();
+            // }
+
+            if (!event.altKey) {
+                this.picker.checked = false;
             }
         });
 
@@ -1405,7 +1416,7 @@ class BipsiEditor extends EventTarget {
             const nextTile = same ? 0 : tile.id;
             const nextWall = 1 - room.wallmap[y][x];
 
-            if (tool === "pick" || forcePick) {
+            if (tool === "pick" || forcePick || this.picker.checked) {
                 if (prevTile !== 0) {
                     const index = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
 

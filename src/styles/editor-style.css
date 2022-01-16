@@ -291,6 +291,11 @@ select {
     max-width: 72px;
 }
 
+#highlight-toggle, #picker-toggle {
+    flex: 0;
+    min-width: 64px;
+}
+
 .tile-select {
     flex: 1;
 
