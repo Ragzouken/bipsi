@@ -427,18 +427,6 @@ label.room-picker-toggle > svg {
     color: white;
 }
 
-.room-buttons {
-    display: flex; flex-direction: row;
-    gap: .5rem;
-}
-
-.room-buttons > * {
-    width: 56px;
-    height: 40px;
-
-    border-radius: .75rem;
-}
-
 .room-select {
     --room-size: calc(16px * 3);
 
@@ -468,12 +456,12 @@ label.room-picker-toggle > svg {
     width: 100%; height: 100%;
 }
 
-.tile-buttons {
+.item-management-buttons {
     display: flex; flex-direction: row;
     gap: .5rem;
 }
 
-.tile-buttons > * {
+.item-management-buttons > * {
     width: 56px;
     height: 40px;
 

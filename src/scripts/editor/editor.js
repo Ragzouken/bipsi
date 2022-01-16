@@ -1042,7 +1042,6 @@ class BipsiEditor extends EventTarget {
         
         this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
 
-        this.modeSelect.tab(ONE("#tile-buttons"), "draw-tiles")
         this.modeSelect.tab(ONE("#tile-paint-tab"), "draw-tiles");
         this.modeSelect.tab(ONE("#tile-map-tab"), "draw-room");
         this.modeSelect.tab(ONE("#palette-tab"), "palettes");
@@ -1051,10 +1050,10 @@ class BipsiEditor extends EventTarget {
         this.modeSelect.tab(ONE("#play-tab-view"), "playtest");
 
         this.roomPaintTool.tab(ONE("#draw-room-events-controls"), "events");
-        // this.roomPaintTool.tab(ONE("#room-events-tab"), "events");
         this.roomPaintTool.tab(ONE("#room-events-toolbar"), "events");
 
         this.roomPaintTool.tab(ONE("#draw-room-tile-select"), "tile", "high", "pick");
+        // this.roomPaintTool.tab(ONE("#draw-room-tile-manage"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#room-palette-select"), "tile", "high", "pick", "shift", "wall");
 
         this.roomGrid = ui.toggle("room-grid");

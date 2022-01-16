@@ -4,6 +4,17 @@
             template#draw-room-tile-template
                 label
                     input(type="radio" name="draw-room-tile-select")
+        #draw-room-tile-manage.item-management-buttons(hidden)
+            button(name="add-new-tile" title="add new tile")
+                include /icons/plus.svg
+            button(name="duplicate-tile" title="duplicate selected tile")
+                include /icons/copy.svg
+            button(name="reorder-tile-before" title="reorder tile before")
+                include /icons/arrow-left.svg
+            button(name="reorder-tile-after" title="reorder tile after")
+                include /icons/arrow-right.svg
+            button(name="delete-tile" title="delete selected tile")
+                include /icons/delete.svg
         #draw-room-events-controls(hidden)
             include ../edit-events/controls-nest.pug
     .viewport-toolbar
