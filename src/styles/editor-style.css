@@ -10,6 +10,7 @@
     --frame-color: #ECECEC;
 
     --black-outline-shadow: 0 0 0 2px black;
+    --white-outline-shadow: 0 0 0 2px white;
 }
 
 :root[data-app-mode="editor"] [data-hidden-in-editor] {
@@ -318,13 +319,6 @@ select {
     background-size: var(--tileset-background-size);
 }
 
-.tile-select input[type="radio"]:checked {
-    background: none;
-    z-index: 5;
-
-    box-shadow: 0 0 0 5px white;
-}
-
 .tile-select label > input {
     background: none;
 }
@@ -361,12 +355,22 @@ label.toggle {
     position: relative;
 }
 
-input + svg, input + svg + svg {
+input + *, input + * + * {
     z-index: 6;
 }
 
+.picker-toggle > canvas {
+    width: 32px;
+    height: 32px;
+}
+
+.picker-toggle > * + * + svg {
+    margin-left: 4px;
+    margin-right: -4px;
+}
+
 label.toggle#tile-grid {
-    max-width: 52px;
+    max-width: 64px;
 }
 
 .room-picker-toggle {
@@ -375,8 +379,27 @@ label.toggle#tile-grid {
 
 label.room-picker-toggle {
     flex: 0;
-    min-width: 72px;
+    /* min-width: 72px; */
+    border-radius: .5rem 1rem 1rem .5rem;
+    padding: 8px;
+    gap: 6px;
 }
+
+label.room-picker-toggle > svg {
+    margin: 0;
+    margin-left: 2px;
+}
+
+.picker-toggle > canvas {
+    border-radius: .25rem;
+    box-shadow: var(--black-outline-shadow);
+    pointer-events: none;
+}
+
+.picker-toggle > *:checked + canvas {
+    box-shadow: var(--white-outline-shadow);
+}
+
 
 .toggle input {
     appearance: none;
@@ -402,20 +425,8 @@ label.room-picker-toggle {
     background: blue;
 }
 
-.toggle input:checked + svg, .toggle input:checked + svg + svg {
+.toggle input:checked + svg, .toggle input:checked + * + svg {
     color: white;
-}
-
-.room-buttons {
-    display: flex; flex-direction: row;
-    gap: .5rem;
-}
-
-.room-buttons > * {
-    width: 56px;
-    height: 40px;
-
-    border-radius: .75rem;
 }
 
 .room-select {
@@ -443,23 +454,16 @@ label.room-picker-toggle {
     height: var(--room-size);
 }
 
-.room-select input[type="radio"]:checked {
-    background: none;
-    z-index: 5;
-
-    box-shadow: 0 0 0 5px white;
-}
-
 .room-select canvas {
     width: 100%; height: 100%;
 }
 
-.tile-buttons {
+.item-management-buttons {
     display: flex; flex-direction: row;
     gap: .5rem;
 }
 
-.tile-buttons > * {
+.item-management-buttons > * {
     width: 56px;
     height: 40px;
 
@@ -470,7 +474,9 @@ label.room-picker-toggle {
     display: flex; flex-direction: row;
     flex-wrap: wrap;
     gap: 1rem;
+
     align-items: stretch;
+    justify-content: center;
 }
 
 #upper-toolbar {
@@ -541,8 +547,6 @@ label.room-picker-toggle {
 #color-select input[type="radio"]:checked {
     background: none;
     z-index: 5;
-
-    animation: none;
     box-shadow: 0 0 0 .5em white;
 }
 
@@ -664,7 +668,7 @@ label.room-picker-toggle {
     display: flex; flex-direction: column;
     gap: 1rem;
 
-    /* overflow: hidden; */
+    overflow: hidden;
 }
 
 #event-properties > .row {
@@ -682,7 +686,7 @@ label.room-picker-toggle {
 
     display: flex; flex-direction: column;
 
-    border-radius: 1rem 0 0 1rem;
+    border-radius: .5rem 0 0 .5rem;
     background: black;
     overflow: hidden scroll;
 }
@@ -873,11 +877,10 @@ label.room-picker-toggle {
     border-radius: 1rem;
 }
 
-#palette-picker input[type="radio"]:checked {
-    background: none;
+.tile-select input[type="radio"]:checked, .room-select input[type="radio"]:checked {
     z-index: 5;
-    animation: none;
-    box-shadow: 0 0 0 0.5em white;
+    background: none;
+    box-shadow: 0 0 0 5px white;
 }
 
 #tile-select-tab {
@@ -908,8 +911,12 @@ label.room-picker-toggle {
 
 #field-position-select {
     background: var(--trans-gradient);
-
+    cursor: pointer;
     height: 236px;
+}
+
+#move-to-window-position {
+    cursor: pointer;
 }
 
 #tile-paint-buttons > * {
@@ -1084,7 +1091,6 @@ label.room-picker-toggle {
 }
 
 #room-events-toolbar {
-    flex: 0;
     min-height: 48px;
 }
 
@@ -1122,4 +1128,9 @@ label.room-picker-toggle {
 
 #javascript-editor-toolbar button {
     border-radius: 0.5rem;
+}
+
+#draw-room-events-controls {
+    height: 100%;
+    display: flex; flex-direction: column;
 }

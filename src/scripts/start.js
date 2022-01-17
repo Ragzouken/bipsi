@@ -25,6 +25,8 @@ async function startEditor(font) {
         event.preventDefault();
         return event.returnValue = "Are you sure you want to exit?";
     });
+
+    return editor;
 }
 
 async function makePlayback(font, bundle, story) {
@@ -200,6 +202,9 @@ async function makePlayback(font, bundle, story) {
     return playback;
 }
 
+let PLAYBACK;
+let EDITOR;
+
 async function start() {
     const font = await loadBasicFont(ONE("#font-embed"));
 
@@ -210,8 +215,8 @@ async function start() {
     const story = new inkjs.Story(storyContent);
 
     if (bundle) {
-        await makePlayback(font, bundle, story);
+        PLAYBACK = await makePlayback(font, bundle, story);
     } else {
-        await startEditor(font);
+        EDITOR = await startEditor(font);
     }
 }

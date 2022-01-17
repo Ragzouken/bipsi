@@ -81,15 +81,10 @@ class TileBrowser {
         this.editor.actions.reorderTileAfter.disabled = this.selectedTileIndex >= data.tiles.length - 1;
     }
 
-    async setFrames(canvases) {
-        const prev = [...this.thumbnailURIs];
-        const blobs = await Promise.all(canvases.map(canvasToBlob));
-        const uris = blobs.map(URL.createObjectURL);
-        await Promise.all(uris.map(loadImage)).then(() => {
-            this.thumbnailURIs = uris;
-            this.updateCSS();
-            prev.map(URL.revokeObjectURL);
-        });
+    async setURIs(uris, canvases) {
+        this.thumbnailURIs = uris;
+
+        this.updateCSS();
 
         const root = ONE(":root");
         const scale = 5;

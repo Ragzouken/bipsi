@@ -4,8 +4,28 @@
             template#draw-room-tile-template
                 label
                     input(type="radio" name="draw-room-tile-select")
+        #draw-room-tile-manage.item-management-buttons(hidden)
+            button(name="add-new-tile" title="add new tile")
+                include /icons/plus.svg
+            button(name="duplicate-tile" title="duplicate selected tile")
+                include /icons/copy.svg
+            button(name="reorder-tile-before" title="reorder tile before")
+                include /icons/arrow-left.svg
+            button(name="reorder-tile-after" title="reorder tile after")
+                include /icons/arrow-right.svg
+            button(name="delete-tile" title="delete selected tile")
+                include /icons/delete.svg
+        #draw-room-events-controls(hidden)
+            include ../edit-events/controls-nest.pug
     .viewport-toolbar
         include /pages/room-select-toggle.pug
-        select(name="room-palette")
+        select#room-palette-select(name="room-palette")
             each index in [0, 1, 2, 3, 4, 5, 6, 7]
                 option(value=`${index}`)= `palette ${index}`
+        .horizontal-capsule#room-events-toolbar(hidden)
+            button(name="copy-event" title="copy event")
+                include /icons/copy.svg
+            button(name="paste-event" title="paste event")
+                include /icons/paste.svg
+            button(name="delete-event" title="delete event")
+                include /icons/delete.svg

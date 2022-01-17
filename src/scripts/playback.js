@@ -408,8 +408,8 @@ class BipsiPlayback extends EventTarget {
         return url;
     } 
 
-    async getFileImageElement(id) {
-        const image = this.imageElements.get(id) ?? await loadImage(this.getFileObjectURL(id));
+    getFileImageElement(id) {
+        const image = this.imageElements.get(id) ?? loadImageLazy(this.getFileObjectURL(id));
         this.imageElements.set(id, image);
         return image;
     }
@@ -751,7 +751,7 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileID, layer, x, y) {
-        const image = await this.getFileImageElement(fileID);
+        const image = this.getFileImageElement(fileID);
         this.images.set(imageID, { image, layer, x, y });
     }
 
