@@ -1248,8 +1248,8 @@ class BipsiEditor extends EventTarget {
         });
 
         this.roomSelectWindow.select.addEventListener("change", () => {
-            const { room } = this.getSelections();
-            this.paletteSelectWindow.select.selectedIndex = room.palette;
+            const { data, room } = this.getSelections();
+            this.paletteSelectWindow.select.selectedIndex = data.palettes.indexOf(getPaletteById(data, room.palette));
             
             this.selectedEventId = undefined;
             this.redraw();
@@ -1260,8 +1260,8 @@ class BipsiEditor extends EventTarget {
             const { room } = this.getSelections();
             
             this.stateManager.makeChange(async (data) => {
-                const { room } = this.getSelections(data);
-                room.palette = this.paletteSelectWindow.select.selectedIndex;
+                const { room, palette } = this.getSelections(data);
+                room.palette = palette.id;
             });
 
             this.redraw();
@@ -1325,8 +1325,8 @@ class BipsiEditor extends EventTarget {
             this.actions.undo.disabled = !this.stateManager.canUndo;
             this.actions.redo.disabled = !this.stateManager.canRedo;
 
-            const { room } = this.getSelections();
-            this.paletteSelectWindow.select.selectedIndex = room.palette;
+            const { data, room } = this.getSelections();
+            this.paletteSelectWindow.select.selectedIndex = data.palettes.indexOf(getPaletteById(data, room.palette));
 
             this.redrawTileBrowser();
 
@@ -1715,6 +1715,9 @@ class BipsiEditor extends EventTarget {
         this.actions.reorderRoomBefore.disabled = this.roomSelectWindow.select.selectedIndex <= 0;
         this.actions.reorderRoomAfter.disabled = this.roomSelectWindow.select.selectedIndex >= this.stateManager.present.rooms.length - 1;
 
+        this.actions.reorderPaletteBefore.disabled = this.paletteSelectWindow.select.selectedIndex <= 0;
+        this.actions.reorderPaletteAfter.disabled = this.paletteSelectWindow.select.selectedIndex >= this.stateManager.present.palettes.length - 1;
+
         this.redrawDialoguePreview();
     } 
 
@@ -1744,10 +1747,10 @@ class BipsiEditor extends EventTarget {
     refreshPaletteSelect() {
         const { data, roomIndex } = this.getSelections();
 
-        const thumbs = data.palettes.map((palette, id) => {
+        const thumbs = data.palettes.map((palette) => {
             const thumb = createRendering2D(3, 1);
             drawPaletteThumbnail(thumb, palette);
-            return { id, thumb: thumb.canvas };
+            return { id: palette.id, thumb: thumb.canvas };
         });
 
         this.paletteSelectWindow.updatePalettes(thumbs);

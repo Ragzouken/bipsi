@@ -33,7 +33,7 @@ class PaletteSelect {
         this.items = new IndexedItemPool({
             create: () => {
                 const clone = this.template.content.firstElementChild.cloneNode(true);
-                const item = new RoomSelectItem(clone, ONE("input", clone), ONE("canvas", clone));
+                const item = new PaletteSelectItem(clone, ONE("input", clone), ONE("canvas", clone));
                 parent.append(clone);
                 return item;
             },
