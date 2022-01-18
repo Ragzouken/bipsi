@@ -264,7 +264,7 @@ class PaletteEditor {
 
         this.colorValue.valueAsNumber = color.v;
         this.colorHex.value = color.hex;
-        this.colorIndex.selectedInput.style.setProperty("background", color.hex);
+        this.colorIndex.selectedInput.parentElement.style.setProperty("background", color.hex);
 
         this.editor.redraw();
     }
@@ -962,6 +962,8 @@ class BipsiEditor extends EventTarget {
         this.roomSelectWindow = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
         this.paletteSelectWindow = new PaletteSelect("palette-select", ONE("#palette-select-window-template"));
 
+        this.colorSelect = new ColorSelect("color-select", ONE("#color-select-template"));
+
         this.moveToRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
         this.moveToPositionSelect = ONE("#move-to-window-position");
         this.moveToPositionRendering = this.moveToPositionSelect.getContext("2d");
@@ -1244,8 +1246,6 @@ class BipsiEditor extends EventTarget {
         });
 
         this.paletteSelectWindow.select.addEventListener("change", () => {
-            const { room } = this.getSelections();
-            
             this.stateManager.makeChange(async (data) => {
                 const { room, palette } = this.getSelections(data);
                 room.palette = palette.id;
@@ -1253,6 +1253,16 @@ class BipsiEditor extends EventTarget {
 
             this.redraw();
             this.eventEditor.refresh();
+        });
+
+        this.colorSelect.select.addEventListener("change", () => {
+            const [palette, color] = this.colorSelect.select.value.split(",").map((i) => parseInt(i, 10));
+            this.paletteSelectWindow.select.selectedIndex = palette;
+            this.paletteEditor.colorIndex.selectedIndex = color;
+
+            this.redraw();
+            this.eventEditor.refresh();
+            this.refreshPaletteSelect();
         });
 
         this.highlight.addEventListener("change", () => {
@@ -1570,6 +1580,7 @@ class BipsiEditor extends EventTarget {
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
         const paletteIndex = this.paletteSelectWindow.select.selectedIndex;
+        const colorIndex = this.paletteEditor.colorIndex.selectedIndex;
 
         const tile = data.tiles[tileIndex];
         const room = data.rooms[roomIndex];
@@ -1583,7 +1594,7 @@ class BipsiEditor extends EventTarget {
             data, 
             tileset, 
             roomIndex, room, 
-            paletteIndex, palette,
+            paletteIndex, palette, colorIndex,
             tileIndex, tile, frameIndex, tileSize, 
             event, tileFrame,
         }
@@ -1730,7 +1741,7 @@ class BipsiEditor extends EventTarget {
     }
 
     refreshPaletteSelect() {
-        const { data, roomIndex } = this.getSelections();
+        const { data, paletteIndex, colorIndex } = this.getSelections();
 
         const thumbs = data.palettes.map((palette) => {
             const thumb = createRendering2D(3, 1);
@@ -1739,6 +1750,11 @@ class BipsiEditor extends EventTarget {
         });
 
         this.paletteSelectWindow.updatePalettes(thumbs);
+
+        if (paletteIndex >= 0) {
+            this.colorSelect.updatePalettes(data.palettes);
+            this.colorSelect.select.selectedIndex = paletteIndex * 3 + colorIndex;
+        }
 
         this.paletteSelectWindow.select.setSelectedIndexSilent(Math.max(this.paletteSelectWindow.select.selectedIndex, 0));
 

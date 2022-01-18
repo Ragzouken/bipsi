@@ -7,3 +7,9 @@
         each _, i in (new Array(3).fill(0))
             label
                 input(type="radio" name="color-index" value=`${i}` title=`select palette color ${i}`)
+#color-select.color-select.column.radio-select(title="select palette")
+    template#color-select-template
+        .horizontal-capsule
+            each _ in (new Array(3).fill(0))
+                label
+                    input(type="radio" name="color-select" value=`0,0` title=`select palette 0, color 0`)
