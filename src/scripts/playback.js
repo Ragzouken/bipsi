@@ -448,7 +448,7 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const palette = this.getActivePalette();
-        const [background] = palette;
+        const [background] = palette.colors;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
@@ -535,7 +535,7 @@ class BipsiPlayback extends EventTarget {
     }
 
     async title(script, options={}) {
-        const [background] = this.getActivePalette();
+        const [background] = this.getActivePalette().colors;
         options = { anchorY: .5, backgroundColor: background, ...options };
         return this.say(script, options);
     }
@@ -656,7 +656,7 @@ class BipsiPlayback extends EventTarget {
     getActivePalette() {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
-        const palette = this.data.palettes[room.palette];
+        const palette = getPaletteById(this.data, room.palette);
         return palette;
     }
 }

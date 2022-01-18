@@ -40,9 +40,15 @@ const storage = new maker.ProjectStorage("bipsi");
  */
 
 /**
+ * @typedef {Object} BipsiDataPalette
+ * @property {number} id 
+ * @property {string[]} colors
+ */
+
+/**
  * @typedef {Object} BipsiDataProject
  * @property {BipsiDataRoom[]} rooms
- * @property {string[][]} palettes
+ * @property {BipsiDataPalette[]} palettes
  * @property {string} tileset
  * @property {BipsiDataTile[]} tiles
  */
@@ -140,7 +146,7 @@ function makeTileToFrameMap(tiles, frame) {
  * @param {CanvasRenderingContext2D} destination
  * @param {CanvasRenderingContext2D} tileset 
  * @param {Map<number, number>} tileToFrame 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {{ tilemap: number[][], backmap: number[][], foremap: number[][] }} layer 
  */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
@@ -156,10 +162,10 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
 
                 if (tileIndex === 0) continue;
 
-                backg.fillStyle = palette[back];
+                backg.fillStyle = palette.colors[back];
                 backg.fillRect(tx * size, ty * size, size, size);
 
-                color.fillStyle = palette[fore];
+                color.fillStyle = palette.colors[fore];
                 color.fillRect(tx * size, ty * size, size, size);
 
                 tiles.drawImage(
@@ -176,11 +182,11 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
  * @param {CanvasRenderingContext2D} destination 
  * @param {CanvasRenderingContext2D} tileset 
  * @param {Map<number, number>} tileToFrame 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {BipsiDataEvent[]} events 
  */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
-    const [background, foreground, highlight] = palette;
+    const [background, foreground, highlight] = palette.colors;
 
     drawRecolorLayer(destination, (backg, color, tiles) => {
         events.forEach((event) => {
@@ -210,11 +216,11 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
 
 /**
  * @param {CanvasRenderingContext2D} rendering 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {BipsiDataRoom} room 
  */
  function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette;
+    const [background, foreground, highlight] = palette.colors;
     for (let y = 0; y < 16; ++y) {
         for (let x = 0; x < 16; ++x) {
             const color = room.wallmap[y][x] === 1 ? foreground : background;
@@ -232,10 +238,10 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
 
 /**
  * @param {CanvasRenderingContext2D} rendering 
- * @param {string[]} palette
+ * @param {BipsiDataPalette} palette
  */
  function drawPaletteThumbnail(rendering, palette) {
-    palette.forEach((color, i) => {
+    palette.colors.forEach((color, i) => {
         rendering.fillStyle = color;
         rendering.fillRect(i, 0, 1, 1);
     });
@@ -293,6 +299,7 @@ function getById(items, id) {
 /** 
  * @param {BipsiDataProject} data 
  * @param {number} id
+ * @returns {BipsiDataRoom}
  */
 function getRoomById(data, id) {
     return getById(data.rooms, id);
@@ -301,6 +308,16 @@ function getRoomById(data, id) {
 /** 
  * @param {BipsiDataProject} data 
  * @param {number} id
+ * @returns {BipsiDataPalette}
+ */
+function getPaletteById(data, id) {
+    return getById(data.palettes, id);
+}
+
+/** 
+ * @param {BipsiDataProject} data 
+ * @param {number} id
+ * @returns {BipsiDataEvent}
  */
 function getEventById(data, id) {
     return getById(allEvents(data), id);
@@ -309,6 +326,7 @@ function getEventById(data, id) {
 /** 
  * @param {BipsiDataProject} data 
  * @param {number} id
+ * @returns {BipsiDataTile}
  */
 function getTileById(data, id) {
     return getById(data.tiles, id);
@@ -345,6 +363,9 @@ const nextTileId = (data) => nextId(data.tiles);
 
 /** @param {BipsiDataProject} data */
 const nextEventId = (data) => nextId(data.rooms.flatMap((room) => room.events));
+
+/** @param {BipsiDataProject} data */
+const nextPaletteId = (data) => nextId(data.palettes);
 
 /**
  * @param {CanvasRenderingContext2D} tileset 

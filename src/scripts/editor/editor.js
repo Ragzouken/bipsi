@@ -12,6 +12,13 @@ function makeBlankRoom(id) {
     }
 }
 
+function makeBlankPalette(id) {
+    return {
+        id,
+        colors: ["#3c6fad","#d8d4dd","#ff8e9e"],
+    }
+}
+
 function generateGrid(width, height, gap) {
     const rendering = createRendering2D(width, height);
 
@@ -40,6 +47,11 @@ function updateProject(project) {
         .filter((field) => field.type === "location");
     
     const repairLocations = !locationFields.every((location) => getRoomById(project, location.data.room));
+
+    project.palettes.forEach((palette, i) => {
+        if (palette.id !== undefined) return;
+        project.palettes[i] = { id: i, colors: palette };
+    });
 
     project.rooms.forEach((room) => {
         room.backmap = room.backmap ?? ZEROES(16).map(() => REPEAT(16, 0));
@@ -192,16 +204,19 @@ class PaletteEditor {
         data = data ?? this.editor.stateManager.present;
         const colorIndex = this.colorIndex.value;
         const { paletteIndex } = this.editor.getSelections();
-        const palette = this.editor.stateManager.present.palettes[paletteIndex];
-        const dataHex = palette[colorIndex];
+        const palette = data.palettes[paletteIndex];
+        const dataHex = palette.colors[colorIndex];
 
         return { data, palette, colorIndex, color: this.temporary, dataHex };
     }
 
+    /**
+     * @returns {BipsiDataPalette}
+     */
     getPreviewPalette() {
         const { color, palette, colorIndex } = this.getSelections();
-        const previewPalette = [ ...palette ];
-        previewPalette[colorIndex] = color.hex;
+        const previewPalette = { ...palette, colors: [ ...palette.colors ] };
+        previewPalette.colors[colorIndex] = color.hex;
         return previewPalette;
     }
 
@@ -212,7 +227,7 @@ class PaletteEditor {
 
         // recolor the color select buttons to the corresponding color
         ALL("#color-index-select label").forEach((label, i) => {
-            label.style.background = palette[i];
+            label.style.background = palette.colors[i];
         });
 
         // color wheel:
@@ -843,7 +858,7 @@ class TileEditor {
         this.editor.actions.swapTileFrames.disabled = tile.frames.length === 1;
         this.editor.renderings.tilePaint1.canvas.style.opacity = tile.frames.length === 1 ? "0%" : null;
 
-        const [bg, fg, hi] = data.palettes[room.palette];
+        const [bg, fg, hi] = getPaletteById(data, room.palette).colors;
 
         const color = this.editor.highlight.checked ? hi : fg;
         const tilesetC = recolorMask(tileset, color);
@@ -1147,6 +1162,12 @@ class BipsiEditor extends EventTarget {
             reorderRoomBefore: ui.action("reorder-room-before", () => this.reorderRoomBefore()),
             reorderRoomAfter: ui.action("reorder-room-after", () => this.reorderRoomAfter()),
             deleteRoom: ui.action("delete-room", () => this.deleteRoom()),
+
+            newPalette: ui.action("add-new-palette", () => this.newPalette()),
+            duplicatePalette: ui.action("duplicate-palette", () => this.duplicatePalette()),
+            reorderPaletteBefore: ui.action("reorder-palette-before", () => this.reorderPaletteBefore()),
+            reorderPaletteAfter: ui.action("reorder-palette-after", () => this.reorderPaletteAfter()),
+            deletePalette: ui.action("delete-palette", () => this.deletePalette()),
 
             swapTileFrames: ui.action("swap-tile-frames", () => this.swapSelectedTileFrames()),
 
@@ -1566,12 +1587,20 @@ class BipsiEditor extends EventTarget {
 
         const tile = data.tiles[tileIndex];
         const room = data.rooms[roomIndex];
+        const palette = data.palettes[paletteIndex];
 
         const tileFrame = tile?.frames[frameIndex] ?? tile?.frames[0];
 
         const event = getEventById(data, this.selectedEventId);
 
-        return { data, tileset, room, roomIndex, frameIndex, tileIndex, tileSize, event, tile, tileFrame, paletteIndex };
+        return { 
+            data, 
+            tileset, 
+            roomIndex, room, 
+            paletteIndex, palette,
+            tileIndex, tile, frameIndex, tileSize, 
+            event, tileFrame,
+        }
     }
 
     /**
@@ -1591,18 +1620,18 @@ class BipsiEditor extends EventTarget {
      * @param {CanvasRenderingContext2D} rendering 
      * @param {number} roomIndex 
      */
-    drawRoom(rendering, roomIndex, { palette = undefined, events = true } = {}) {
+    drawRoom(rendering, roomIndex, { palette = undefined } = {}) {
         const { data, tileset } = this.getSelections();
         const room = data.rooms[roomIndex];
         palette = palette ?? data.palettes[room.palette];
-        const [background] = palette;
+        const [background] = palette.colors;
 
         // find current animation frame for each tile
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
 
         fillRendering2D(rendering, background);
         drawTilemapLayer(rendering, tileset, tileToFrame, palette, room);
-        if (events) drawEventLayer(rendering, tileset, tileToFrame, palette, room.events);
+        drawEventLayer(rendering, tileset, tileToFrame, palette, room.events);
     }
 
     redraw() {
@@ -1611,8 +1640,8 @@ class BipsiEditor extends EventTarget {
         const { data, room, tileSize, roomIndex, tileset } = this.getSelections();
         const palette = this.modeSelect.value === "palettes" 
                       ? this.paletteEditor.getPreviewPalette()  
-                      : data.palettes[room.palette];
-        const [background] = palette;
+                      : getPaletteById(data, room.palette);
+        const [background] = palette.colors;
 
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
 
@@ -1694,7 +1723,7 @@ class BipsiEditor extends EventTarget {
 
         const thumbs = data.rooms.map((room) => {
             const thumb = createRendering2D(16, 16);
-            drawRoomThumbnail(thumb, data.palettes[room.palette], room);
+            drawRoomThumbnail(thumb, getPaletteById(data, room.palette), room);
             return { id: room.id, thumb: thumb.canvas };
         });
 
@@ -1746,7 +1775,7 @@ class BipsiEditor extends EventTarget {
 
     async redrawTileBrowser() {
         const { data, room, tileset } = this.getSelections();
-        const [, foreground, highlight] = data.palettes[room.palette];
+        const [, foreground, highlight] = getPaletteById(data, room.palette).colors;
 
         const hi = this.roomPaintTool.value === "high" || this.highlight.checked || this.roomPaintTool.value === "events";
         const color = hi ? highlight : foreground;
@@ -2000,6 +2029,53 @@ class BipsiEditor extends EventTarget {
         return this.stateManager.makeChange(async (data) => {
             const { room } = this.getSelections(data);
             arrayDiscard(data.rooms, room);
+        });
+    }
+
+    async newPalette() {
+        await this.stateManager.makeChange(async (data) => {
+            const { paletteIndex } = this.getSelections(data);
+            const palette = makeBlankPalette(nextPaletteId(data));
+            data.palettes.splice(paletteIndex+1, 0, palette);
+        });
+        this.paletteSelectWindow.select.selectedIndex += 1;
+    }
+
+    async duplicatePalette() {
+        await this.stateManager.makeChange(async (data) => {
+            const { paletteIndex, palette } = this.getSelections(data);
+            const copy = COPY(palette);
+            copy.id = nextPaletteId(data);
+            data.palettes.splice(paletteIndex+1, 0, copy);
+        });
+        this.paletteSelectWindow.select.selectedIndex += 1;
+    }
+
+    async reorderPaletteBefore() {
+        return this.stateManager.makeChange(async (data) => {
+            const { paletteIndex } = this.getSelections(data);
+            const nextIndex = paletteIndex - 1;
+            [data.palettes[nextIndex], data.palettes[paletteIndex]] = [data.palettes[paletteIndex], data.palettes[nextIndex]];
+            this.paletteSelectWindow.select.selectedIndex -= 1;
+        });
+    }
+
+    async reorderPaletteAfter() {
+        return this.stateManager.makeChange(async (data) => {
+            const { paletteIndex } = this.getSelections(data);
+            const nextIndex = paletteIndex + 1;
+            [data.palettes[nextIndex], data.palettes[paletteIndex]] = [data.palettes[paletteIndex], data.palettes[nextIndex]];
+            this.paletteSelectWindow.select.selectedIndex += 1;
+        });
+    }
+
+    async deletePalette() {
+        return this.stateManager.makeChange(async (data) => {
+            const { palette } = this.getSelections(data);
+            arrayDiscard(data.palettes, palette);
+            data.rooms.forEach((room) => {
+                if (room.palette === palette.id) room.palette = data.palettes[0].id;
+            });
         });
     }
 
