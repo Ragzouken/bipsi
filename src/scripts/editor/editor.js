@@ -2078,10 +2078,11 @@ class BipsiEditor extends EventTarget {
 
     async deletePalette() {
         return this.stateManager.makeChange(async (data) => {
-            const { palette } = this.getSelections(data);
+            const { palette, paletteIndex } = this.getSelections(data);
             arrayDiscard(data.palettes, palette);
+            const next = Math.max(paletteIndex - 1, 0);
             data.rooms.forEach((room) => {
-                if (room.palette === palette.id) room.palette = data.palettes[0].id;
+                if (room.palette === palette.id) room.palette = data.palettes[next].id;
             });
         });
     }
