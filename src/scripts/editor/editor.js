@@ -1059,6 +1059,7 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool = ui.radio("room-paint-tool");
 
         this.modeSelect.tab(ONE("#info-tab-body"), "info");
+        this.modeSelect.tab(ONE("#info-tab-viewport"), "info");
         this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
 
         this.modeSelect.tab(ONE("#tile-map-tab"), "draw-room");

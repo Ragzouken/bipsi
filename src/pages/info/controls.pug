@@ -1,5 +1,7 @@
 - var now = new Date();
-- var date = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+- var month = (now.getMonth()+1).toString().padStart(2, '0');
+- var day = now.getDate().toString().padStart(2, '0');
+- var date = `${now.getFullYear()}/${month}/${day}`;
 - var version = "release";
 
 #info-tab-body.controls-tab-body(hidden)
@@ -9,3 +11,11 @@
         p if you're new to bipsi, and especially if you're new to bitsy, you should read the <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi user guide</a>. for advanced usage, check out the <a href="https://kool.tools/bipsi/scripting-guide.pdf">bipsi scripting guide</a>
         p i'm <a href="https://kool.tools/">candle</a>, a long time bitsy user and tool maker
         p you can read more about the motivation for this tool <a href="https://kool.tools/blog/makers-study.html">on my blog</a>
+    h3 guides
+    .info-action-list
+        a.button(href="https://kool.tools/bipsi/user-guide.pdf" target="_blank" title="open user guide") 
+            include /icons/info.svg
+            | user guide
+        a.button(href="https://kool.tools/bipsi/scripting-guide.pdf" target="_blank" title="open scripting guide") 
+            include /icons/code.svg
+            | scripting guide

@@ -4,6 +4,8 @@
     include /pages/variables-window.pug
 
     include /pages/playtest/viewport.pug
+    #info-tab-viewport.viewport-tab-body
+        include /pages/info/viewport.pug
     #palette-tab.viewport-tab-body(hidden)
         canvas#palette-room(width="128" height="128" draggable="false")
     #tile-map-tab(hidden)

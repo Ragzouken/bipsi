@@ -28,7 +28,7 @@ h1, h2, h3, h4, h5, h6 {
     gap: 1em;
 }
 
-button {
+button, a.button {
     flex: 1;
     flex-direction: column;
     white-space: nowrap;
@@ -46,7 +46,7 @@ button {
     padding: .25em;
 }
 
-button:active {
+button:active, a.button:active {
     filter: invert();
 }
 
@@ -81,7 +81,7 @@ button:disabled {
     width: 100%; height: 100%;
 }
 
-.radio-select > label img, .radio-select > label svg, button img, button svg {
+.radio-select > label img, .radio-select > label svg, button img, button svg, a svg {
     pointer-events: none;
     width: 32px; height: 32px;
 }
@@ -1273,7 +1273,7 @@ label.toggle#tile-grid {
     height: 270px;
 }
 
-.project-action-list > button {
+.info-action-list > .button, .info-action-list > button {
     flex: 0;
 
     display: flex; flex-direction: row;
@@ -1281,8 +1281,22 @@ label.toggle#tile-grid {
     justify-content: flex-start;
 }
 
-.project-action-list {
+.info-action-list > .button {
+    color: black;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.info-action-list {
     display: grid;
     gap: .5rem;
     grid-template-columns: repeat(2, 1fr);
+}
+
+#info-tab-viewport {
+    width: 512px;
+}
+
+#info-tab-viewport svg {
+    width: 100%; height: 100%;
 }
