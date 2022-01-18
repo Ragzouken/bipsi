@@ -1,17 +1,18 @@
-- var now = new Date();
-- var date = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
-- var version = "release";
-
 #play-tab-body.controls-tab-body(hidden)
-    div
-        h2 project
-        p
-            .button-row
-                button(name="export" title="export as webpage") export
-                button(name="import" title="import from webpage") import
-                button(name="reset" title="reset project to default") new project
-        h2= `bipsi -- ${version} (${date})`
-        p bipsi is a tool for making small games where a character explores a world and interacts with its inhabitants. it is a clone of adam ledoux's <a href="http://www.bitsy.org/">bitsy game maker</a>
-        p if you're new to bipsi, and especially if you're new to bitsy, you should read the <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi user guide</a>. for advanced usage, check out the <a href="https://kool.tools/bipsi/scripting-guide.pdf">bipsi scripting guide</a>
-        p i'm <a href="https://kool.tools/">candle</a>, a long time bitsy user and tool maker
-        p you can read more about the motivation for this tool <a href="https://kool.tools/blog/makers-study.html">on my blog</a>
+    h2 playtest
+    h3 switch project
+    .project-action-list
+        button(name="import" title="import from webpage")
+            include /icons/upload.svg
+            | import playable
+        button(name="reset" title="reset project to default")
+            include /icons/delete.svg
+            | reset project
+    h3 publish project
+    .project-action-list
+        button(name="export" title="export as webpage") 
+            include /icons/package.svg
+            | export playable
+        button(name="export-gamedata" title="export gamedata") 
+            include /icons/binary.svg
+            | export gamedata

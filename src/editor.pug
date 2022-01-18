@@ -13,21 +13,15 @@
                 label
                     input(type="radio" name="room-paint-tool" value="tile" title="draw tiles")
                     include /icons/pencil.svg
-                //- label
-                    input(type="radio" name="room-paint-tool" value="high" title="draw highlights")
-                    include /icons/sparkle.svg
-                //- label
-                    input(type="radio" name="room-paint-tool" value="pick" title="pick tile")
-                    include /icons/picker.svg
-                label
-                    input(type="radio" name="room-paint-tool" value="color" title="palettes")
-                    include /icons/palette.svg
                 label
                     input(type="radio" name="room-paint-tool" value="wall" title="draw walls")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h15a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H14v2h1.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H14v2h1.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5H2v-2H.5a.5.5 0 0 1-.5-.5v-3A.5.5 0 0 1 .5 6H2V4H.5a.5.5 0 0 1-.5-.5v-3zM3 4v2h4.5V4H3zm5.5 0v2H13V4H8.5zM3 10v2h4.5v-2H3zm5.5 0v2H13v-2H8.5zM1 1v2h3.5V1H1zm4.5 0v2h5V1h-5zm6 0v2H15V1h-3.5zM1 7v2h3.5V7H1zm4.5 0v2h5V7h-5zm6 0v2H15V7h-3.5zM1 13v2h3.5v-2H1zm4.5 0v2h5v-2h-5zm6 0v2H15v-2h-3.5z"/></svg>
                 label
                     input(type="radio" name="room-paint-tool" value="events" title="edit events")
                     include /icons/events.svg
+                label
+                    input(type="radio" name="room-paint-tool" value="color" title="edit colors")
+                    include /icons/palette.svg
                 label
                     input(type="radio" name="room-paint-tool" value="shift" title="shift tiles")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z"/></svg>
@@ -41,14 +35,14 @@
     #upper-toolbar
         #mode-select.horizontal-capsule.radio-select(title="mode-select")
             label
-                input(type="radio" name="mode-select" value="playtest" title="playtest" autocomplete="off")
-                include /icons/play.svg
-            label(hidden)
-                input(type="radio" name="mode-select" value="palettes" title="edit palettes")
-                include /icons/palette.svg
+                input(type="radio" name="mode-select" value="info" title="info")
+                include /icons/info.svg
             label
                 input(type="radio" name="mode-select" value="draw-room" title="edit rooms")
-                include /icons/tilemap.svg
+                include /icons/pencil.svg
+            label
+                input(type="radio" name="mode-select" value="playtest" title="playtest")
+                include /icons/play.svg
         #undo-row.button-row
             button(name="undo" title="undo")
                 include /icons/undo.svg
@@ -56,6 +50,6 @@
                 include /icons/redo.svg
             button(name="save" title="save")
                 include /icons/disc.svg
+    include /pages/info/controls.pug
     include /pages/playtest/controls.pug
-    //- include /pages/edit-colors/controls.pug
     include /pages/draw-room/controls.pug

@@ -1166,7 +1166,7 @@ label.toggle#tile-grid {
     flex: 0;
 }
 
-#play-tab-body {
+#info-tab-body {
     font-size: larger;
 }
 
@@ -1271,4 +1271,18 @@ label.toggle#tile-grid {
 #color-huesat {
     width: 270px;
     height: 270px;
+}
+
+.project-action-list > button {
+    flex: 0;
+
+    display: flex; flex-direction: row;
+    padding: .5rem; gap: .5rem;
+    justify-content: flex-start;
+}
+
+.project-action-list {
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: repeat(2, 1fr);
 }

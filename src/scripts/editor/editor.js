@@ -1058,10 +1058,10 @@ class BipsiEditor extends EventTarget {
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
 
+        this.modeSelect.tab(ONE("#info-tab-body"), "info");
         this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
 
         this.modeSelect.tab(ONE("#tile-map-tab"), "draw-room");
-        this.modeSelect.tab(ONE("#palette-tab"), "palettes");
 
         this.modeSelect.tab(ONE("#play-tab-body"), "playtest");
         this.modeSelect.tab(ONE("#play-tab-view"), "playtest");
@@ -1107,6 +1107,7 @@ class BipsiEditor extends EventTarget {
             // editor menu
             save: ui.action("save", () => this.save()),
             export_: ui.action("export", () => this.exportProject()),
+            exportGamedata: ui.action("export-gamedata", () => this.exportGamedata()),
             import_: ui.action("import", () => this.importProject()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
@@ -2182,6 +2183,12 @@ class BipsiEditor extends EventTarget {
         // prompt the browser to download the page
         const name = "bipsi.html";
         const blob = maker.textToBlob(await this.makeExportHTML(), "text/html");
+        maker.saveAs(blob, name);
+    }
+
+    async exportGamedata() {
+        const name = "bipsi.json";
+        const blob = maker.textToBlob(JSON.stringify(this.stateManager.present), "application/json");
         maker.saveAs(blob, name);
     }
 
