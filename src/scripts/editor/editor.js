@@ -117,13 +117,13 @@ class PaletteEditor {
         this.colorHueSat.width += margin * 2;
         this.colorHueSat.height += margin * 2;
 
-        this.colorSelect = ui.radio("color-select");
+        this.colorIndex = ui.radio("color-index");
         this.colorValue = ui.slider("color-value");
         this.colorHex = ui.text("color-hex");
 
-        this.colorSelect.selectedIndex = 0;
+        this.colorIndex.selectedIndex = 0;
 
-        this.colorSelect.addEventListener("change", () => {
+        this.colorIndex.addEventListener("change", () => {
             this.updateTemporaryFromData();
             this.refreshDisplay();
         });
@@ -190,7 +190,8 @@ class PaletteEditor {
      */
     getSelections(data = undefined) {
         data = data ?? this.editor.stateManager.present;
-        const [paletteIndex, colorIndex] = this.colorSelect.value.split(",").map((v) => parseInt(v, 10));
+        const colorIndex = this.colorIndex.value;
+        const { paletteIndex } = this.editor.getSelections();
         const palette = this.editor.stateManager.present.palettes[paletteIndex];
         const dataHex = palette[colorIndex];
 
@@ -210,10 +211,8 @@ class PaletteEditor {
         const { data, color, palette } = this.getSelections();
 
         // recolor the color select buttons to the corresponding color
-        ALL("#color-select .horizontal-capsule").forEach((capsule, y) => {
-            ALL("label", capsule).forEach((label, x) => {
-                label.style.background = data.palettes[y][x];
-            });
+        ALL("#color-index-select label").forEach((label, i) => {
+            label.style.background = palette[i];
         });
 
         // color wheel:
@@ -250,7 +249,7 @@ class PaletteEditor {
 
         this.colorValue.valueAsNumber = color.v;
         this.colorHex.value = color.hex;
-        this.colorSelect.selectedInput.style.setProperty("background", color.hex);
+        this.colorIndex.selectedInput.style.setProperty("background", color.hex);
 
         this.editor.redraw();
     }
@@ -951,6 +950,7 @@ class BipsiEditor extends EventTarget {
 
         this.fieldRoomSelect = new RoomSelect("field-room-select", ONE("#field-room-select-template"));
         this.roomSelectWindow = new RoomSelect("events-room-select", ONE("#room-select-window-template"));
+        this.paletteSelectWindow = new PaletteSelect("palette-select", ONE("#palette-select-window-template"));
 
         this.moveToRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
         this.moveToPositionSelect = ONE("#move-to-window-position");
@@ -1005,6 +1005,14 @@ class BipsiEditor extends EventTarget {
             this.roomSelectWindowElement.hidden = !this.showRoomSelect.checked;
         });
 
+        this.paletteSelectWindowElement = ONE("#palette-select-window");
+        this.showPaletteSelect = ui.toggle("show-palette-window");
+        autoCloseToggledWindow(this.paletteSelectWindowElement, this.showPaletteSelect, "show-palette-window");
+
+        this.showPaletteSelect.addEventListener("change", () => {
+            this.paletteSelectWindowElement.hidden = !this.showPaletteSelect.checked;
+        });
+
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
@@ -1039,7 +1047,6 @@ class BipsiEditor extends EventTarget {
         this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
-        this.roomPaletteSelect = ui.select("room-palette");
 
         // this.modeSelect.tab(ONE("#edit-events-tab-controls"), "events");
         // this.modeSelect.tab(ONE("#room-events-tab"), "events");
@@ -1066,7 +1073,6 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#highlight-toggle"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
-        this.roomPaintTool.tab(ONE("#room-palette-select"), "tile", "high", "pick");
 
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.redraw());
@@ -1222,9 +1228,21 @@ class BipsiEditor extends EventTarget {
 
         this.roomSelectWindow.select.addEventListener("change", () => {
             const { room } = this.getSelections();
-            this.roomPaletteSelect.selectedIndex = room.palette;
+            this.paletteSelectWindow.select.selectedIndex = room.palette;
             
             this.selectedEventId = undefined;
+            this.redraw();
+            this.eventEditor.refresh();
+        });
+
+        this.paletteSelectWindow.select.addEventListener("change", () => {
+            const { room } = this.getSelections();
+            
+            this.stateManager.makeChange(async (data) => {
+                const { room } = this.getSelections(data);
+                room.palette = this.paletteSelectWindow.select.selectedIndex;
+            });
+
             this.redraw();
             this.eventEditor.refresh();
         });
@@ -1271,18 +1289,12 @@ class BipsiEditor extends EventTarget {
         //     setSelectedTile(this.roomTileBrowser.select.selectedIndex);
         // });
 
-        this.roomPaletteSelect.addEventListener("change", () => {
-            this.stateManager.makeChange(async (data) => {
-                const { room } = this.getSelections(data);
-                room.palette = this.roomPaletteSelect.selectedIndex;
-            });
-        });
-
         // whenever the project data is changed
         this.stateManager.addEventListener("change", () => {
             this.unsavedChanges = true;
             this.ready = true;
     
+            this.refreshPaletteSelect();
             this.refreshRoomSelect();
 
             this.paletteEditor.updateTemporaryFromData();
@@ -1293,7 +1305,7 @@ class BipsiEditor extends EventTarget {
             this.actions.redo.disabled = !this.stateManager.canRedo;
 
             const { room } = this.getSelections();
-            this.roomPaletteSelect.selectedIndex = room.palette;
+            this.paletteSelectWindow.select.selectedIndex = room.palette;
 
             this.redrawTileBrowser();
 
@@ -1550,6 +1562,7 @@ class BipsiEditor extends EventTarget {
         const roomIndex = this.roomSelectWindow.select.selectedIndex;
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
+        const paletteIndex = this.paletteSelectWindow.select.selectedIndex;
 
         const tile = data.tiles[tileIndex];
         const room = data.rooms[roomIndex];
@@ -1558,7 +1571,7 @@ class BipsiEditor extends EventTarget {
 
         const event = getEventById(data, this.selectedEventId);
 
-        return { data, tileset, room, roomIndex, frameIndex, tileIndex, tileSize, event, tile, tileFrame };
+        return { data, tileset, room, roomIndex, frameIndex, tileIndex, tileSize, event, tile, tileFrame, paletteIndex };
     }
 
     /**
@@ -1637,6 +1650,7 @@ class BipsiEditor extends EventTarget {
         } 
 
         this.refreshRoomSelect();
+        this.refreshPaletteSelect();
 
         this.drawRoom(TEMP_128, roomIndex, { palette });
         this.renderings.paletteRoom.drawImage(TEMP_128.canvas, 0, 0);
@@ -1691,6 +1705,28 @@ class BipsiEditor extends EventTarget {
 
         const thumb = thumbs[this.roomSelectWindow.select.selectedIndex].thumb;
         const canvases = ALL(`[name="show-room-window"] + canvas`);
+        canvases.forEach((canvas) => {
+            const rendering = canvas.getContext("2d");
+            rendering.imageSmoothingEnabled = false;
+            rendering.drawImage(thumb, 0, 0, 16, 16);
+        });
+    }
+
+    refreshPaletteSelect() {
+        const { data, roomIndex } = this.getSelections();
+
+        const thumbs = data.palettes.map((palette, id) => {
+            const thumb = createRendering2D(3, 1);
+            drawPaletteThumbnail(thumb, palette);
+            return { id, thumb: thumb.canvas };
+        });
+
+        this.paletteSelectWindow.updatePalettes(thumbs);
+
+        this.paletteSelectWindow.select.setSelectedIndexSilent(Math.max(this.paletteSelectWindow.select.selectedIndex, 0));
+
+        const thumb = thumbs[this.paletteSelectWindow.select.selectedIndex].thumb;
+        const canvases = ALL(`[name="show-palette-window"] + canvas`);
         canvases.forEach((canvas) => {
             const rendering = canvas.getContext("2d");
             rendering.imageSmoothingEnabled = false;

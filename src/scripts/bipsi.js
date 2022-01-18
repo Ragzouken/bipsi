@@ -231,6 +231,18 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
 }
 
 /**
+ * @param {CanvasRenderingContext2D} rendering 
+ * @param {string[]} palette
+ */
+ function drawPaletteThumbnail(rendering, palette) {
+    palette.forEach((color, i) => {
+        rendering.fillStyle = color;
+        rendering.fillRect(i, 0, 1, 1);
+    });
+}
+
+
+/**
  * @param {any[][]} map 
  * @param {number} dx 
  * @param {number} dy 

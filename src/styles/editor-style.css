@@ -330,6 +330,10 @@ select {
     background: none;
 }
 
+.palette-select label > input {
+    background: none;
+}
+
 .viewport-tab-body {
     display: flex;
     flex-direction: column;
@@ -374,23 +378,6 @@ input + *, input + * + * {
 
 label.toggle#tile-grid {
     max-width: 64px;
-}
-
-.room-picker-toggle {
-    gap: .25rem;
-}
-
-label.room-picker-toggle {
-    flex: 0;
-    /* min-width: 72px; */
-    border-radius: .5rem 1rem 1rem .5rem;
-    padding: 8px;
-    gap: 6px;
-}
-
-label.room-picker-toggle > svg {
-    margin: 0;
-    margin-left: 2px;
 }
 
 .picker-toggle > canvas {
@@ -459,6 +446,40 @@ label.room-picker-toggle > svg {
 
 .room-select canvas {
     width: 100%; height: 100%;
+}
+
+.tile-select label > input {
+    background: none;
+}
+
+#palette-select-window canvas {
+    width: 100%; height: 100%;
+}
+
+#palette-select-window label {
+    width: 80px;
+}
+
+.item-select {
+    flex: 1;
+
+    padding: 7px;
+
+    display: flex; flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-start;
+    align-content: flex-start;
+
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+    overflow: hidden scroll;
+}
+
+.item-select label {
+    min-height: unset;
+
+    width: 40px; height: 40px;
 }
 
 .item-management-buttons {
@@ -547,14 +568,19 @@ label.room-picker-toggle > svg {
     min-height: 0;
 }
 
-#color-select input[type="radio"]:checked {
+.color-select input[type="radio"]:checked {
     background: none;
     z-index: 5;
     box-shadow: 0 0 0 .5em white;
 }
 
+.color-select label > input {
+    background: none;
+}
+
 #color-edit {
     gap: 1rem;
+    align-items: flex-start;
 }
 
 #controls {
@@ -880,7 +906,7 @@ label.room-picker-toggle > svg {
     border-radius: 1rem;
 }
 
-.tile-select input[type="radio"]:checked, .room-select input[type="radio"]:checked {
+.tile-select input[type="radio"]:checked, .room-select input[type="radio"]:checked, .item-select input[type="radio"]:checked {
     z-index: 5;
     background: none;
     box-shadow: 0 0 0 5px white;
@@ -942,6 +968,23 @@ label.room-picker-toggle > svg {
 }
 
 #room-select-window {
+    position: absolute;
+    width: 512px; height: 320px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
+
+    background: var(--frame-color);
+
+    cursor: initial;
+    z-index: 100;
+
+    box-shadow: 0 0 0 2px black;
+}
+
+#palette-select-window {
     position: absolute;
     width: 512px; height: 320px;
     bottom: calc(48px + .5rem);
@@ -1123,10 +1166,6 @@ label.room-picker-toggle > svg {
     flex: 0;
 }
 
-#color-select label > input {
-    background: none;
-}
-
 #play-tab-body {
     font-size: larger;
 }
@@ -1219,4 +1258,17 @@ label.room-picker-toggle > svg {
     display: flex;
     flex-direction: column;
     gap: .5rem;
+}
+
+#color-index-select {
+    height: 48px;
+}
+
+#palette-edit {
+    width: 256px;
+}
+
+#color-huesat {
+    width: 240px;
+    height: 240px;
 }

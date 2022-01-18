@@ -6,9 +6,7 @@
             include ../draw-tile/controls-nest.pug
     .viewport-toolbar
         include /pages/room-select-toggle.pug
-        select#room-palette-select(name="room-palette")
-            each index in [0, 1, 2, 3, 4, 5, 6, 7]
-                option(value=`${index}`)= `palette ${index}`
+        include /pages/palette-select-toggle.pug
         .horizontal-capsule#room-events-toolbar(hidden)
             button(name="copy-event" title="copy event")
                 include /icons/copy.svg

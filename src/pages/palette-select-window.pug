@@ -1,0 +1,17 @@
+#palette-select-window(hidden)
+    .item-management-buttons
+        button(name="add-new-palette" title="add new palette")
+            include /icons/plus.svg
+        button(name="duplicate-palette" title="duplicate selected palette")
+            include /icons/copy.svg
+        button(name="reorder-palette-before" title="reorder palette before")
+            include /icons/arrow-left.svg
+        button(name="reorder-palette-after" title="reorder palette after")
+            include /icons/arrow-right.svg
+        button(name="delete-palette" title="delete selected palette")
+            include /icons/delete.svg
+    #palette-select.item-select.palette-select.radio-select(title="select palette")
+        template#palette-select-window-template
+            label
+                input(type="radio" name="palette-select" value="0" title=`select palette 0`)
+                canvas(width="3" height="1")
