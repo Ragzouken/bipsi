@@ -1256,8 +1256,11 @@ class BipsiEditor extends EventTarget {
         });
 
         this.colorSelect.select.addEventListener("change", () => {
-            const [palette, color] = this.colorSelect.select.value.split(",").map((i) => parseInt(i, 10));
-            this.paletteSelectWindow.select.selectedIndex = palette;
+            const { data } = this.getSelections();
+            const [id, color] = this.colorSelect.select.value.split(",").map((i) => parseInt(i, 10));
+            const palette = getPaletteById(data, id);
+            const index = data.palettes.indexOf(palette);
+            this.paletteSelectWindow.select.selectedIndex = index;
             this.paletteEditor.colorIndex.selectedIndex = color;
 
             this.redraw();
@@ -1753,7 +1756,7 @@ class BipsiEditor extends EventTarget {
 
         if (paletteIndex >= 0) {
             this.colorSelect.updatePalettes(data.palettes);
-            this.colorSelect.select.selectedIndex = paletteIndex * 3 + colorIndex;
+            this.colorSelect.select.setSelectedIndexSilent(paletteIndex * 3 + colorIndex);
         }
 
         this.paletteSelectWindow.select.setSelectedIndexSilent(Math.max(this.paletteSelectWindow.select.selectedIndex, 0));
