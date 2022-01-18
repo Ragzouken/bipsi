@@ -287,13 +287,9 @@ class PaletteEditor {
     }
 
     commitSelectedColorFromTemporary() {
-
-
         this.editor.stateManager.makeChange(async (data) => {
             const { palette, colorIndex, color } = this.getSelections(data);
-    
-            // TODO undoability
-            palette[colorIndex] = color.hex;
+            palette.colors[colorIndex] = color.hex;
         });
 
         this.refreshDisplay();
@@ -920,7 +916,6 @@ class BipsiEditor extends EventTarget {
             tilePaintA: ONE("#tile-paint-a").getContext("2d"),
 
             tileMapPaint: ONE("#tile-map-paint").getContext("2d"),
-            tilePaintRoom: ONE("#tile-paint-room").getContext("2d"),
             paletteRoom: ONE("#palette-room").getContext("2d"),
         };
 
@@ -1063,17 +1058,8 @@ class BipsiEditor extends EventTarget {
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
 
-        // this.modeSelect.tab(ONE("#edit-events-tab-controls"), "events");
-        // this.modeSelect.tab(ONE("#room-events-tab"), "events");
-
-        this.modeSelect.tab(ONE("#edit-colors-tab"), "palettes");
-        
-        //this.modeSelect.tab(ONE("#room-select-tab"), "draw-room");
-        // this.modeSelect.tab(ONE("#tile-select-tab"), "draw-tiles");
-        
         this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
 
-        this.modeSelect.tab(ONE("#tile-paint-tab"), "draw-tiles");
         this.modeSelect.tab(ONE("#tile-map-tab"), "draw-room");
         this.modeSelect.tab(ONE("#palette-tab"), "palettes");
 
@@ -1082,9 +1068,8 @@ class BipsiEditor extends EventTarget {
 
         this.roomPaintTool.tab(ONE("#draw-room-events-controls"), "events");
         this.roomPaintTool.tab(ONE("#room-events-toolbar"), "events");
+        this.roomPaintTool.tab(ONE("#draw-room-palette-controls"), "color");
 
-        // this.roomPaintTool.tab(ONE("#draw-room-tile-select"), "tile", "high", "pick");
-        // this.roomPaintTool.tab(ONE("#draw-room-tile-manage"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#highlight-toggle"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
@@ -1523,7 +1508,6 @@ class BipsiEditor extends EventTarget {
         };
 
         this.renderings.tileMapPaint.canvas.addEventListener("pointerdown", (event) => onRoomPointer(event, this.renderings.tileMapPaint.canvas));
-        this.renderings.tilePaintRoom.canvas.addEventListener("pointerdown", (event) => onRoomPointer(event, this.renderings.tilePaintRoom.canvas, true));
 
         this.frame = 0;
 
@@ -1638,7 +1622,7 @@ class BipsiEditor extends EventTarget {
         this.tileEditor.redraw();
 
         const { data, room, tileSize, roomIndex, tileset } = this.getSelections();
-        const palette = this.modeSelect.value === "palettes" 
+        const palette = this.roomPaintTool.value === "color" 
                       ? this.paletteEditor.getPreviewPalette()  
                       : getPaletteById(data, room.palette);
         const [background] = palette.colors;
@@ -1683,7 +1667,6 @@ class BipsiEditor extends EventTarget {
 
         this.drawRoom(TEMP_128, roomIndex, { palette });
         this.renderings.paletteRoom.drawImage(TEMP_128.canvas, 0, 0);
-        this.renderings.tilePaintRoom.drawImage(TEMP_128.canvas, 0, 0);
 
         if (!this.eventEditor.showDialoguePreview) {
             this.eventEditor.dialoguePreviewToggle.checked = false;

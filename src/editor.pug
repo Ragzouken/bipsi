@@ -6,10 +6,6 @@
     include /pages/playtest/viewport.pug
     #palette-tab.viewport-tab-body(hidden)
         canvas#palette-room(width="128" height="128" draggable="false")
-    #tile-paint-tab.viewport-tab-body(hidden)
-        #tile-paint-body
-            #tile-paint-previews
-                canvas#tile-paint-room(width="128" height="128" draggable="false")
     #tile-map-tab(hidden)
         canvas#tile-map-paint(width="256" height="256" draggable="false")
         #tile-map-toolbar.viewport-toolbar
@@ -23,6 +19,9 @@
                 //- label
                     input(type="radio" name="room-paint-tool" value="pick" title="pick tile")
                     include /icons/picker.svg
+                label
+                    input(type="radio" name="room-paint-tool" value="color" title="palettes")
+                    include /icons/palette.svg
                 label
                     input(type="radio" name="room-paint-tool" value="wall" title="draw walls")
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h15a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H14v2h1.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H14v2h1.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5H2v-2H.5a.5.5 0 0 1-.5-.5v-3A.5.5 0 0 1 .5 6H2V4H.5a.5.5 0 0 1-.5-.5v-3zM3 4v2h4.5V4H3zm5.5 0v2H13V4H8.5zM3 10v2h4.5v-2H3zm5.5 0v2H13v-2H8.5zM1 1v2h3.5V1H1zm4.5 0v2h5V1h-5zm6 0v2H15V1h-3.5zM1 7v2h3.5V7H1zm4.5 0v2h5V7h-5zm6 0v2H15V7h-3.5zM1 13v2h3.5v-2H1zm4.5 0v2h5v-2h-5zm6 0v2H15v-2h-3.5z"/></svg>
@@ -44,12 +43,9 @@
             label
                 input(type="radio" name="mode-select" value="playtest" title="playtest" autocomplete="off")
                 include /icons/play.svg
-            label
+            label(hidden)
                 input(type="radio" name="mode-select" value="palettes" title="edit palettes")
                 include /icons/palette.svg
-            //- label
-                input(type="radio" name="mode-select" value="draw-tiles" title="edit tiles")
-                include /icons/pencil.svg
             label
                 input(type="radio" name="mode-select" value="draw-room" title="edit rooms")
                 include /icons/tilemap.svg
@@ -61,6 +57,5 @@
             button(name="save" title="save")
                 include /icons/disc.svg
     include /pages/playtest/controls.pug
-    include /pages/edit-colors/controls.pug
-    //- include /pages/draw-tile/controls.pug
+    //- include /pages/edit-colors/controls.pug
     include /pages/draw-room/controls.pug
