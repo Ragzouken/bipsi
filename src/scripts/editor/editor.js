@@ -266,7 +266,7 @@ class PaletteEditor {
         this.colorHex.value = color.hex;
         this.colorIndex.selectedInput.parentElement.style.setProperty("background", color.hex);
 
-        this.editor.redraw();
+        this.editor.requestRedraw();
     }
 
     updateTemporaryFromData() {
@@ -585,7 +585,7 @@ class EventEditor {
                 this.editor.dialoguePreviewPlayer.moveToNextPage();
             }
         }
-        this.editor.redraw();
+        this.editor.requestRedraw();
     }
 
     /**
@@ -803,7 +803,7 @@ class TileEditor {
 
         const redraw = () => {
             drawTile(tileset, index, temp);
-            this.editor.redraw();
+            this.editor.redrawFromTileChange();
         };
 
         const drag = ui.drag(event);
@@ -1078,10 +1078,10 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
 
         this.roomGrid = ui.toggle("room-grid");
-        this.roomGrid.addEventListener("change", () => this.redraw());
+        this.roomGrid.addEventListener("change", () => this.requestRedraw());
 
         this.tileGrid = ui.toggle("tile-grid");
-        this.tileGrid.addEventListener("change", () => this.redraw());
+        this.tileGrid.addEventListener("change", () => this.requestRedraw());
 
         this.highlight = ui.toggle("highlight");
         this.picker = ui.toggle("tile-picker");
@@ -1241,7 +1241,7 @@ class BipsiEditor extends EventTarget {
             this.paletteSelectWindow.select.selectedIndex = data.palettes.indexOf(getPaletteById(data, room.palette));
             
             this.selectedEventId = undefined;
-            this.redraw();
+            this.requestRedraw();
             this.eventEditor.refresh();
         });
 
@@ -1251,7 +1251,7 @@ class BipsiEditor extends EventTarget {
                 room.palette = palette.id;
             });
 
-            this.redraw();
+            this.requestRedraw();
             this.eventEditor.refresh();
         });
 
@@ -1263,17 +1263,17 @@ class BipsiEditor extends EventTarget {
             this.paletteSelectWindow.select.selectedIndex = index;
             this.paletteEditor.colorIndex.selectedIndex = color;
 
-            this.redraw();
+            this.requestRedraw();
             this.eventEditor.refresh();
             this.refreshPaletteSelect();
         });
 
         this.highlight.addEventListener("change", () => {
-            this.redraw();
+            this.requestRedraw();
             this.redrawTileBrowser();
         })
         this.roomPaintTool.addEventListener("change", () => {
-            this.redraw();
+            this.requestRedraw();
             this.redrawTileBrowser();
 
             const cursors = {
@@ -1331,7 +1331,7 @@ class BipsiEditor extends EventTarget {
             this.redrawTileBrowser();
 
             // render room
-            this.redraw();
+            this.requestRedraw();
             this.tileBrowser.redraw();
             // this.roomTileBrowser.redraw();
 
@@ -1347,7 +1347,7 @@ class BipsiEditor extends EventTarget {
             if (this.eventEditor.showDialoguePreview) {
                 this.dialoguePreviewPlayer.skip();
                 if (this.dialoguePreviewPlayer.empty) this.eventEditor.resetDialoguePreview();
-                this.redraw();
+                this.requestRedraw();
                 return;
             }
 
@@ -1362,7 +1362,7 @@ class BipsiEditor extends EventTarget {
             };
 
             const redraw = () => {
-                this.redraw();
+                this.requestRedraw();
             };
 
             const positions = trackCanvasStroke(canvas, drag);
@@ -1430,7 +1430,7 @@ class BipsiEditor extends EventTarget {
                 };
             };
 
-            const redraw = () => this.redraw();
+            const redraw = () => this.requestRedraw();
 
             const drag = ui.drag(event);
             const positions = trackCanvasStroke(canvas, drag);
@@ -1530,7 +1530,7 @@ class BipsiEditor extends EventTarget {
             if (!this.ready) return;
 
             this.frame = 1 - this.frame;
-            this.redraw();
+            this.requestRedraw();
         }, constants.frameInterval);
 
         this.savedVariables = new Map();
@@ -1632,6 +1632,19 @@ class BipsiEditor extends EventTarget {
         fillRendering2D(rendering, background);
         drawTilemapLayer(rendering, tileset, tileToFrame, palette, room);
         drawEventLayer(rendering, tileset, tileToFrame, palette, room.events);
+    }
+
+    redrawFromTileChange() {
+        this.tileEditor.redraw();
+    }
+
+    requestRedraw() {
+        if (this.requestedRedraw !== undefined) return;
+
+        this.requestedRedraw = window.requestAnimationFrame(() => {
+            this.redraw();
+            this.requestedRedraw = undefined;
+        });
     }
 
     redraw() {
