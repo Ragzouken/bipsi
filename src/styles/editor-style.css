@@ -262,6 +262,7 @@ select {
 
 .viewport-body {
     position: relative;
+    height: 512px;
 }
 
 .controls-tab {
@@ -1173,8 +1174,13 @@ label.toggle#tile-grid {
     flex: 0;
 }
 
-#info-tab-body {
+#info-tab-body, #play-tab-body {
     font-size: larger;
+}
+
+p {
+    margin: 0;
+    margin-bottom: 1rem;
 }
 
 #room-events-toolbar {
@@ -1286,17 +1292,18 @@ label.toggle#tile-grid {
     display: flex; flex-direction: row;
     padding: .5rem; gap: .5rem;
     justify-content: flex-start;
+    
+    font-size: 16px;
 }
 
 .info-action-list > .button {
     color: black;
-    font-size: 16px;
     text-decoration: none;
 }
 
 .info-action-list {
     display: grid;
-    gap: .5rem;
+    gap: 1rem;
     grid-template-columns: repeat(2, 1fr);
 }
 

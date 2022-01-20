@@ -2221,8 +2221,9 @@ class BipsiEditor extends EventTarget {
     }
 
     async exportGamedata() {
+        const bundle = await this.stateManager.makeBundle();
         const name = "bipsi.json";
-        const blob = maker.textToBlob(JSON.stringify(this.stateManager.present), "application/json");
+        const blob = maker.textToBlob(JSON.stringify(bundle), "application/json");
         maker.saveAs(blob, name);
     }
 

@@ -1,5 +1,7 @@
 #play-tab-body.controls-tab-body(hidden)
-    h2 playtest
+    h2 playtest & publish
+    h3 info
+    p bipsi stores your saved project in your browser. you can always re-import a playable version of your game for editing, so it's a good idea to export regularly so you have backup copies
     h3 switch project
     .info-action-list
         button(name="import" title="import from webpage")
@@ -13,6 +15,6 @@
         button(name="export" title="export as webpage") 
             include /icons/package.svg
             | export playable
-        button(name="export-gamedata" title="export gamedata") 
+        //- button(name="export-gamedata" title="export data") 
             include /icons/binary.svg
-            | export gamedata
+            | export data
