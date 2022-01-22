@@ -1,47 +1,25 @@
-/**
- * @typedef {Object} DialoguePage
- * @property {BlitsyPage} glyphs
- * @property {Partial<DialogueOptions>} options
- */
+const box = html("div", { style: "background: black; position: relative;  font-family: monospace; font-size: 8px; line-height: 12px; padding: 6px 8px; padding-bottom: 10px; left: 24px; top: 50%; white-space: pre-wrap; min-height: 40px" }, "test");
+box.style.width = "208px";
 
-/**
- * @typedef {Object} DialogueOptions
- * @property {*} font
- * @property {number} anchorX
- * @property {number} anchorY
- * @property {number} lines
- * @property {number} lineGap
- * @property {number} padding
- * @property {number} glyphRevealDelay
- * @property {string} backgroundColor
- * @property {string} panelColor
- * @property {string} textColor
- */
+const container = html("div", { style: "position: absolute; left: 0; top: 0; width: 100%; height: 100%; padding: 24px;" }, box);
 
-const DIALOGUE_DEFAULTS = {
-    anchorX: 0.5,
-    anchorY: 0.5,
+ONE("#player").append(container);
 
-    lines: 2,
-    lineGap: 4,
-    padding: 8,
+wrap.before(BipsiPlayback.prototype, "init", async function(text, options) {
+  this.dialoguePlayback = new DialoguePlaybackDOM(box);
+  this.dialoguePlayback.options.font = this.font;
+});
 
-    glyphRevealDelay: .05,
-
-    backgroundColor: undefined,
-    panelColor: "#000000",
-    textColor: "#FFFFFF",
-};
-
-const CONT_ICON_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAYAAAD68A/GAAAAAXNSR0IArs4c6QAAADNJREFUCJmNzrENACAMA0E/++/8NAhRBEg6yyc5SePUoNqwDICnWP04ww1tWOHfUqqf1UwGcw4T9WFhtgAAAABJRU5ErkJggg==";
-const STOP_ICON_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAYAAAD68A/GAAAAAXNSR0IArs4c6QAAACJJREFUCJljZICC/////2fAAhgZGRn////PwIRNEhsYCgoBIkQHCf7H+yAAAAAASUVORK5CYII="
-
-class DialoguePlayback extends EventTarget {
-    constructor(width, height) {
+class DialoguePlaybackDOM extends EventTarget {
+    /**
+     * @param {HTMLElement} element 
+     */
+    constructor(element) {
         super();
-        this.dialogueRendering = createRendering2D(width, height);
+        this.dialogueRendering = createRendering2D(1, 1);
 
-        /** @type {DialoguePage[]} */
+        this.element = element;
+
         this.queuedPages = [];
         this.pagesSeen = 0;
         
@@ -67,8 +45,6 @@ class DialoguePlayback extends EventTarget {
     }
 
     async load() {
-        this.contIcon = imageToRendering2D(await loadImage(CONT_ICON_DATA));
-        this.stopIcon = imageToRendering2D(await loadImage(STOP_ICON_DATA));
     }
 
     clear() {
@@ -90,7 +66,11 @@ class DialoguePlayback extends EventTarget {
         this.dispatchEvent(new CustomEvent("next-page", { detail: { prev, next: page } }));
 
         if (page === undefined) {
+            this.element.parentElement.style.visibility = "hidden";
             this.dispatchEvent(new CustomEvent("empty"));
+        } else {
+            const elements = page.glyphs.map((glyph) => html("span", {}, glyph.char));
+            this.element.replaceChildren(...elements);
         }
     }
 
@@ -101,9 +81,10 @@ class DialoguePlayback extends EventTarget {
      */
     async queue(script, options={}) {
         const { font, lines } = this.getOptions(options);
-        const lineWidth = 192;
+        const lineWidth = 192 * 100;
 
         script = parseFakedown(script);
+
         const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines });
         const pages = glyphPages.map((glyphs) => ({ glyphs, options }));
         this.queuedPages.push(...pages);
@@ -125,8 +106,11 @@ class DialoguePlayback extends EventTarget {
     }
 
     /** @param {number} dt */
-    update(dt) {
-        if (this.empty) return;
+    async update(dt) {
+        if (this.empty) {
+            this.element.parentElement.style.visibility = "hidden";
+            return;
+        }
 
         this.pageTime += dt;
         this.showGlyphElapsed += dt;
@@ -140,51 +124,38 @@ class DialoguePlayback extends EventTarget {
             this.revealNextChar();
             this.applyStyle();
         }
+
+        this.element.dir = options.rtl ? "rtl" : null;
+        
+        const style = {
+            left: `${options.anchorX * 100}%`,
+            top: `${options.anchorY * 100}%`,
+            transform: `translate(${options.anchorX * -100}%, ${options.anchorY * -100}%)`,
+        }
+
+        Object.assign(this.element.style, { background: "black" });
+        Object.assign(this.element.style, style, options);
+
+        this.element.parentElement.style.backgroundColor = options.backgroundColor ?? null;
+        this.element.style.background = options.panelColor ?? null;
+
+        await sleep(1);
+        this.element.parentElement.style.visibility = "unset";
     }
 
     render() {
-        const options = this.getOptions(this.currentPage.options);
-        const height = options.padding * 2 
-                     + (options.font.lineHeight + options.lineGap) * options.lines;
-        const width = 208;
+        if (this.empty) return;
 
-        fillRendering2D(this.dialogueRendering, options.backgroundColor);
-        
-        const { width: displayWidth, height: displayHeight } = this.dialogueRendering.canvas;
-        const spaceX = displayWidth - width;
-        const spaceY = displayHeight - height;
-        const margin = options.noMargin ? 0 : Math.ceil(Math.min(spaceX, spaceY) / 2);
-
-        const minX = margin;
-        const maxX = displayWidth - margin;
-
-        const minY = margin;
-        const maxY = displayHeight - margin;
-
-        const x = Math.floor(minX + (maxX - minX - width ) * options.anchorX);
-        const y = Math.floor(minY + (maxY - minY - height) * options.anchorY);
-
-        this.dialogueRendering.fillStyle = options.panelColor;
-        this.dialogueRendering.fillRect(x, y, width, height);
-        
-        this.applyStyle();
-        const render = renderPage(
-            this.currentPage.glyphs, 
-            width, height, 
-            options.padding, options.padding,
-        );
-        this.dialogueRendering.drawImage(render.canvas, x, y);
-
-        if (this.showGlyphCount === this.pageGlyphCount) {
-            const prompt = this.queuedPages.length > 0 
-                         ? this.contIcon 
-                         : this.stopIcon;
-            this.dialogueRendering.drawImage(
-                recolorMask(prompt, options.textColor).canvas, 
-                x+width-options.padding-prompt.canvas.width, 
-                y+height-options.lineGap-prompt.canvas.height,
-            );
-        }
+        this.currentPage.glyphs.forEach((glyph, i) => {
+            const span = this.element.children[i];
+            span.style.visibility = glyph.hidden ? "hidden" : null;
+            Object.assign(span.style, {
+                position: "relative",
+                left: `${glyph.offset.x}px`,
+                top: `${glyph.offset.y}px`,
+                color: glyph.fillStyle,
+            });
+        });
     }
 
     getOptions(options) {
@@ -249,9 +220,9 @@ class DialoguePlayback extends EventTarget {
             if (glyph.styles.has("r"))
                 glyph.hidden = false;
             if (glyph.styles.has("shk")) 
-                glyph.offset = { x: getRandomInt(-1, 2), y: getRandomInt(-1, 2) };
+                glyph.offset = { x: getRandomFloat(-1, 1), y: getRandomFloat(-1, 1) };
             if (glyph.styles.has("wvy"))
-                glyph.offset.y = (Math.sin(i + this.pageTime * 5) * 3) | 0;
+                glyph.offset.y = (Math.sin(i + this.pageTime * 5) * 3);
             if (glyph.styles.has("rbw")) {
                 const h = Math.abs(Math.sin(performance.now() / 600 - i / 8));
                 glyph.fillStyle = rgbToHex(HSVToRGB({ h, s: 1, v: 1 }));
@@ -259,30 +230,3 @@ class DialoguePlayback extends EventTarget {
         });
     }
 }
-
-/**
- * @param {EventTarget} target 
- * @param {string} event 
- * @returns 
- */
- async function wait(target, event) {
-    return new Promise((resolve) => {
-        target.addEventListener(event, resolve, { once: true });
-    });
-}
-
-/**
- * Return a random integer at least min and below max. Why is that the normal
- * way to do random ints? I have no idea.
- * @param {number} min 
- * @param {number} max 
- * @returns {number}
- */
- function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function getRandomFloat(min, max) {
-    return Math.random() * (max - min) + min;
-}
-

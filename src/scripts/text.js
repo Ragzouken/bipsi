@@ -296,6 +296,7 @@ function commandsToPages(commands, options, styleHandler) {
         const char = getFontChar(options.font, command.char) ?? getFontChar(options.font, "?");
         const position = { x: offset, y: currLine * (options.font.lineHeight + 4) };
         const glyph = { 
+            char: command.char,
             image: char.image,
             position,
             offset: { x: 0, y: 0 },

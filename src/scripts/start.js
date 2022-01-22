@@ -34,18 +34,15 @@ async function makePlayback(font, bundle) {
         fillRendering2D(playRendering);
         playRendering.drawImage(playback.rendering.canvas, 0, 0);
         
-        // fitCanvasToParent(playCanvas);
         scaleElementToParent(playCanvas.parentElement);
 
         document.documentElement.style.setProperty('--vh', `${window.innerHeight / 100}px`);
     });
 
     // update the canvas size whenever the browser window resizes
-    // window.addEventListener("resize", () => fitCanvasToParent(playCanvas));
     window.addEventListener("resize", () => scaleElementToParent(playCanvas.parentElement));
     
     // update the canvas size initially
-    // fitCanvasToParent(playCanvas);
     scaleElementToParent(playCanvas.parentElement);
 
     let moveCooldown = 0;
