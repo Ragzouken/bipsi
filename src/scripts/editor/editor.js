@@ -1111,6 +1111,7 @@ class BipsiEditor extends EventTarget {
             save: ui.action("save", () => this.save()),
             export_: ui.action("export", () => this.exportProject()),
             exportGamedata: ui.action("export-gamedata", () => this.exportGamedata()),
+            exportTileset: ui.action("export-tileset", () => this.exportTileset()),
             import_: ui.action("import", () => this.importProject()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
@@ -2225,6 +2226,17 @@ class BipsiEditor extends EventTarget {
         const name = "bipsi.json";
         const blob = maker.textToBlob(JSON.stringify(bundle), "application/json");
         maker.saveAs(blob, name);
+    }
+
+    async exportTileset() {
+        return new Promise((resolve, reject) => {
+            const rendering = this.stateManager.resources.get(this.stateManager.present.tileset);
+            const name = "bipsi-tileset.png";
+            rendering.canvas.toBlob((blob) => {
+                maker.saveAs(blob, name);
+                resolve();
+            });
+        });
     }
 
     async importProject() {
