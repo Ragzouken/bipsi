@@ -46,8 +46,7 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://kool.tools/bi
             include styles/editor-style.css
     body(onload="start()").no-select
         #player(hidden)
-            #player-container
-                canvas#player-canvas(width=256 height=256)
+            canvas#player-canvas(width=256 height=256)
         #editor(data-editor-only)
             include editor.pug
         script#plugins

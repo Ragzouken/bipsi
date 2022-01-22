@@ -1,10 +1,3 @@
-async function startPlayback(font, bundle) {
-    const playback = new BipsiPlayback(font);
-    await playback.init();
-    await playback.loadBundle(bundle);
-    playback.start();
-}
-
 async function startEditor(font) {
     const editor = new BipsiEditor(font);
     await editor.init();
@@ -40,15 +33,20 @@ async function makePlayback(font, bundle) {
     playback.addEventListener("render", () => {
         fillRendering2D(playRendering);
         playRendering.drawImage(playback.rendering.canvas, 0, 0);
-        fitCanvasToParent(playCanvas);
+        
+        // fitCanvasToParent(playCanvas);
+        scaleElementToParent(playCanvas.parentElement);
+
         document.documentElement.style.setProperty('--vh', `${window.innerHeight / 100}px`);
     });
 
     // update the canvas size whenever the browser window resizes
-    window.addEventListener("resize", () => fitCanvasToParent(playCanvas));
+    // window.addEventListener("resize", () => fitCanvasToParent(playCanvas));
+    window.addEventListener("resize", () => scaleElementToParent(playCanvas.parentElement));
     
     // update the canvas size initially
-    fitCanvasToParent(playCanvas);
+    // fitCanvasToParent(playCanvas);
+    scaleElementToParent(playCanvas.parentElement);
 
     let moveCooldown = 0;
     const heldKeys = new Set();

@@ -13,6 +13,22 @@
     canvas.style.setProperty("height", `${canvas.height * scale}px`);
 }
 
+/**
+ * @param {HTMLElement} element 
+ */
+ function scaleElementToParent(element, margin=0) {
+    const parent = element.parentElement;
+
+    const [tw, th] = [parent.clientWidth-margin*2, parent.clientHeight-margin*2];
+    const [sw, sh] = [tw / element.clientWidth, th / element.clientHeight];
+    let scale = Math.min(sw, sh);
+    if (scale > 1) scale = Math.floor(scale); 
+
+    element.style.setProperty("transform", `translate(-50%, -50%) scale(${scale})`);
+
+    return scale;
+}
+
 // async equivalent of Function constructor
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
