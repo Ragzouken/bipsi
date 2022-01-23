@@ -226,8 +226,8 @@ function textBufferToCommands(buffer) {
 }
 
 function markupBufferToCommands(buffer) {
-    if (buffer === "ep") return [{ type: "break", target: "page" }];
-    if (buffer === "el") return [{ type: "break", target: "line" }];
+    if (buffer === "pg") return [{ type: "break", target: "page" }];
+    if (buffer === "br") return [{ type: "break", target: "line" }];
     else                 return [{ type: "style", style: buffer }];
 }
 
