@@ -2,8 +2,6 @@ const DIALOGUE_DEFAULTS_2 = {
     anchorX: 0.5,
     anchorY: 0.5,
 
-    lines: 2,
-
     glyphRevealDelay: .05,
 
     backgroundColor: undefined,
@@ -35,7 +33,7 @@ wrap.before(BipsiPlayback.prototype, "init", function() {
 
         "position": "relative",
         "width": "208px",
-        "min-height": "40px",
+        "min-height": "42px",
 
         "background": "black",
     });
@@ -126,12 +124,11 @@ class DialoguePlaybackDOM extends EventTarget {
      * @returns {Promise}
      */
     async queue(script, options={}) {
-        const { font, lines } = this.getOptions(options);
         const lineWidth = 192 * 100;
 
         script = parseFakedown(script);
 
-        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines });
+        const glyphPages = scriptToPages_html(script);
         const pages = glyphPages.map((glyphs) => ({ glyphs, options }));
         this.queuedPages.push(...pages);
         
@@ -281,4 +278,167 @@ class DialoguePlaybackDOM extends EventTarget {
             }
         });
     }
+}
+
+/**
+ * @param {string} script 
+ * @param {*} styleHandler 
+ * @returns {BlitsyPage[]}
+ */
+ function scriptToPages_html(script, styleHandler = defaultStyleHandler) {
+    const tokens = tokeniseScript_html(script);
+    const commands = tokensToCommands_html(tokens);
+    return commandsToPages_html(commands, styleHandler);
+}
+
+function tokeniseScript_html(script) {
+    const tokens = [];
+    let buffer = "";
+    let braceDepth = 0;
+
+    function openBrace() {
+        if (braceDepth === 0) flushBuffer();
+        braceDepth += 1;
+    }
+
+    function closeBrace() {
+        if (braceDepth === 1) flushBuffer();
+        braceDepth -= 1;
+    }
+
+    function newLine() {
+        flushBuffer();
+        tokens.push(["markup", "el"]);
+    }
+
+    function flushBuffer() {
+        if (buffer.length === 0) return;
+        const type = braceDepth > 0 ? "markup" : "text";
+        tokens.push([type, buffer]);
+        buffer = "";
+    }
+
+    const actions = {
+        "{": openBrace,
+        "}": closeBrace,
+        "\n": newLine,
+    }
+
+    for (const char of script) {
+        if (char in actions)
+            actions[char]();
+        else
+            buffer += char;
+    }
+
+    flushBuffer();
+
+    return tokens;
+}
+
+function textBufferToCommands_html(buffer) {
+    const chars = Array.from(buffer);
+    return chars.map((char) => ({ type: "glyph", char, breakable: char === " " }));
+}
+
+function markupBufferToCommands_html(buffer) {
+    if (buffer === "ep") return [{ type: "break", target: "page" }];
+    if (buffer === "el") return [{ type: "break", target: "line" }];
+    else                 return [{ type: "style", style: buffer }];
+}
+
+/** @param {any[]} tokens */
+function tokensToCommands_html(tokens) {
+    const handlers = {
+        "text": textBufferToCommands_html,
+        "markup": markupBufferToCommands_html,
+    };
+
+    const tokenToCommands = ([type, buffer]) => handlers[type](buffer); 
+    return tokens.flatMap(tokenToCommands);
+}
+
+/**
+ * @param {*} commands 
+ * @param {*} styleHandler 
+ */
+function commandsToPages_html(commands, styleHandler) {
+    const styles = new Map();
+    const pages = [];
+    let page = [];
+
+    function newPage() {
+        pages.push(page);
+        page = [];
+    }
+
+    function endPage() { 
+        newPage();
+    }
+
+    function endLine() {
+        if (page.length > 0) page[page.length - 1].char += "\n";
+        //else addGlyph("\n");
+    }
+
+    function doBreak(target) {
+             if (target === "line") endLine();
+        else if (target === "page") endPage(); 
+    }
+
+    function findNextBreakIndex() {
+        for (let i = 0; i < commands.length; ++i) {
+            const command = commands[i];
+            if (command.type === "break") return i;
+            if (command.type === "style") continue;
+        };
+    }
+
+    function addGlyph(char) {
+        const glyph = { 
+            char,
+            position: { x: 0, y: 0 },
+            offset: { x: 0, y: 0 },
+            hidden: true,
+            fillStyle: "white",
+            styles: new Map(styles.entries()),
+        };
+
+        page.push(glyph);
+        return char.spacing;
+    }
+
+    function generateGlyphLine(commands) {
+        let offset = 0;
+        for (const command of commands) {
+            if (command.type === "glyph") {
+                offset += addGlyph(command.char);
+            } else if (command.type === "style") {
+                styleHandler(styles, command.style);
+            }
+        }
+    }
+
+    let index;
+    
+    while ((index = findNextBreakIndex()) !== undefined) {
+        generateGlyphLine(commands.slice(0, index));
+        commands = commands.slice(index);
+
+        const command = commands[0];
+        if (command.type === "break") {
+            doBreak(command.target);
+            commands.shift();
+        } else {
+            if (command.type === "glyph" && command.char === " ") {
+                commands.shift();
+            }
+            endLine();
+        }
+    }
+
+    generateGlyphLine(commands);
+    endPage();
+
+    return pages;
 }
