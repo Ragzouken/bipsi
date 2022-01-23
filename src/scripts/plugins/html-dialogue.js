@@ -1,5 +1,11 @@
 // if you want a google font..
-// ONE("head").append(html("link", { href: 'https://fonts.googleapis.com/css?family=Lora&amp;display=swap', rel: 'stylesheet' }));
+//addGoogleFont("Major Mono Display");
+
+function addGoogleFont(name) {
+    const value = name.replaceAll(" ", "+");
+    const href = `https://fonts.googleapis.com/css?family=${value}&amp;display=swap`;
+    ONE("head").append(html("link", { href, rel: "stylesheet" }));
+}
 
 const DIALOGUE_DEFAULTS_2 = {
     anchorX: 0.5,
