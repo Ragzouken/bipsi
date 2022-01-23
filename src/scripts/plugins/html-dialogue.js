@@ -1,24 +1,70 @@
-const box = html("div", { style: "background: black; position: relative;  font-family: monospace; font-size: 8px; line-height: 12px; padding: 6px 8px; padding-bottom: 10px; left: 24px; top: 50%; white-space: pre-wrap; min-height: 40px" }, "test");
-box.style.width = "208px";
+const DIALOGUE_DEFAULTS_2 = {
+    anchorX: 0.5,
+    anchorY: 0.5,
 
-const container = html("div", { style: "position: absolute; left: 0; top: 0; width: 100%; height: 100%; padding: 24px;" }, box);
+    lines: 2,
 
-ONE("#player").append(container);
+    glyphRevealDelay: .05,
 
-wrap.before(BipsiPlayback.prototype, "init", async function(text, options) {
-  this.dialoguePlayback = new DialoguePlaybackDOM(box);
-  this.dialoguePlayback.options.font = this.font;
+    backgroundColor: undefined,
+    panelColor: "#000000",
+    textColor: "#FFFFFF",
+};
+
+wrap.before(BipsiPlayback.prototype, "init", function() {
+    const chars = html("div", {});
+    Object.assign(chars.style, {
+        "padding": "6px 8px 12px 8px",
+    });
+
+    const nextPrompt = html("div", {}, "➥");
+    Object.assign(nextPrompt.style, {
+        "position": "absolute",
+        "bottom": "0", "right": "8px",
+    });
+
+    const donePrompt = html("div", {}, "■");
+    Object.assign(donePrompt.style, {
+        "position": "absolute",
+        "bottom": "1px", "right": "10px",
+    });
+
+    const panel = html("div", {}, chars, nextPrompt, donePrompt);
+    Object.assign(panel.style, {
+        "display": "flex",
+
+        "position": "relative",
+        "width": "208px",
+        "min-height": "40px",
+
+        "background": "black",
+    });
+
+    const root = html("div", {}, panel);
+    Object.assign(root.style, {
+        "font-family": "monospace",
+        "font-size": "8px",
+        "line-height": "12px",
+        "white-space": "pre-wrap",
+
+        "position": "absolute",
+        "left": "0", "top": "0",
+        "width": "100%", "height": "100%",
+        "padding": "24px",
+    });
+
+    ONE("#player").append(root);
+
+    this.dialoguePlayback = new DialoguePlaybackDOM({ root, panel, chars, nextPrompt, donePrompt });
+    this.dialoguePlayback.options.font = this.font;
 });
 
 class DialoguePlaybackDOM extends EventTarget {
-    /**
-     * @param {HTMLElement} element 
-     */
-    constructor(element) {
+    constructor(elements) {
         super();
         this.dialogueRendering = createRendering2D(1, 1);
 
-        this.element = element;
+        this.elements = elements;
 
         this.queuedPages = [];
         this.pagesSeen = 0;
@@ -66,11 +112,11 @@ class DialoguePlaybackDOM extends EventTarget {
         this.dispatchEvent(new CustomEvent("next-page", { detail: { prev, next: page } }));
 
         if (page === undefined) {
-            this.element.parentElement.style.visibility = "hidden";
+            this.elements.root.style.visibility = "hidden";
             this.dispatchEvent(new CustomEvent("empty"));
         } else {
             const elements = page.glyphs.map((glyph) => html("span", {}, glyph.char));
-            this.element.replaceChildren(...elements);
+            this.elements.chars.replaceChildren(...elements);
         }
     }
 
@@ -108,7 +154,7 @@ class DialoguePlaybackDOM extends EventTarget {
     /** @param {number} dt */
     async update(dt) {
         if (this.empty) {
-            this.element.parentElement.style.visibility = "hidden";
+            this.elements.root.style.visibility = "hidden";
             return;
         }
 
@@ -125,7 +171,7 @@ class DialoguePlaybackDOM extends EventTarget {
             this.applyStyle();
         }
 
-        this.element.dir = options.rtl ? "rtl" : null;
+        this.elements.chars.dir = options.rtl ? "rtl" : null;
         
         const style = {
             left: `${options.anchorX * 100}%`,
@@ -133,33 +179,39 @@ class DialoguePlaybackDOM extends EventTarget {
             transform: `translate(${options.anchorX * -100}%, ${options.anchorY * -100}%)`,
         }
 
-        Object.assign(this.element.style, { background: "black" });
-        Object.assign(this.element.style, style, options);
+        Object.assign(this.elements.panel.style, { background: "black" });
+        Object.assign(this.elements.panel.style, style, options);
 
-        this.element.parentElement.style.backgroundColor = options.backgroundColor ?? null;
-        this.element.style.background = options.panelColor ?? null;
+        this.elements.root.style.backgroundColor = options.backgroundColor ?? null;
+        this.elements.panel.style.background = options.panelColor ?? null;
 
         await sleep(1);
-        this.element.parentElement.style.visibility = "unset";
+        this.elements.root.style.visibility = "unset";
     }
 
     render() {
         if (this.empty) return;
 
         this.currentPage.glyphs.forEach((glyph, i) => {
-            const span = this.element.children[i];
+            const span = this.elements.chars.children[i];
             span.style.visibility = glyph.hidden ? "hidden" : null;
             Object.assign(span.style, {
-                position: "relative",
                 left: `${glyph.offset.x}px`,
                 top: `${glyph.offset.y}px`,
                 color: glyph.fillStyle,
             });
         });
+
+        const pageDone = this.showGlyphCount === this.pageGlyphCount;
+        const showNext = pageDone && this.queuedPages.length > 0;
+        const showDone = pageDone && !showNext;
+
+        this.elements.nextPrompt.hidden = !showNext;
+        this.elements.donePrompt.hidden = !showDone;
     }
 
     getOptions(options) {
-        return Object.assign({}, DIALOGUE_DEFAULTS, this.options, options);
+        return Object.assign({}, DIALOGUE_DEFAULTS_2, this.options, options);
     }
 
     revealNextChar() {
