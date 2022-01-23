@@ -202,7 +202,8 @@ class DialoguePlaybackDOM extends EventTarget {
             const span = this.elements.chars.children[i];
             span.style.visibility = glyph.hidden ? "hidden" : null;
             Object.assign(span.style, {
-                left: `${glyph.offset.x}px`,
+                position: "relative",
+                left: `${glyph.offset.x}px`, 
                 top: `${glyph.offset.y}px`,
                 color: glyph.fillStyle,
             });
