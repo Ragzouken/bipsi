@@ -1,3 +1,6 @@
+// if you want a google font..
+// ONE("head").append(html("link", { href: 'https://fonts.googleapis.com/css?family=Lora&amp;display=swap', rel: 'stylesheet' }));
+
 const DIALOGUE_DEFAULTS_2 = {
     anchorX: 0.5,
     anchorY: 0.5,
