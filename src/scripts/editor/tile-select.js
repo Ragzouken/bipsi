@@ -48,13 +48,6 @@ class TileBrowser {
         this.select.addEventListener("change", () => this.redraw());
 
         this.frame = 0;
-
-        window.setInterval(() => {
-            if (!this.editor.ready) return;
-            this.frame = 1 - this.frame;
-            this.updateCSS();
-            this.redraw();
-        }, constants.frameInterval);
     }
 
     get selectedTileIndex() {
@@ -64,6 +57,12 @@ class TileBrowser {
     set selectedTileIndex(value) { 
         this.select.setValueSilent(value);
         this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
+    }
+
+    setFrame(frame) {
+        this.frame = frame;
+        this.updateCSS();
+        this.redraw();
     }
 
     redraw() {

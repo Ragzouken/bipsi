@@ -793,7 +793,8 @@ class TileEditor {
 
         const redraw = () => {
             drawTile(tileset, index, temp);
-            this.editor.redrawFromTileChange();
+            this.editor.requestRedraw();
+            //this.editor.redrawFromTileChange();
         };
 
         const drag = ui.drag(event);
@@ -1636,10 +1637,11 @@ class BipsiEditor extends EventTarget {
 
         // tile animation
         this.time += dt;
-        while (this.time >= constants.frameInterval) {
+        while (this.time >= constants.frameInterval * .001) {
             this.frame = 1 - this.frame;
-            this.time -= constants.frameInterval;
+            this.time -= constants.frameInterval * .001;
             this.requestRedraw();
+            this.tileBrowser.setFrame(this.frame);
         }
         
         this.dialoguePreviewPlayer.update(dt);
