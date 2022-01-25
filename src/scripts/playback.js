@@ -809,6 +809,10 @@ const WALK_DIRECTIONS = {
     "v": [ 0,  1],
 }
 
+const FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
+const FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
+const IS_TAGGED = (event, name) => eventIsTagged(event, name);
+
 /**
  * @param {BipsiPlayback} playback 
  * @param {BipsiDataEvent} event 
@@ -826,10 +830,10 @@ function generateScriptingDefines(playback, event) {
     defines.DO_STANDARD = () => standardEventTouch(playback, event);
 
     defines.SET_FIELDS = (event, name, type, ...values) => replaceFields(event, name, type, ...values);
-    defines.FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
-    defines.FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
+    defines.FIELD = FIELD;
+    defines.FIELDS = FIELDS;
     
-    defines.IS_TAGGED = (event, name) => eventIsTagged(event, name);
+    defines.IS_TAGGED = IS_TAGGED;
     defines.TAG = (event, name) => replaceFields(event, name, "tag", true);
     defines.UNTAG = (event, name) => clearFields(event, name, "tag");
 

@@ -391,6 +391,10 @@ if (test) {
     library: [
         { key: "is-library", type: "tag", data: true },
     ],
+    plugins: [
+        { key: "is-plugins", type: "tag", data: true },
+        { key: "dummy-plugin", type: "javascript", data: "" },
+    ],
 };
 
 function prepareTemplate(element) {
@@ -430,46 +434,28 @@ class EventEditor {
         });
         this.fileInfo = ONE("#field-file-info");
 
+        const createUniqueEvent = (tag, template) => {
+            const event = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, tag));
+            this.editor.createEvent(event?.fields ?? template);
+            
+            if (event) {
+                this.editor.stateManager.makeChange(async (data) => {
+                    const room = roomFromEvent(data, event);
+                    arrayDiscard(room.events, event);
+                });
+            }
+        }
+
         ui.action("create-event-empty", () => this.editor.createEvent(EVENT_TEMPLATES.empty));
         ui.action("create-event-code", () => this.editor.createEvent(EVENT_TEMPLATES.code));
         ui.action("create-event-exit", () => this.editor.createEvent(EVENT_TEMPLATES.exit));
         ui.action("create-event-message", () => this.editor.createEvent(EVENT_TEMPLATES.message));
         ui.action("create-event-character", () => this.editor.createEvent(EVENT_TEMPLATES.character));
         ui.action("create-event-ending", () => this.editor.createEvent(EVENT_TEMPLATES.ending));
-        ui.action("create-event-player", () => {
-            const avatar = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-player"));
-
-            this.editor.createEvent(avatar?.fields ?? EVENT_TEMPLATES.player);
-            
-            if (avatar) {
-                this.editor.stateManager.makeChange(async (data) => {
-                    const room = roomFromEvent(data, avatar);
-                    arrayDiscard(room.events, avatar);
-                });
-            }
-        });
-        ui.action("create-event-setup", () => {
-            const setup = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-setup"));
-            this.editor.createEvent(setup?.fields ?? EVENT_TEMPLATES.setup);
-            
-            if (setup) {
-                this.editor.stateManager.makeChange(async (data) => {
-                    const room = roomFromEvent(data, setup);
-                    arrayDiscard(room.events, setup);
-                });
-            }
-        });
-        ui.action("create-event-library", () => {
-            const library = allEvents(this.editor.stateManager.present).find((event) => eventIsTagged(event, "is-library"));
-            this.editor.createEvent(library?.fields ?? EVENT_TEMPLATES.library);
-            
-            if (library) {
-                this.editor.stateManager.makeChange(async (data) => {
-                    const room = roomFromEvent(data, library);
-                    arrayDiscard(room.events, library);
-                });
-            }
-        });
+        ui.action("create-event-player", () => createUniqueEvent("is-player", EVENT_TEMPLATES.player));
+        ui.action("create-event-setup", () => createUniqueEvent("is-setup", EVENT_TEMPLATES.setup));
+        ui.action("create-event-library", () => createUniqueEvent("is-library", EVENT_TEMPLATES.library));
+        ui.action("create-event-plugins", () => createUniqueEvent("is-plugins", EVENT_TEMPLATES.plugins));
 
         this.actions = {
             add: ui.action("add-event-field", () => this.addField()),
@@ -2162,7 +2148,7 @@ class BipsiEditor extends EventTarget {
         await this.stateManager.loadBundle(bundle);
         this.unsavedChanges = false;
 
-        this.playtest();
+        this.modeSelect.dispatchEvent(new Event("change"));
     }
 
     /** @returns {string[]} */
@@ -2181,9 +2167,14 @@ class BipsiEditor extends EventTarget {
     gatherPluginsJavascript() {
         const { data } = this.getSelections();
         const event = findEventByTag(data, "is-plugins") ?? { fields: [] };
-        const fields = event.fields.filter((field) => field.type === "javascript");
-        const javascript = fields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
-        return javascript;
+
+        const configFields = event.fields.filter((field) => field.type !== "javascript");
+        const pluginFields = event.fields.filter((field) => field.type === "javascript");
+
+        const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} }`;
+        const pluginsJS = pluginFields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
+        
+        return `// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}`;
     }
 
     async makeExportHTML(debug=false) {

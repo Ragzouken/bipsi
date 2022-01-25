@@ -1,11 +1,20 @@
-// if you want a google font..
-//addGoogleFont("Major Mono Display");
+/**
+ * HTML DIALOGUE PLUGIN by candle
+ * 
+ * PLUGIN CONFIG:
+ * load-google-font (text) -- dynamically add google fonts to page
+ * default-font-family (text) -- css font-family to use by default
+ */
 
 function addGoogleFont(name) {
     const value = name.replaceAll(" ", "+");
     const href = `https://fonts.googleapis.com/css?family=${value}&amp;display=swap`;
     ONE("head").append(html("link", { href, rel: "stylesheet" }));
 }
+
+const googleFonts = FIELDS(CONFIG, "load-google-font", "text");
+googleFonts.forEach(addGoogleFont);
+const font = FIELD(CONFIG, "default-font-family", "text") ?? googleFonts[0] ?? "monospace";
 
 const DIALOGUE_DEFAULTS_2 = {
     anchorX: 0.5,
@@ -49,7 +58,7 @@ wrap.before(BipsiPlayback.prototype, "init", function() {
 
     const root = html("div", {}, panel);
     Object.assign(root.style, {
-        "font-family": "monospace",
+        "font-family": font + ", monospace",
         "font-size": "8px",
         "line-height": "12px",
         "white-space": "pre-wrap",
