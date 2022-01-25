@@ -1031,6 +1031,7 @@ class BipsiEditor extends EventTarget {
         this.dialoguePreviewPlayer = new DialoguePlayback(256, 256);
         this.dialoguePreviewPlayer.options.font = font;
 
+        this.time = 0;
         let prev;
         const timer = (next) => {
             window.requestAnimationFrame(timer);
@@ -1040,8 +1041,8 @@ class BipsiEditor extends EventTarget {
             next = next ?? Date.now();
             const dt = Math.max(0, (next - prev) / 1000.);
             prev = next;
-            this.dialoguePreviewPlayer.update(dt);
-            this.redrawDialoguePreview();
+            
+            this.update(dt);
         }
         timer();
 
@@ -1521,13 +1522,6 @@ class BipsiEditor extends EventTarget {
 
         this.frame = 0;
 
-        window.setInterval(() => {
-            if (!this.ready) return;
-
-            this.frame = 1 - this.frame;
-            this.requestRedraw();
-        }, constants.frameInterval);
-
         this.savedVariables = new Map();
         const refreshVariables = () => {
             if (this.variablesWindow.hidden) return;
@@ -1634,12 +1628,27 @@ class BipsiEditor extends EventTarget {
     }
 
     requestRedraw() {
-        if (this.requestedRedraw !== undefined) return;
+        this.requestedRedraw = true;
+    }
 
-        this.requestedRedraw = window.requestAnimationFrame(() => {
+    update(dt) {
+        if (!this.ready) return;
+
+        // tile animation
+        this.time += dt;
+        while (this.time >= constants.frameInterval) {
+            this.frame = 1 - this.frame;
+            this.time -= constants.frameInterval;
+            this.requestRedraw();
+        }
+        
+        this.dialoguePreviewPlayer.update(dt);
+        this.redrawDialoguePreview();
+
+        if (this.requestedRedraw) {
+            this.requestedRedraw = false;
             this.redraw();
-            this.requestedRedraw = undefined;
-        });
+        }
     }
 
     redraw() {
