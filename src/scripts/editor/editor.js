@@ -1186,6 +1186,10 @@ class BipsiEditor extends EventTarget {
             const textedit = isElementTextInput(event.target);
 
             if (event.ctrlKey) {
+                if (textedit) {
+                    event.target.dispatchEvent(new Event("change"));
+                }
+
                 if (event.key === "z" && !textedit) this.actions.undo.invoke();
                 if (event.key === "y" && !textedit) this.actions.redo.invoke();
                 if (event.key === "s") {
