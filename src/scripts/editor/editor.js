@@ -393,7 +393,11 @@ if (test) {
     ],
     plugins: [
         { key: "is-plugins", type: "tag", data: true },
-        { key: "dummy-plugin", type: "javascript", data: "" },
+        { key: "dummy-plugin", type: "javascript", data: 
+`wrap.before(BipsiPlayback.prototype, "start", function() {
+this.say(FIELD(CONFIG, "dummy-config"));
+});` },
+        { key: "dummy-config", type: "text", data: "hello" }
     ],
 };
 
