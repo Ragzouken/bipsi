@@ -30,43 +30,43 @@ const DIALOGUE_DEFAULTS_2 = {
 wrap.before(BipsiPlayback.prototype, "init", function() {
     const chars = html("div", {});
     Object.assign(chars.style, {
-        "padding": "6px 8px 12px 8px",
+        padding: "6px 8px 12px 8px",
     });
 
     const nextPrompt = html("div", {}, "➥");
     Object.assign(nextPrompt.style, {
-        "position": "absolute",
-        "bottom": "0", "right": "8px",
+        position: "absolute",
+        bottom: "0", "right": "8px",
     });
 
     const donePrompt = html("div", {}, "■");
     Object.assign(donePrompt.style, {
-        "position": "absolute",
-        "bottom": "1px", "right": "10px",
+        position: "absolute",
+        bottom: "1px", "right": "10px",
     });
 
     const panel = html("div", {}, chars, nextPrompt, donePrompt);
     Object.assign(panel.style, {
-        "display": "flex",
+        display: "flex",
 
-        "position": "relative",
-        "width": "208px",
-        "min-height": "42px",
+        position: "relative",
+        width: "208px",
+        minHeight: "42px",
 
-        "background": "black",
+        background: "black",
     });
 
     const root = html("div", {}, panel);
     Object.assign(root.style, {
-        "font-family": font + ", monospace",
-        "font-size": "8px",
-        "line-height": "12px",
-        "white-space": "pre-wrap",
+        fontFamily: font + ", monospace",
+        fontSize: "8px",
+        lineHeight: "12px",
+        whiteSpace: "pre-wrap",
 
-        "position": "absolute",
-        "left": "0", "top": "0",
-        "width": "100%", "height": "100%",
-        "padding": "24px",
+        position: "absolute",
+        left: "0", "top": "0",
+        width: "100%", "height": "100%",
+        padding: "24px",
     });
 
     ONE("#player").append(root);
