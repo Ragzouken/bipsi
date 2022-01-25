@@ -397,7 +397,7 @@ if (test) {
 `wrap.before(BipsiPlayback.prototype, "start", function() {
 this.say(FIELD(CONFIG, "dummy-config"));
 });` },
-        { key: "dummy-config", type: "text", data: "hello" }
+        { key: "dummy-config", type: "text", data: "hello from dummy-plugin" }
     ],
 };
 
