@@ -391,8 +391,9 @@ if (test) {
     library: [
         { key: "is-library", type: "tag", data: true },
     ],
-    plugins: [
-        { key: "is-plugins", type: "tag", data: true },
+    plugin: [
+        { key: "is-plugin", type: "tag", data: true },
+        { key: "plugin-order", type: "json", data: 0 },
         { key: "dummy-plugin", type: "javascript", data: 
 `wrap.before(BipsiPlayback.prototype, "start", function() {
 this.say(FIELD(CONFIG, "dummy-config"));
@@ -459,7 +460,7 @@ class EventEditor {
         ui.action("create-event-player", () => createUniqueEvent("is-player", EVENT_TEMPLATES.player));
         ui.action("create-event-setup", () => createUniqueEvent("is-setup", EVENT_TEMPLATES.setup));
         ui.action("create-event-library", () => createUniqueEvent("is-library", EVENT_TEMPLATES.library));
-        ui.action("create-event-plugins", () => createUniqueEvent("is-plugins", EVENT_TEMPLATES.plugins));
+        ui.action("create-event-plugins", () => this.editor.createEvent(EVENT_TEMPLATES.plugin));
 
         this.actions = {
             add: ui.action("add-event-field", () => this.addField()),
