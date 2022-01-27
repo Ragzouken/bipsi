@@ -460,7 +460,7 @@ class EventEditor {
         ui.action("create-event-player", () => createUniqueEvent("is-player", EVENT_TEMPLATES.player));
         ui.action("create-event-setup", () => createUniqueEvent("is-setup", EVENT_TEMPLATES.setup));
         ui.action("create-event-library", () => createUniqueEvent("is-library", EVENT_TEMPLATES.library));
-        ui.action("create-event-plugins", () => this.editor.createEvent(EVENT_TEMPLATES.plugin));
+        ui.action("create-event-plugin", () => this.editor.createEvent(EVENT_TEMPLATES.plugin));
 
         this.actions = {
             add: ui.action("add-event-field", () => this.addField()),
