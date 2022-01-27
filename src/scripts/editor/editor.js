@@ -2181,15 +2181,27 @@ class BipsiEditor extends EventTarget {
 
     gatherPluginsJavascript() {
         const { data } = this.getSelections();
-        const event = findEventByTag(data, "is-plugins") ?? { fields: [] };
 
-        const configFields = event.fields.filter((field) => field.type !== "javascript");
-        const pluginFields = event.fields.filter((field) => field.type === "javascript");
+        const event = findEventByTag(data, "is-plugins");
+        const events = findEventsByTag(data, "is-plugin");
+        if (event) events.push(event);
 
-        const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} }`;
-        const pluginsJS = pluginFields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
-        
-        return `// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}`;
+        function getPluginPriority(event) {
+            return parseInt((FIELD(event, "plugin-order") ?? "0").toString(), 10);
+        }
+
+        events.sort((a, b) => getPluginPriority(a) - getPluginPriority(b));
+
+        const sections = events.map((event) => {
+            const configFields = event.fields.filter((field) => field.type !== "javascript");
+            const pluginFields = event.fields.filter((field) => field.type === "javascript");
+
+            const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} }`;
+            const pluginsJS = pluginFields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
+            return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}\n})();\n`;
+        });
+
+        return sections.join("\n");
     }
 
     async makeExportHTML(debug=false) {
