@@ -27,6 +27,31 @@ const DIALOGUE_DEFAULTS_2 = {
     textColor: "#FFFFFF",
 };
 
+const ROOT_CSS = {
+    fontFamily: "monospace",
+    fontSize: "8px",
+    lineHeight: "12px",
+    whiteSpace: "pre-wrap",
+
+    position: "absolute",
+    left: "0", "top": "0",
+    width: "100%", "height": "100%",
+    padding: "24px",
+
+    background: "none",
+};
+
+const PANEL_CSS = {
+    display: "flex",
+
+    position: "relative",
+    width: "208px",
+    minHeight: "42px",
+
+    color: "white",
+    background: "black",
+}
+
 wrap.before(BipsiPlayback.prototype, "init", function() {
     const chars = html("div", {});
     Object.assign(chars.style, {
@@ -46,28 +71,10 @@ wrap.before(BipsiPlayback.prototype, "init", function() {
     });
 
     const panel = html("div", {}, chars, nextPrompt, donePrompt);
-    Object.assign(panel.style, {
-        display: "flex",
-
-        position: "relative",
-        width: "208px",
-        minHeight: "42px",
-
-        background: "black",
-    });
+    Object.assign(panel.style, PANEL_CSS);
 
     const root = html("div", {}, panel);
-    Object.assign(root.style, {
-        fontFamily: font + ", monospace",
-        fontSize: "8px",
-        lineHeight: "12px",
-        whiteSpace: "pre-wrap",
-
-        position: "absolute",
-        left: "0", "top": "0",
-        width: "100%", "height": "100%",
-        padding: "24px",
-    });
+    Object.assign(root.style, ROOT_CSS);
 
     ONE("#player").append(root);
 
@@ -188,17 +195,24 @@ class DialoguePlaybackDOM extends EventTarget {
 
         this.elements.chars.dir = options.rtl ? "rtl" : null;
         
-        const style = {
+        const rootStyle = {
+            background: options.backgroundColor ?? ROOT_CSS.background,
+        }
+
+        const panelStyle = {
+            background: options.panelColor ?? PANEL_CSS.background,
+            color: options.textColor ?? PANEL_CSS.color,
+
             left: `${options.anchorX * 100}%`,
             top: `${options.anchorY * 100}%`,
             transform: `translate(${options.anchorX * -100}%, ${options.anchorY * -100}%)`,
         }
 
-        Object.assign(this.elements.panel.style, { background: "black" });
-        Object.assign(this.elements.panel.style, style, options);
+        this.elements.root.style = "";
+        this.elements.panel.style = "";
 
-        this.elements.root.style.backgroundColor = options.backgroundColor ?? null;
-        this.elements.panel.style.background = options.panelColor ?? null;
+        Object.assign(this.elements.root.style, ROOT_CSS, rootStyle, options.panelCSS);
+        Object.assign(this.elements.panel.style, PANEL_CSS, panelStyle, options.panelCSS);
 
         await sleep(1);
         this.elements.root.style.visibility = "unset";
