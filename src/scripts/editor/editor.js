@@ -1560,6 +1560,7 @@ class BipsiEditor extends EventTarget {
 
         this.EVENT_TILE = await loadImage(constants.eventTile);
         this.WALL_TILE = await loadImage(constants.wallTile);
+        this.PLUGIN_TILE = await loadImage(constants.pluginTile);
     }
 
     /**
@@ -1711,7 +1712,9 @@ class BipsiEditor extends EventTarget {
     
             room.events.forEach((event) => {
                 const [x, y] = event.position;
-                TEMP_256.drawImage(this.EVENT_TILE, x * tileSize * 2, y * tileSize * 2);
+                const plugin = IS_TAGGED(event, "is-plugin");
+
+                TEMP_256.drawImage(plugin ? this.PLUGIN_TILE : this.EVENT_TILE, x * tileSize * 2, y * tileSize * 2);
             });
 
             if (this.selectedEventCell && this.roomPaintTool.value === "events") {
