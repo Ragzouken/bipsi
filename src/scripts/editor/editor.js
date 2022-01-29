@@ -1230,7 +1230,7 @@ class BipsiEditor extends EventTarget {
             if (this.modeSelect.value === "playtest") {
                 this.playtest();
             } else {
-                this.playtestIframe.srcdoc = "";
+                this.playtestIframe.src = "";
             }
         });
 
@@ -2177,7 +2177,7 @@ class BipsiEditor extends EventTarget {
 
     async playtest() {
         const html = await this.makeExportHTML(true);
-        this.playtestIframe.srcdoc = html;
+        this.playtestIframe.src = URL.createObjectURL(new Blob([html], { type: "text/html" }));
         this.playtestIframe.hidden = false;
 
         this.logTextElement.replaceChildren("> RESTARTING PLAYTEST\n");

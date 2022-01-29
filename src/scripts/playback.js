@@ -618,9 +618,7 @@ class BipsiPlayback extends EventTarget {
     }
 
     async runJS(event, js) {
-        const defines = bindScriptingDefines(SCRIPTING_FUNCTIONS);
-        addScriptingConstants(defines, this, event);
-
+        const defines = this.makeScriptingDefines(event);
         const names = Object.keys(defines).join(", ");
         const preamble = `const { ${names} } = COMMANDS;\n`;
 
@@ -634,6 +632,12 @@ class BipsiPlayback extends EventTarget {
             const error = `SCRIPT ERROR:\n${e}`;
             this.showError(error);
         }
+    }
+
+    makeScriptingDefines(event) {
+        const defines = bindScriptingDefines(SCRIPTING_FUNCTIONS);
+        addScriptingConstants(defines, this, event);
+        return defines;
     }
 
     playMusic(src) {
