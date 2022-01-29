@@ -25,3 +25,11 @@ wrap.replace = function(object, method, callback) {
         return callback.call(this, ...args);
     };
 }
+
+wrap.splice = function(object, method, callback) {
+    const original = object[method];
+
+    object[method] = async function (...args) {
+        return callback.call(this, original, ...args);
+    };
+}

@@ -618,7 +618,9 @@ class BipsiPlayback extends EventTarget {
     }
 
     async runJS(event, js) {
-        const defines = generateScriptingDefines(this, event);
+        const defines = bindScriptingDefines(SCRIPTING_FUNCTIONS);
+        addScriptingConstants(defines, this, event);
+
         const names = Object.keys(defines).join(", ");
         const preamble = `const { ${names} } = COMMANDS;\n`;
 
@@ -809,37 +811,119 @@ const WALK_DIRECTIONS = {
     "v": [ 0,  1],
 }
 
+function bindScriptingDefines(defines) {
+    const bound = {};
+
+    for (const [name, func] of Object.entries(defines)) {
+        bound[name] = func.bind(bound);
+    }
+
+    return bound;
+}
+
 const FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
 const FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
 const IS_TAGGED = (event, name) => eventIsTagged(event, name);
 
-/**
- * @param {BipsiPlayback} playback 
- * @param {BipsiDataEvent} event 
- */
-function generateScriptingDefines(playback, event) {
-    // edit here to add new scripting functions
-    const defines = {};
+const DEFINES_DIALOG = {
+    SAY: function (dialogue, options) {
+        return this.PLAYBACK.say(dialogue, options);
+    },
+    SAY_FIELD: async function (name, options) {
+        let text = oneField(this.EVENT, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
+        await this.PLAYBACK.say(text, options);
+    },
+    TITLE: function (dialogue, options) {
+        return this.PLAYBACK.title(dialogue, options);
+    },
+}
+
+const DEFINES_EVENTS = {
+    TOUCH: function (event) {
+        return this.PLAYBACK.touch(event);
+    },
+    EVENT_AT: function (location) {
+        return getEventAtLocation(this.PLAYBACK.data, location);
+    },
+    LOCATION_OF: function (event) {
+        return getLocationOfEvent(this.PLAYBACK.data, event);
+    },
+    FIND_EVENTS: function (tag) {
+        return findEventsByTag(this.PLAYBACK.data, tag);
+    }, 
+    FIND_EVENT: function (tag) {
+        return findEventByTag(this.PLAYBACK.data, tag); 
+    },
+}
+
+const DEFINES_FILES = {
+    PLAY_MUSIC: function (file) {
+        this.PLAYBACK.playMusic(this.PLAYBACK.getFileObjectURL(file));
+    },
+    STOP_MUSIC: function () {
+        this.PLAYBACK.stopMusic();
+    },
+
+    SHOW_IMAGE: function (id, file, layer, x, y) {
+        this.PLAYBACK.showImage(id, file, layer, x, y);
+    },
+    HIDE_IMAGE: function (id) {
+        this.PLAYBACK.hideImage(id);
+    },
+
+    FILE_TEXT: function (file) { 
+        return this.PLAYBACK.stateManager.resources.get(file).text();
+    },
+
+    FIELD_OR_LIBRARY: function (field, event=this.EVENT) {
+        let file = FIELD(event, field, "file");
+        let name = FIELD(event, field, "text");
+
+        if (!file && name && this.LIBRARY) {
+            file = FIELD(this.LIBRARY, name, "file");
+        } else if (!file && this.LIBRARY) {
+            file = FIELD(this.LIBRARY, field, "file");
+        }
+
+        return file;
+    },
+}
+
+const SCRIPTING_FUNCTIONS = {
+    ...DEFINES_DIALOG,
+    ...DEFINES_EVENTS,
+    ...DEFINES_FILES,
+
+    DO_STANDARD: function() { 
+        return standardEventTouch(this.PLAYBACK, this.EVENT); 
+    },
+    MOVE: function (event, location) {
+        moveEvent(this.PLAYBACK.data, event, location); 
+    },
+
+    FIELD,
+    FIELDS,
+    SET_FIELDS: function (event, name, type, ...values) {
+        replaceFields(event, name, type, ...values);
+    },
     
-    defines.PLAYBACK = playback;
-    defines.AVATAR = getEventById(playback.data, playback.avatarId);
-    defines.LIBRARY = getEventById(playback.data, playback.libraryId);
-    defines.EVENT = event;
-    defines.PALETTE = playback.getActivePalette();
+    IS_TAGGED,
+    TAG: function (event, name) {
+        replaceFields(event, name, "tag", true);
+    },
+    UNTAG: function (event, name) {
+        clearFields(event, name, "tag");
+    },
 
-    defines.DO_STANDARD = () => standardEventTouch(playback, event);
+    REMOVE: function (event) {
+        removeEvent(this.PLAYBACK.data, event);
+    },
 
-    defines.SET_FIELDS = (event, name, type, ...values) => replaceFields(event, name, type, ...values);
-    defines.FIELD = FIELD;
-    defines.FIELDS = FIELDS;
-    
-    defines.IS_TAGGED = IS_TAGGED;
-    defines.TAG = (event, name) => replaceFields(event, name, "tag", true);
-    defines.UNTAG = (event, name) => clearFields(event, name, "tag");
+    SET_GRAPHIC: function (event, tile) {
+        replaceFields(event, "graphic", "tile", tile);
+    },
 
-    defines.SET_GRAPHIC = (event, tile) => replaceFields(event, "graphic", "tile", tile);
-
-    defines.WALK = async (event, sequence, delay=.4, wait=.4) => {
+    WALK: async function (event, sequence, delay=.4, wait=.4) {
         const dirs = Array.from(sequence);
         for (const dir of dirs) {
             if (dir === ".") {
@@ -853,66 +937,64 @@ function generateScriptingDefines(playback, event) {
                 await sleep(delay * 1000);
             }
         }
-    };
-    defines.MOVE = (event, location) => moveEvent(playback.data, event, location);
-    defines.REMOVE = (event) => removeEvent(playback.data, event);
+    },
 
-    defines.TOUCH = (event) => playback.touch(event);
-    defines.EVENT_AT = (location) => getEventAtLocation(playback.data, location);
-    defines.LOCATION_OF = (event) => getLocationOfEvent(playback.data, event);
-    defines.FIND_EVENTS = (tag) => findEventsByTag(playback.data, tag); 
-    defines.FIND_EVENT = (tag) => findEventByTag(playback.data, tag); 
+    GET: function (key, fallback=undefined) {
+        return this.PLAYBACK.variables.get(key) ?? fallback;
+    },
+    SET: function (key, value) {
+        this.PLAYBACK.setVariable(key, value);
+    },
 
-    defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
-    defines.SET = (key, value) => playback.setVariable(key, value);
+    EVENT_ID: function (event) { 
+        return event.id; 
+    },
+    TEXT_REPLACE: function (text, ...values) {
+        return replace(text, ...values);
+    },
 
-    defines.EVENT_ID = (event) => event.id;
+    LOG: function (...data) {
+        this.PLAYBACK.log(...data);
+    },
+    DELAY: function (seconds) {
+        return sleep(seconds * 1000);
+    },
 
-    defines.TEXT_REPLACE = (text, ...values) => replace(text, ...values);
+    RESTART: function () {
+        this.PLAYBACK.end();
+    },
 
-    defines.SAY = async (dialogue, options) => playback.say(dialogue, options);
-    defines.SAY_FIELD = async (name, options) => {
-        let text = oneField(event, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
-        await playback.say(text, options);
-    }
+    SAMPLE: function (id, type, ...values) {
+        return sample(this.PLAYBACK, id, type, ...values);
+    },
+    SET_CSS: function (name, value) {
+        ONE(":root").style.setProperty(name, value);
+    },
 
-    defines.TITLE = async (dialogue, options) => playback.title(dialogue, options);
+    RUN_JS: function (script, event=this.EVENT) {
+        this.PLAYBACK.runJS(event, script);
+    },
+
+    ADD_BEHAVIOURS: function (...scripts) {
+        this.PLAYBACK.extra_behaviours.push(...scripts);
+    },
+    POST: function (message, origin="*") {
+        postMessageParent(message, origin);
+    },
+}
+
+/**
+ * @param {BipsiPlayback} playback 
+ * @param {BipsiDataEvent} event 
+ */
+function addScriptingConstants(defines, playback, event) {
+    // edit here to add new scripting functions
+    defines.PLAYBACK = playback;
+    defines.AVATAR = getEventById(playback.data, playback.avatarId);
+    defines.LIBRARY = getEventById(playback.data, playback.libraryId);
+    defines.EVENT = event;
+    defines.PALETTE = playback.getActivePalette();
+
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
-
-    defines.LOG = (...data) => playback.log(...data);
-    defines.DELAY = async (seconds) => sleep(seconds * 1000);
-
-    defines.RESTART = () => playback.end();
-
-    defines.SAMPLE = (id, type, ...values) => sample(playback, id, type, ...values);
-    defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
-
-    defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
-    defines.ADD_BEHAVIOURS = (...scripts) => playback.extra_behaviours.push(...scripts);
-    
-    defines.PLAY_MUSIC = (file) => playback.playMusic(playback.getFileObjectURL(file));
-    defines.STOP_MUSIC = () => playback.stopMusic();
-
-    defines.SHOW_IMAGE = (id, file, layer, x, y) => playback.showImage(id, file, layer, x, y);
-    defines.HIDE_IMAGE = (id) => playback.hideImage(id);
-
-    defines.FILE_TEXT = (file) => playback.stateManager.resources.get(file).text();
-
-    defines.FIELD_OR_LIBRARY = (field, event=defines.EVENT) => {
-        let file = oneField(event, field, "file")?.data;
-        let name = oneField(event, field, "text")?.data;
-
-        if (!file && name && defines.LIBRARY) {
-            file = oneField(defines.LIBRARY, name, "file")?.data;
-        } else if (!file && defines.LIBRARY) {
-            file = oneField(defines.LIBRARY, field, "file")?.data;
-        }
-
-        return file;
-    };
-
-    defines.POST = (message, origin="*") => postMessageParent(message, origin);
-
-    return defines;
 }

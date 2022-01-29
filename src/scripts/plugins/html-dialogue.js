@@ -28,7 +28,7 @@ const DIALOGUE_DEFAULTS_2 = {
 };
 
 const ROOT_CSS = {
-    fontFamily: "monospace",
+    fontFamily: font + ", monospace",
     fontSize: "8px",
     lineHeight: "12px",
     whiteSpace: "pre-wrap",
