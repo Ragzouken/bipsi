@@ -191,6 +191,20 @@ const ERROR_STYLE = {
     anchorX: .5, anchorY: .5,
 }
 
+const BEHAVIOUR_BEFORE = `
+let script = $FIELD("before", "javascript");
+if (script) {
+    await RUN_JS(script);
+}
+`;
+
+const BEHAVIOUR_AFTER = `
+let script = $FIELD("after", "javascript");
+if (script) {
+    await RUN_JS(script);
+}
+`;
+
 const BEHAVIOUR_PAGE_COLOR = `
 let color = FIELD(EVENT, "page-color", "text");
 if (color) {
@@ -607,13 +621,15 @@ class BipsiPlayback extends EventTarget {
      */
     async touch(event) {
         this.log(`> TOUCHING EVENT ${this.eventDebugInfo(event)}`);
-
+    
         const touch = oneField(event, "touch", "javascript")?.data;
 
         if (touch !== undefined) {
             await this.runJS(event, touch);
         } else {
+            await this.runJS(event, BEHAVIOUR_BEFORE);
             await standardEventTouch(this, event);
+            await this.runJS(event, BEHAVIOUR_AFTER);
         }
     }
 
@@ -833,8 +849,8 @@ const DEFINES_DIALOG = {
     SAY: function (dialogue, options) {
         return this.PLAYBACK.say(dialogue, options);
     },
-    SAY_FIELD: async function (name, options) {
-        let text = oneField(this.EVENT, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
+    SAY_FIELD: async function (name, options=undefined, event=this.EVENT) {
+        let text = oneField(event, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
         await this.PLAYBACK.say(text, options);
     },
     TITLE: function (dialogue, options) {
@@ -910,6 +926,16 @@ const SCRIPTING_FUNCTIONS = {
     SET_FIELDS: function (event, name, type, ...values) {
         replaceFields(event, name, type, ...values);
     },
+
+    $FIELD: function (name, type=undefined, event=this.EVENT) {
+        return this.FIELD(event, name, type);
+    },
+    $FIELDS: function (name, type=undefined, event=this.EVENT) {
+        return this.FIELDS(event, name, type);
+    },
+    $SET_FIELDS: function (name, type=undefined, ...values) {
+        return this.SET_FIELDS(this.EVENT, name, type, ...values);
+    },
     
     IS_TAGGED,
     TAG: function (event, name) {
@@ -919,12 +945,28 @@ const SCRIPTING_FUNCTIONS = {
         clearFields(event, name, "tag");
     },
 
-    REMOVE: function (event) {
+    $IS_TAGGED: function (name, event=this.EVENT) {
+        return this.IS_TAGGED(event, name);
+    },
+    $TAG: function (name, event=this.EVENT) {
+        this.TAG(event, name);
+    },
+    $UNTAG: function (name, event=this.EVENT) {
+        this.UNTAG(event, name);
+    },
+
+    REMOVE: function (event=this.EVENT) {
         removeEvent(this.PLAYBACK.data, event);
+    },
+    $REMOVE: function (event=this.EVENT) {
+        this.REMOVE(event);
     },
 
     SET_GRAPHIC: function (event, tile) {
         replaceFields(event, "graphic", "tile", tile);
+    },
+    $SET_GRAPHIC: function (tile, event=this.EVENT) {
+        this.SET_GRAPHIC(event, tile);
     },
 
     WALK: async function (event, sequence, delay=.4, wait=.4) {
@@ -942,6 +984,9 @@ const SCRIPTING_FUNCTIONS = {
             }
         }
     },
+    $WALK: function (sequence, delay=.4, wait=.4, event=this.EVENT) {
+        return this.WALK(event, sequence, delay, wait);
+    },
 
     GET: function (key, fallback=undefined, target=undefined) {
         key = target ? `${this.EVENT_ID(target)}/${key}` : key;
@@ -950,6 +995,12 @@ const SCRIPTING_FUNCTIONS = {
     SET: function (key, value, target=undefined) {
         key = target ? `${this.EVENT_ID(target)}/${key}` : key;
         this.PLAYBACK.setVariable(key, value);
+    },
+    $GET: function (key, fallback=undefined, target=this.EVENT) {
+        return this.GET(key, fallback, target);
+    },
+    $SET: function (key, value, target=this.EVENT) {
+        this.SET(key, value, target);
     },
 
     EVENT_ID: function (event) { 
