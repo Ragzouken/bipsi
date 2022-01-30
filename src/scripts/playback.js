@@ -636,11 +636,11 @@ class BipsiPlayback extends EventTarget {
     async runJS(event, js) {
         const defines = this.makeScriptingDefines(event);
         const names = Object.keys(defines).join(", ");
-        const preamble = `const { ${names} } = COMMANDS;\n`;
+        const preamble = `const { ${names} } = this;\n`;
 
         try {
-            const script = new AsyncFunction("COMMANDS", preamble + js);
-            await script(defines);
+            const script = new AsyncFunction("", preamble + js);
+            await script.call(defines);
         } catch (e) {
             const long = `> SCRIPT ERROR "${e}"\n---\n${js}\n---`;
             this.log(long);
@@ -845,57 +845,59 @@ const FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data
 const FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
 const IS_TAGGED = (event, name) => eventIsTagged(event, name);
 
-const DEFINES_DIALOG = {
-    SAY: function (dialogue, options) {
+const SCRIPTING_FUNCTIONS = {
+    SAY(dialogue, options) {
         return this.PLAYBACK.say(dialogue, options);
     },
-    SAY_FIELD: async function (name, options=undefined, event=this.EVENT) {
-        let text = oneField(event, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
-        await this.PLAYBACK.say(text, options);
+
+    SAY_FIELD(name, options=undefined, event=this.EVENT) {
+        const text = this.FIELD(event, name, "dialogue") ?? `[FIELD MISSING: ${name}]`;
+        return this.SAY(text, options);
     },
-    TITLE: function (dialogue, options) {
+
+    TITLE(dialogue, options) {
         return this.PLAYBACK.title(dialogue, options);
     },
-}
 
-const DEFINES_EVENTS = {
-    TOUCH: function (event) {
+    TOUCH(event) {
         return this.PLAYBACK.touch(event);
     },
-    EVENT_AT: function (location) {
+
+    EVENT_AT(location) {
         return getEventAtLocation(this.PLAYBACK.data, location);
     },
-    LOCATION_OF: function (event) {
+
+    LOCATION_OF(event) {
         return getLocationOfEvent(this.PLAYBACK.data, event);
     },
-    FIND_EVENTS: function (tag) {
+
+    FIND_EVENTS(tag) {
         return findEventsByTag(this.PLAYBACK.data, tag);
-    }, 
-    FIND_EVENT: function (tag) {
+    },
+
+    FIND_EVENT(tag) {
         return findEventByTag(this.PLAYBACK.data, tag); 
     },
-}
 
-const DEFINES_FILES = {
-    PLAY_MUSIC: function (file) {
+    PLAY_MUSIC(file) {
         this.PLAYBACK.playMusic(this.PLAYBACK.getFileObjectURL(file));
     },
-    STOP_MUSIC: function () {
+    STOP_MUSIC() {
         this.PLAYBACK.stopMusic();
     },
 
-    SHOW_IMAGE: function (id, file, layer, x, y) {
+    SHOW_IMAGE(id, file, layer, x, y) {
         this.PLAYBACK.showImage(id, file, layer, x, y);
     },
-    HIDE_IMAGE: function (id) {
+    HIDE_IMAGE(id) {
         this.PLAYBACK.hideImage(id);
     },
 
-    FILE_TEXT: function (file) { 
+    FILE_TEXT(file) { 
         return this.PLAYBACK.stateManager.resources.get(file).text();
     },
 
-    FIELD_OR_LIBRARY: function (field, event=this.EVENT) {
+    FIELD_OR_LIBRARY(field, event=this.EVENT) {
         let file = FIELD(event, field, "file");
         let name = FIELD(event, field, "text");
 
@@ -907,69 +909,64 @@ const DEFINES_FILES = {
 
         return file;
     },
-}
 
-const SCRIPTING_FUNCTIONS = {
-    ...DEFINES_DIALOG,
-    ...DEFINES_EVENTS,
-    ...DEFINES_FILES,
-
-    DO_STANDARD: function() { 
+    DO_STANDARD() { 
         return standardEventTouch(this.PLAYBACK, this.EVENT); 
     },
-    MOVE: function (event, location) {
+
+    MOVE(event, location) {
         moveEvent(this.PLAYBACK.data, event, location); 
     },
 
     FIELD,
     FIELDS,
-    SET_FIELDS: function (event, name, type, ...values) {
+    SET_FIELDS(event, name, type, ...values) {
         replaceFields(event, name, type, ...values);
     },
 
-    $FIELD: function (name, type=undefined, event=this.EVENT) {
+    $FIELD(name, type=undefined, event=this.EVENT) {
         return this.FIELD(event, name, type);
     },
-    $FIELDS: function (name, type=undefined, event=this.EVENT) {
+    $FIELDS(name, type=undefined, event=this.EVENT) {
         return this.FIELDS(event, name, type);
     },
-    $SET_FIELDS: function (name, type=undefined, ...values) {
+    $SET_FIELDS(name, type=undefined, ...values) {
         return this.SET_FIELDS(this.EVENT, name, type, ...values);
     },
     
     IS_TAGGED,
-    TAG: function (event, name) {
+    TAG(event, name) {
         replaceFields(event, name, "tag", true);
     },
-    UNTAG: function (event, name) {
+    UNTAG(event, name) {
         clearFields(event, name, "tag");
     },
 
-    $IS_TAGGED: function (name, event=this.EVENT) {
+    $IS_TAGGED(name, event=this.EVENT) {
         return this.IS_TAGGED(event, name);
     },
-    $TAG: function (name, event=this.EVENT) {
+    $TAG(name, event=this.EVENT) {
         this.TAG(event, name);
     },
-    $UNTAG: function (name, event=this.EVENT) {
+    $UNTAG(name, event=this.EVENT) {
         this.UNTAG(event, name);
     },
 
-    REMOVE: function (event=this.EVENT) {
+    REMOVE(event=this.EVENT) {
         removeEvent(this.PLAYBACK.data, event);
     },
-    $REMOVE: function (event=this.EVENT) {
+    $REMOVE(event=this.EVENT) {
         this.REMOVE(event);
     },
 
-    SET_GRAPHIC: function (event, tile) {
+    SET_GRAPHIC(event, tile) {
         replaceFields(event, "graphic", "tile", tile);
     },
-    $SET_GRAPHIC: function (tile, event=this.EVENT) {
+    $SET_GRAPHIC(tile, event=this.EVENT) {
         this.SET_GRAPHIC(event, tile);
     },
 
-    WALK: async function (event, sequence, delay=.4, wait=.4) {
+    async WALK(event, sequence, delay=.4, wait=.4) {
         const dirs = Array.from(sequence);
         for (const dir of dirs) {
             if (dir === ".") {
@@ -984,58 +981,58 @@ const SCRIPTING_FUNCTIONS = {
             }
         }
     },
-    $WALK: function (sequence, delay=.4, wait=.4, event=this.EVENT) {
+    async $WALK(sequence, delay=.4, wait=.4, event=this.EVENT) {
         return this.WALK(event, sequence, delay, wait);
     },
 
-    GET: function (key, fallback=undefined, target=undefined) {
+    GET(key, fallback=undefined, target=undefined) {
         key = target ? `${this.EVENT_ID(target)}/${key}` : key;
         return this.PLAYBACK.variables.get(key) ?? fallback;
     },
-    SET: function (key, value, target=undefined) {
+    SET(key, value, target=undefined) {
         key = target ? `${this.EVENT_ID(target)}/${key}` : key;
         this.PLAYBACK.setVariable(key, value);
     },
-    $GET: function (key, fallback=undefined, target=this.EVENT) {
+    $GET(key, fallback=undefined, target=this.EVENT) {
         return this.GET(key, fallback, target);
     },
-    $SET: function (key, value, target=this.EVENT) {
+    $SET(key, value, target=this.EVENT) {
         this.SET(key, value, target);
     },
 
-    EVENT_ID: function (event) { 
+    EVENT_ID(event) { 
         return event.id; 
     },
-    TEXT_REPLACE: function (text, ...values) {
+    TEXT_REPLACE(text, ...values) {
         return replace(text, ...values);
     },
 
-    LOG: function (...data) {
+    LOG(...data) {
         this.PLAYBACK.log(...data);
     },
-    DELAY: function (seconds) {
+    DELAY(seconds) {
         return sleep(seconds * 1000);
     },
 
-    RESTART: function () {
+    RESTART() {
         this.PLAYBACK.end();
     },
 
-    SAMPLE: function (id, type, ...values) {
+    SAMPLE(id, type, ...values) {
         return sample(this.PLAYBACK, id, type, ...values);
     },
-    SET_CSS: function (name, value) {
+    SET_CSS(name, value) {
         ONE(":root").style.setProperty(name, value);
     },
 
-    RUN_JS: function (script, event=this.EVENT) {
+    RUN_JS(script, event=this.EVENT) {
         this.PLAYBACK.runJS(event, script);
     },
 
-    ADD_BEHAVIOURS: function (...scripts) {
+    ADD_BEHAVIOURS(...scripts) {
         this.PLAYBACK.extra_behaviours.push(...scripts);
     },
-    POST: function (message, origin="*") {
+    POST(message, origin="*") {
         postMessageParent(message, origin);
     },
 }
