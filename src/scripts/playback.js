@@ -943,10 +943,12 @@ const SCRIPTING_FUNCTIONS = {
         }
     },
 
-    GET: function (key, fallback=undefined) {
+    GET: function (key, fallback=undefined, target=undefined) {
+        key = target ? `${this.EVENT_ID(target)}/${key}` : key;
         return this.PLAYBACK.variables.get(key) ?? fallback;
     },
-    SET: function (key, value) {
+    SET: function (key, value, target=undefined) {
+        key = target ? `${this.EVENT_ID(target)}/${key}` : key;
         this.PLAYBACK.setVariable(key, value);
     },
 
