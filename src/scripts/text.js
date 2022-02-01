@@ -192,7 +192,7 @@ function tokeniseScript(script) {
 
     function newLine() {
         flushBuffer();
-        tokens.push(["markup", "el"]);
+        tokens.push(["markup", "br"]);
     }
 
     function flushBuffer() {
