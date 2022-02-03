@@ -2200,7 +2200,7 @@ class BipsiEditor extends EventTarget {
             const configFields = event.fields.filter((field) => field.type !== "javascript");
             const pluginFields = event.fields.filter((field) => field.type === "javascript");
 
-            const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} }`;
+            const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
             const pluginsJS = pluginFields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
             return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}\n})();\n`;
         });
