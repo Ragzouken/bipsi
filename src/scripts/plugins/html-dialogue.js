@@ -1,10 +1,6 @@
-/**
- * HTML DIALOGUE PLUGIN by candle
- * 
- * PLUGIN CONFIG:
- * load-google-font (text) -- dynamically add google fonts to page
- * default-font-family (text) -- css font-family to use by default
- */
+//!CONFIG note                (text) "html dialogue plugin by candle"
+//!CONFIG load-google-font    (text) "Major Mono Display"
+//!CONFIG default-font-family (text) "monospace"
 
 function addGoogleFont(name) {
     const value = name.replaceAll(" ", "+");

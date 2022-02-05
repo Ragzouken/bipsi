@@ -461,6 +461,35 @@ class EventEditor {
         ui.action("create-event-setup", () => createUniqueEvent("is-setup", EVENT_TEMPLATES.setup));
         ui.action("create-event-library", () => createUniqueEvent("is-library", EVENT_TEMPLATES.library));
         ui.action("create-event-plugin", () => this.editor.createEvent(EVENT_TEMPLATES.plugin));
+        
+        ui.action("create-event-plugin-file", async () => {
+            const [file] = await maker.pickFiles("application/javascript");
+            if (!file) return;
+
+            const js = await maker.textFromFile(file);
+            const fields = [
+                { key: "is-plugin", type: "tag", data: true },
+                { key: "plugin-order", type: "json", data: 0 },
+                { key: "plugin", type: "javascript", data: js },
+                ...fieldsFromPluginCode(js),
+            ];
+
+            this.editor.createEvent(fields);
+        });
+
+        function parseOrNull(json) {
+            try {
+                return JSON.parse(json);
+            } catch {
+                return null;
+            }
+        }
+
+        function fieldsFromPluginCode(code) {
+            const regex = /\/\/!CONFIG\s+([\w-]+)\s+\(([\w-]+)\)\s*(.*)/g;
+            const fields = Array.from(code.matchAll(regex)).map(([, key, type, json]) => ({ key, type, data: parseOrNull(json)}));
+            return fields;
+        }
 
         this.actions = {
             add: ui.action("add-event-field", () => this.addField()),
@@ -506,9 +535,11 @@ class EventEditor {
             });
         });
 
+        
+
         this.valueEditors.javascript.addEventListener("change", () => {
             this.editor.stateManager.makeChange(async (data) => {
-                const { field } = this.getSelections(data);
+                const { field, event } = this.getSelections(data);
                 field.data = this.valueEditors.javascript.value;
             });
         });
@@ -1176,16 +1207,20 @@ class BipsiEditor extends EventTarget {
 
         // hotkeys
         document.addEventListener("keydown", (event) => {
+            if (event.repeat) return;
+            
             const textedit = isElementTextInput(event.target);
 
             if (event.ctrlKey) {
-                if (textedit) {
-                    event.target.dispatchEvent(new Event("change"));
-                }
-
                 if (event.key === "z" && !textedit) this.actions.undo.invoke();
                 if (event.key === "y" && !textedit) this.actions.redo.invoke();
                 if (event.key === "s") {
+                    // make sure current text editing changes are registered
+                    // before saving
+                    if (textedit) {
+                        event.target.dispatchEvent(new Event("change"));
+                    }
+
                     event.preventDefault();
                     this.actions.save.invoke();
                 }
@@ -2197,11 +2232,9 @@ class BipsiEditor extends EventTarget {
         events.sort((a, b) => getPluginPriority(a) - getPluginPriority(b));
 
         const sections = events.map((event) => {
-            const configFields = event.fields.filter((field) => field.type !== "javascript");
-            const pluginFields = event.fields.filter((field) => field.type === "javascript");
-
+            const configFields = event.fields.filter((field) => field.key !== "plugin");
             const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
-            const pluginsJS = pluginFields.map((field) => `// PLUGIN FROM FIELD "${field.key}"\n${field.data}\n`).join("\n\n");
+            const pluginsJS = `// PLUGIN CODE"\n${FIELD(event, "plugin", "javascript")}\n`;
             return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}\n})();\n`;
         });
 
