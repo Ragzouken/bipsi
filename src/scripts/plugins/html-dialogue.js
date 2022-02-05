@@ -1,6 +1,6 @@
 //!CONFIG note                (text) "html dialogue plugin by candle"
 //!CONFIG load-google-font    (text) "Major Mono Display"
-//!CONFIG default-font-family (text) "monospace"
+//!CONFIG default-font-family (text) "Major Mono Display"
 
 function addGoogleFont(name) {
     const value = name.replaceAll(" ", "+");
