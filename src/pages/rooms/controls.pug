@@ -1,11 +1,11 @@
 #draw-room-tab-controls.controls-tab(hidden)
     .controls-tab-body
         #draw-room-events-controls(hidden)
-            include ../edit-events/controls-nest.pug
+            include events-controls.pug
         #draw-room-tile-controls(hidden)
-            include ../draw-tile/controls-nest.pug
+            include tiles-controls.pug
         #draw-room-palette-controls(hidden)
-            include ../edit-colors/controls-nest.pug
+            include colors-controls.pug
     .viewport-toolbar
         include /pages/room-select-toggle.pug
         include /pages/palette-select-toggle.pug
