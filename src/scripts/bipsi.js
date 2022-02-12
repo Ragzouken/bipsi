@@ -154,14 +154,18 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
     drawRecolorLayer(destination, (backg, color, tiles) => {
         for (let ty = 0; ty < 16; ++ty) {
             for (let tx = 0; tx < 16; ++tx) {
-                const back = backmap[ty][tx];
-                const fore = foremap[ty][tx];
-                const tileIndex = tilemap[ty][tx];
+                let back = backmap[ty][tx];
+                let fore = foremap[ty][tx];
+                let tileIndex = tilemap[ty][tx];
                 
+                if (tileIndex === 0) {
+                    back = 1;
+                    fore = 1;
+                    tileIndex = 1;
+                }
+
                 const frameIndex = tileToFrame.get(tileIndex);
                 const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
-
-                if (tileIndex === 0) continue;
 
                 if (back > 0) {
                     backg.fillStyle = palette.colors[back];

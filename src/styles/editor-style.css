@@ -1004,6 +1004,7 @@ label.toggle#tile-grid {
     height: unset;
     /* height: 128px; */
     display: flex; flex-direction: row;
+    gap: 1rem;
 }
 
 #color-select-window .radio-select {

@@ -63,6 +63,7 @@ function updateProject(project) {
                     }
                 }
             }
+            room.highmap = undefined;
         }
 
         room.id = room.id ?? nextRoomId(project);
@@ -1352,6 +1353,11 @@ class BipsiEditor extends EventTarget {
             this.tileEditor.redraw();
         }
 
+        const setSelectedColors = (bgIndex, fgIndex) => {
+            this.bgIndex.selectedIndex = bgIndex;
+            this.fgIndex.selectedIndex = fgIndex;
+        }
+
         this.tileBrowser.select.addEventListener("change", () => {
             if (this.roomPaintTool.selectedIndex > 1) {
                 this.roomPaintTool.selectedIndex = 0;
@@ -1475,7 +1481,7 @@ class BipsiEditor extends EventTarget {
                 return;
             }
 
-            const { tile, room, data } = this.getSelections();
+            const { tile, room, data, bgIndex, fgIndex } = this.getSelections();
 
             const scale = canvas.width / (8 * 16);
 
@@ -1497,10 +1503,9 @@ class BipsiEditor extends EventTarget {
 
             const prevTile = room.tilemap[y][x];
 
-            const pal = this.highlight.checked ? 2 : 1;
             const same = room.tilemap[y][x] === tile.id 
-                      && room.backmap[y][x] === 0
-                      && room.foremap[y][x] === pal;
+                      && room.backmap[y][x] === bgIndex
+                      && room.foremap[y][x] === fgIndex;
 
             const nextTile = same ? 0 : tile.id;
             const nextWall = 1 - room.wallmap[y][x];
@@ -1510,6 +1515,7 @@ class BipsiEditor extends EventTarget {
                     const index = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
 
                     setSelectedTile(index);
+                    setSelectedColors(room.backmap[y][x], room.foremap[y][x]);
                 }
             } else if (tool === "wall" || tool === "tile" || tool === "high") {    
                 this.stateManager.makeCheckpoint();
@@ -1521,12 +1527,11 @@ class BipsiEditor extends EventTarget {
                 const plots = {
                     tile: (x, y) => { 
                         setIfWithin(room.tilemap, x, y, nextTile); 
-                        setIfWithin(room.backmap, x, y, this.bgIndex.selectedIndex); 
-                        setIfWithin(room.foremap, x, y, this.fgIndex.selectedIndex); 
+                        setIfWithin(room.backmap, x, y, bgIndex); 
+                        setIfWithin(room.foremap, x, y, fgIndex); 
                     },
                     wall: (x, y) => setIfWithin(room.wallmap, x, y, nextWall),
                 }
-                plots.high = plots.tile;
 
                 const plot = plots[tool];
                 plot(x, y);
@@ -1638,8 +1643,11 @@ class BipsiEditor extends EventTarget {
         const tile = data.tiles[tileIndex];
         const room = data.rooms[roomIndex];
         const palette = data.palettes[paletteIndex];
-        const fg = palette?.colors[this.fgIndex.selectedIndex];
-        const bg = palette?.colors[this.bgIndex.selectedIndex];
+
+        const bgIndex = this.bgIndex.selectedIndex;
+        const fgIndex = this.fgIndex.selectedIndex;
+        const bg = palette?.colors[bgIndex];
+        const fg = palette?.colors[fgIndex];
 
         const tileFrame = tile?.frames[frameIndex] ?? tile?.frames[0];
 
@@ -1652,7 +1660,7 @@ class BipsiEditor extends EventTarget {
             paletteIndex, palette, colorIndex,
             tileIndex, tile, frameIndex, tileSize, 
             event, tileFrame,
-            fg, bg,
+            fgIndex, bgIndex, fg, bg,
         }
     }
 
