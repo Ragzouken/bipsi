@@ -15,7 +15,7 @@ function makeBlankRoom(id) {
 function makeBlankPalette(id) {
     return {
         id,
-        colors: ["#3c6fad","#d8d4dd","#ff8e9e"],
+        colors: ["#000000", ...ZEROES(7).map(() => rgbToHex({ r: getRandomInt(0, 256), g: getRandomInt(0, 256), b: getRandomInt(0, 256) }))],
     }
 }
 
@@ -48,11 +48,6 @@ function updateProject(project) {
     
     const repairLocations = !locationFields.every((location) => getRoomById(project, location.data.room));
 
-    project.palettes.forEach((palette, i) => {
-        if (palette.id !== undefined) return;
-        project.palettes[i] = { id: i, colors: palette };
-    });
-
     project.rooms.forEach((room) => {
         room.backmap = room.backmap ?? ZEROES(16).map(() => REPEAT(16, 0));
         room.foremap = room.foremap ?? ZEROES(16).map(() => REPEAT(16, 1));
@@ -71,6 +66,29 @@ function updateProject(project) {
         }
 
         room.id = room.id ?? nextRoomId(project);
+    });
+
+    project.palettes.forEach((palette, i) => {
+        if (palette.id === undefined) project.palettes[i] = { id: i, colors: palette };
+        if (palette.colors.length === 3) {
+            palette.colors.splice(0, 0, "#000000");
+            for (let i = 4; i < 8; ++i) {
+                palette.colors.push(rgbToHex({ 
+                    r: getRandomInt(0, 256), 
+                    g: getRandomInt(0, 256), 
+                    b: getRandomInt(0, 256),
+                }));
+            }
+            
+            project.rooms.forEach((room) => {
+                for (let y = 0; y < 16; ++y) {
+                    for (let x = 0; x < 16; ++x) {
+                        room.backmap[y][x] += 1;
+                        room.foremap[y][x] += 1;
+                    }
+                }
+            });
+        }
     });
 
     if (repairLocations) {
@@ -870,41 +888,32 @@ class TileEditor {
     }
 
     redraw() {
-        const { data, tileset, room, tile } = this.editor.getSelections();
+        const { data, tileset, room, tile, bg, fg } = this.editor.getSelections();
         if (!tile) return;
 
         this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
         this.editor.actions.swapTileFrames.disabled = tile.frames.length === 1;
         this.editor.renderings.tilePaint1.canvas.style.opacity = tile.frames.length === 1 ? "0%" : null;
 
-        const [bg, fg, hi] = getPaletteById(data, room.palette).colors;
-
-        const color = this.editor.highlight.checked ? hi : fg;
-        const tilesetC = recolorMask(tileset, color);
-
-        const grid = true || this.editor.tileGrid.checked;
+        const tilesetC = recolorMask(tileset, fg);
 
         [this.editor.renderings.tilePaint0, this.editor.renderings.tilePaint1].forEach((rendering, i) => {
-            fillRendering2D(rendering, bg);
+            fillRendering2D(rendering, bg === "#000000" ? undefined : bg);
+
             const frameIndex = tile.frames[i] ?? tile.frames[0];
             const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+            rendering.globalCompositeOperation = fg === "#000000" ? "destination-out" : "source-over"; 
             rendering.drawImage(
                 tilesetC.canvas,
                 x, y, size, size,
                 0, 0, size * 20, size * 20,
             );
+            rendering.globalCompositeOperation = "source-over";
 
-            if (grid) {
-                rendering.globalAlpha = .25;
-                rendering.drawImage(TILE_GRID.canvas, 0, 0);
-                rendering.globalAlpha = 1;
-            }
+            rendering.globalAlpha = .25;
+            rendering.drawImage(TILE_GRID.canvas, 0, 0);
+            rendering.globalAlpha = 1;
         });
-
-        this.editor.renderings.tilePaintA.drawImage(
-            [this.editor.renderings.tilePaint0, this.editor.renderings.tilePaint1][this.editor.frame].canvas,
-            0, 0, 8, 8,
-        );
     }
 }
 
@@ -936,7 +945,6 @@ class BipsiEditor extends EventTarget {
         this.renderings = {
             tilePaint0: ONE("#tile-paint-0").getContext("2d"),
             tilePaint1: ONE("#tile-paint-1").getContext("2d"),
-            tilePaintA: ONE("#tile-paint-a").getContext("2d"),
 
             tileMapPaint: ONE("#tile-map-paint").getContext("2d"),
             paletteRoom: ONE("#palette-room").getContext("2d"),
@@ -963,6 +971,14 @@ class BipsiEditor extends EventTarget {
             this.frameAdjustWindow.hidden = !this.showFrameAdjust.checked;
         });
         autoCloseToggledWindow(this.frameAdjustWindow, this.showFrameAdjust, "show-frame-adjust");
+
+        this.colorSelectWindow = ONE("#color-select-window");
+        this.showColorSelect = ui.toggle("show-color-window");
+        this.showColorSelect.addEventListener("change", () => {
+            this.colorSelectWindow.hidden = !this.showColorSelect.checked;
+        });
+        autoCloseToggledWindow(this.colorSelectWindow, this.showColorSelect, "show-color-window");
+        this.colorSelectPreview = ONE(`[name="show-color-window"] + canvas`);
 
         this.logWindow = ONE("#log-window");
         this.showLog = ui.toggle("show-log");
@@ -1084,6 +1100,14 @@ class BipsiEditor extends EventTarget {
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
 
+        this.fgIndex = ui.radio("foreground-index");
+        this.bgIndex = ui.radio("background-index");
+        this.fgIndex.selectedIndex = 2;
+        this.bgIndex.selectedIndex = 1;
+
+        this.fgIndex.addEventListener("change", () => { this.requestRedraw(); this.redrawTileBrowser(); });
+        this.bgIndex.addEventListener("change", () => { this.requestRedraw(); this.redrawTileBrowser(); });
+
         this.modeSelect.tab(ONE("#info-tab-body"), "info");
         this.modeSelect.tab(ONE("#info-tab-viewport"), "info");
         this.modeSelect.tab(ONE("#draw-room-tab-controls"), "draw-room");
@@ -1098,7 +1122,6 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.tab(ONE("#draw-room-palette-controls"), "color");
 
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
-        this.roomPaintTool.tab(ONE("#highlight-toggle"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
 
         this.roomGrid = ui.toggle("room-grid");
@@ -1494,12 +1517,12 @@ class BipsiEditor extends EventTarget {
                 const setIfWithin = (map, x, y, value) => {
                     if (x >= 0 && x < 16 && y >= 0 && y < 16) map[y][x] = value ?? 0;
                 } 
-
+                
                 const plots = {
                     tile: (x, y) => { 
                         setIfWithin(room.tilemap, x, y, nextTile); 
-                        setIfWithin(room.backmap, x, y, 0); 
-                        setIfWithin(room.foremap, x, y, pal); 
+                        setIfWithin(room.backmap, x, y, this.bgIndex.selectedIndex); 
+                        setIfWithin(room.foremap, x, y, this.fgIndex.selectedIndex); 
                     },
                     wall: (x, y) => setIfWithin(room.wallmap, x, y, nextWall),
                 }
@@ -1615,6 +1638,8 @@ class BipsiEditor extends EventTarget {
         const tile = data.tiles[tileIndex];
         const room = data.rooms[roomIndex];
         const palette = data.palettes[paletteIndex];
+        const fg = palette?.colors[this.fgIndex.selectedIndex];
+        const bg = palette?.colors[this.bgIndex.selectedIndex];
 
         const tileFrame = tile?.frames[frameIndex] ?? tile?.frames[0];
 
@@ -1627,6 +1652,7 @@ class BipsiEditor extends EventTarget {
             paletteIndex, palette, colorIndex,
             tileIndex, tile, frameIndex, tileSize, 
             event, tileFrame,
+            fg, bg,
         }
     }
 
@@ -1651,12 +1677,10 @@ class BipsiEditor extends EventTarget {
         const { data, tileset } = this.getSelections();
         const room = data.rooms[roomIndex];
         palette = palette ?? data.palettes[room.palette];
-        const [background] = palette.colors;
 
         // find current animation frame for each tile
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
 
-        fillRendering2D(rendering, background);
         drawTilemapLayer(rendering, tileset, tileToFrame, palette, room);
         drawEventLayer(rendering, tileset, tileToFrame, palette, room.events);
     }
@@ -1697,12 +1721,12 @@ class BipsiEditor extends EventTarget {
         const palette = this.roomPaintTool.value === "color" 
                       ? this.paletteEditor.getPreviewPalette()  
                       : getPaletteById(data, room.palette);
-        const [background] = palette.colors;
 
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
 
-        fillRendering2D(TEMP_128, background);
+        fillRendering2D(TEMP_128);
         drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
+        fillRendering2D(this.renderings.tileMapPaint);
         this.renderings.tileMapPaint.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
         
         fillRendering2D(TEMP_128);
@@ -1736,6 +1760,12 @@ class BipsiEditor extends EventTarget {
 
         this.refreshRoomSelect();
         this.refreshPaletteSelect();
+
+        palette.colors.forEach((color, i) => {
+            if (i === 0) return;
+            this.fgIndex.inputs[i].style.backgroundColor = color;
+            this.bgIndex.inputs[i].style.backgroundColor = color;
+        });
 
         this.drawRoom(TEMP_128, roomIndex, { palette });
         this.renderings.paletteRoom.drawImage(TEMP_128.canvas, 0, 0);
@@ -1775,6 +1805,10 @@ class BipsiEditor extends EventTarget {
         this.actions.reorderPaletteBefore.disabled = this.paletteSelectWindow.select.selectedIndex <= 0;
         this.actions.reorderPaletteAfter.disabled = this.paletteSelectWindow.select.selectedIndex >= this.stateManager.present.palettes.length - 1;
 
+        const fg = palette.colors[this.fgIndex.selectedIndex];
+        const bg = palette.colors[this.bgIndex.selectedIndex];
+        this.colorSelectPreview.style.background = `linear-gradient(135deg, ${fg} 0%, ${fg} 50%, ${bg} 50%, ${bg} 100%)`
+
         this.redrawDialoguePreview();
     } 
 
@@ -1805,7 +1839,7 @@ class BipsiEditor extends EventTarget {
         const { data, paletteIndex, colorIndex } = this.getSelections();
 
         const thumbs = data.palettes.map((palette) => {
-            const thumb = createRendering2D(3, 1);
+            const thumb = createRendering2D(4, 2);
             drawPaletteThumbnail(thumb, palette);
             return { id: palette.id, thumb: thumb.canvas };
         });
@@ -1839,42 +1873,49 @@ class BipsiEditor extends EventTarget {
     }
 
     async redrawTileBrowser() {
-        const { data, room, tileset } = this.getSelections();
-        const [, foreground, highlight] = getPaletteById(data, room.palette).colors;
+        const { data, room, tileset, bg, fg } = this.getSelections();
 
-        const hi = this.roomPaintTool.value === "high" || this.highlight.checked || this.roomPaintTool.value === "events";
-        const color = hi ? highlight : foreground;
-        const tilesetC = recolorMask(tileset, color, TEMP_TILESET0);
+        const hi = this.roomPaintTool.value === "events";
+        const tilesetC = recolorMask(tileset, fg, TEMP_TILESET0);
 
         // draw tileset frame
         const cols = 16;
         const rows = Math.ceil(data.tiles.length / cols);
-        const frame0 = createRendering2D(cols * 8, rows * 8);
-        const frame1 = createRendering2D(cols * 8, rows * 8);
+        const width = cols * constants.tileSize;
+        const height = rows * constants.tileSize;
 
-        data.tiles.forEach(({ frames }, i) => {
-            const index0 = frames[0];
-            const index1 = frames[1] ?? index0;
+        const frame0 = createRendering2D(width, height);
+        const frame1 = createRendering2D(width, height);
 
-            const tx = i % 16;
-            const ty = Math.floor(i / 16);
+        function renderTileset(destination, frame) {
+            data.tiles.forEach(({ frames }, i) => {
+                const index = frames[frame] ?? frames[0];
+    
+                const tx = i % 16;
+                const ty = Math.floor(i / 16);
 
-            {
-                const { x, y, size } = getTileCoords(tilesetC.canvas, index0);
-                frame0.drawImage(
+                const { x, y, size } = getTileCoords(tilesetC.canvas, index);
+                destination.drawImage(
                     tilesetC.canvas,
                     x, y, size, size, 
                     tx * size, ty * size, size, size,
                 );
-            }
-            {
-                const { x, y, size } = getTileCoords(tilesetC.canvas, index1);
-                frame1.drawImage(
-                    tilesetC.canvas,
-                    x, y, size, size, 
-                    tx * size, ty * size, size, size,
-                );
-            }
+            });
+        }
+
+        fillRendering2D(frame0);
+        fillRendering2D(frame1);
+
+        drawRecolorLayerDynamic(frame0, (back, color, tiles) => {
+            fillRendering2D(back, bg === "#000000" ? undefined : bg);
+            fillRendering2D(color, fg === "#000000" ? undefined : fg);
+            renderTileset(tiles, 0);
+        });
+
+        drawRecolorLayerDynamic(frame1, (back, color, tiles) => {
+            fillRendering2D(back, bg === "#000000" ? undefined : bg);
+            fillRendering2D(color, fg === "#000000" ? undefined : fg);
+            renderTileset(tiles, 1);
         });
 
         // regenerate tileset uris

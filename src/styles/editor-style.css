@@ -186,6 +186,17 @@ input[type="text"], textarea {
 .grid3 > *:nth-last-child(3) { border-bottom-left-radius: 1em; }
 .grid3 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
 
+.grid4 {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+}
+
+.grid4 > * { border-radius: 0; }
+.grid4 > *:nth-child(1) { border-top-left-radius: 1em; }
+.grid4 > *:nth-child(4) { border-top-right-radius: 1em; }
+.grid4 > *:nth-last-child(4) { border-bottom-left-radius: 1em; }
+.grid4 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
+
 body {
     touch-action: none;
     background: var(--page-color, black);
@@ -319,7 +330,7 @@ select {
 
     width: 40px; height: 40px;
 
-    background-color: var(--tileset-background-color);
+    /* background-color: var(--tileset-background-color); */
     background-image: var(--tileset-background-image);
     background-size: var(--tileset-background-size);
 }
@@ -653,6 +664,8 @@ label.toggle#tile-grid {
 
 #tile-map-paint {
     cursor: crosshair;
+
+    background: var(--trans-gradient);
 }
 
 #tile-paint-room {
@@ -953,11 +966,7 @@ label.toggle#tile-grid {
     height: 236px;
 }
 
-#move-to-window-position {
-    cursor: pointer;
-}
-
-#move-to-window {
+.popup-window {
     position: absolute;
     width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
@@ -971,61 +980,50 @@ label.toggle#tile-grid {
     cursor: initial;
     z-index: 100;
 
-    display: flex;
-    flex-direction: row;
+    box-shadow: 0 0 0 2px black;
+}
+
+#move-to-window-position {
+    cursor: pointer;
+}
+
+#move-to-window {
+    display: flex; flex-direction: row;
     gap: 1rem;
 }
 
 #room-select-window {
-    position: absolute;
-    width: 512px; height: 320px;
-    bottom: calc(48px + .5rem);
-
-    display: flex; flex-direction: column;
-    border-radius: 1rem;
-    padding: 1rem; gap: .5rem;
-
-    background: var(--frame-color);
-
-    cursor: initial;
-    z-index: 100;
-
-    box-shadow: 0 0 0 2px black;
+    height: 320px;
 }
 
 #palette-select-window {
-    position: absolute;
-    width: 512px; height: 320px;
-    bottom: calc(48px + .5rem);
+    height: 320px;
+}
 
-    display: flex; flex-direction: column;
-    border-radius: 1rem;
-    padding: 1rem; gap: .5rem;
+#color-select-window {
+    height: unset;
+    /* height: 128px; */
+    display: flex; flex-direction: row;
+}
 
-    background: var(--frame-color);
+#color-select-window .radio-select {
+    flex: 1;
 
-    cursor: initial;
-    z-index: 100;
+    padding: .5rem;
 
-    box-shadow: 0 0 0 2px black;
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+    overflow: hidden;
+}
+
+#color-select-window .radio-select:first-child {
+    background: var(--trans-gradient);
 }
 
 #frame-adjust-window {
-    position: absolute;
     width: 256px;
     right: 0;
     bottom: calc(72px + .5rem);
-
-    display: flex; flex-direction: column;
-    border-radius: 1.5rem;
-    padding: 1rem; gap: .5rem;
-
-    background: var(--frame-color);
-
-    cursor: initial;
-    z-index: 100;
-
-    box-shadow: 0 0 0 2px black;
 }
 
 #log-window {
@@ -1061,8 +1059,6 @@ label.toggle#tile-grid {
 }
 
 #variables-window {
-    position: absolute;
-    width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
 
     display: flex; flex-direction: column;

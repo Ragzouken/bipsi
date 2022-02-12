@@ -163,11 +163,15 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
 
                 if (tileIndex === 0) continue;
 
-                backg.fillStyle = palette.colors[back];
-                backg.fillRect(tx * size, ty * size, size, size);
+                if (back > 0) {
+                    backg.fillStyle = palette.colors[back];
+                    backg.fillRect(tx * size, ty * size, size, size);
+                }
 
-                color.fillStyle = palette.colors[fore];
-                color.fillRect(tx * size, ty * size, size, size);
+                if (fore > 0) {
+                    color.fillStyle = palette.colors[fore];
+                    color.fillRect(tx * size, ty * size, size, size);
+                }
 
                 tiles.drawImage(
                     tileset.canvas,
@@ -187,7 +191,7 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
  * @param {BipsiDataEvent[]} events 
  */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
-    const [background, foreground, highlight] = palette.colors;
+    const [, background, foreground, highlight] = palette.colors;
 
     drawRecolorLayer(destination, (backg, color, tiles) => {
         events.forEach((event) => {
@@ -241,11 +245,13 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
  * @param {CanvasRenderingContext2D} rendering 
  * @param {BipsiDataPalette} palette
  */
- function drawPaletteThumbnail(rendering, palette) {
-    palette.colors.forEach((color, i) => {
-        rendering.fillStyle = color;
-        rendering.fillRect(i, 0, 1, 1);
-    });
+function drawPaletteThumbnail(rendering, palette) {
+    for (let y = 0; y < 2; ++y) {
+        for (let x = 0; x < 4; ++x) {
+            rendering.fillStyle = palette.colors[y * 4 + x];
+            rendering.fillRect(x, y, 1, 1);
+        }
+    }
 }
 
 
