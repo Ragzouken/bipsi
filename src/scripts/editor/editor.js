@@ -318,6 +318,7 @@ class PaletteEditor {
 const FIELD_DEFAULTS = {
     tag: true,
     tile: 0,
+    colors: { fg: 3, bg: 1 },
     dialogue: "",
     location: { room: 0, position: [0, 0] },
     javascript: "",
@@ -384,6 +385,7 @@ const EVENT_TEMPLATES = {
     ],
     character: [
         { key: "graphic", type: "tile", data: 0 },
+        { key: "colors", type: "colors", data: { bg: 1, fg: 3 } },
         { key: "solid", type: "tag", data: true },
         { key: "say", type: "dialogue", data: "hello" },
     ],
@@ -393,6 +395,7 @@ const EVENT_TEMPLATES = {
     player: [
         { key: "is-player", type: "tag", data: true },
         { key: "graphic", type: "tile", data: 0 },
+        { key: "colors", type: "colors", data: { bg: 1, fg: 3 } },
         { key: "title", type: "dialogue", data: "your game title" },
         { key: "page-color", type: "text", data: "black" },
     ],
@@ -532,6 +535,9 @@ class EventEditor {
             json: ONE("#field-json-editor textarea"),
             dialogue: ONE("#field-dialogue-editor textarea"),
             javascript: ONE("#field-javascript-editor textarea"),
+
+            fgIndex: ui.radio("field-foreground-index"),
+            bgIndex: ui.radio("field-background-index"),
         };
 
         this.positionSelect = ONE("#field-position-select");
@@ -602,6 +608,19 @@ class EventEditor {
                 field.data.position = [tx, ty];
             });
         });
+
+        this.valueEditors.bgIndex.addEventListener("change", (event) => {
+            this.editor.stateManager.makeChange(async (data) => {
+                const { field } = this.getSelections(data);
+                field.data.bg = this.valueEditors.bgIndex.selectedIndex;
+            });
+        });
+        this.valueEditors.fgIndex.addEventListener("change", (event) => {
+            this.editor.stateManager.makeChange(async (data) => {
+                const { field } = this.getSelections(data);
+                field.data.fg = this.valueEditors.fgIndex.selectedIndex;
+            });
+        });
     }
 
     get showDialoguePreview() {
@@ -660,6 +679,7 @@ class EventEditor {
             ONE("#field-tile-editor").hidden = true;
             ONE("#field-location-editor").hidden = true;
             ONE("#field-file-editor").hidden = true;
+            ONE("#field-colors-editor").hidden = true;
 
             if (field) {
                 if (field.type === "tag") {
@@ -679,6 +699,10 @@ class EventEditor {
                     ONE("#field-tile-editor").hidden = false;
                     const index = this.editor.stateManager.present.tiles.findIndex((tile) => tile.id === field.data);
                     this.editor.eventTileBrowser.selectedTileIndex = index;
+                } else if (field.type === "colors") {
+                    ONE("#field-colors-editor").hidden = false;
+                    this.valueEditors.bgIndex.selectedIndex = field.data.bg;
+                    this.valueEditors.fgIndex.selectedIndex = field.data.fg;
                 } else if (field.type === "location") {
                     ONE("#field-location-editor").hidden = false;
                     let index = data.rooms.findIndex((room) => room.id == field.data.room);
@@ -1121,6 +1145,8 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.tab(ONE("#draw-room-events-controls"), "events");
         this.roomPaintTool.tab(ONE("#room-events-toolbar"), "events");
         this.roomPaintTool.tab(ONE("#draw-room-palette-controls"), "color");
+        
+        this.roomPaintTool.tab(ONE("#color-select-window-toggle"), "tile");
 
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
@@ -1773,6 +1799,9 @@ class BipsiEditor extends EventTarget {
             if (i === 0) return;
             this.fgIndex.inputs[i].style.backgroundColor = color;
             this.bgIndex.inputs[i].style.backgroundColor = color;
+  
+            this.eventEditor.valueEditors.fgIndex.inputs[i].style.backgroundColor = color;
+            this.eventEditor.valueEditors.bgIndex.inputs[i].style.backgroundColor = color;
         });
 
         this.drawRoom(TEMP_128, roomIndex, { palette });

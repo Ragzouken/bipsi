@@ -1000,14 +1000,14 @@ label.toggle#tile-grid {
     height: 320px;
 }
 
-#color-select-window {
+.color-index-select {
     height: unset;
     /* height: 128px; */
     display: flex; flex-direction: row;
     gap: 1rem;
 }
 
-#color-select-window .radio-select {
+.color-index-select .radio-select {
     flex: 1;
 
     padding: .5rem;
@@ -1017,7 +1017,7 @@ label.toggle#tile-grid {
     overflow: hidden;
 }
 
-#color-select-window .radio-select:first-child {
+.color-index-select .radio-select label:first-child {
     background: var(--trans-gradient);
 }
 

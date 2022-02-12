@@ -195,23 +195,29 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
  * @param {BipsiDataEvent[]} events 
  */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
-    const [, background, foreground, highlight] = palette.colors;
-
     drawRecolorLayer(destination, (backg, color, tiles) => {
         events.forEach((event) => {
             const [tx, ty] = event.position;
             const graphicField = oneField(event, "graphic", "tile");
             if (graphicField) {
+                let { fg, bg } = FIELD(event, "colors", "colors") ?? { bg: 1, fg: 3 };
+
                 const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
                 const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
     
-                if (background && !eventIsTagged(event, "transparent")) {
-                    backg.fillStyle = background;
+                if (eventIsTagged(event, "transparent")) {
+                    bg = 0;
+                }
+
+                if (bg > 0) {
+                    backg.fillStyle = palette.colors[bg];
                     backg.fillRect(tx * size, ty * size, size, size);
                 }
 
-                color.fillStyle = highlight;
-                color.fillRect(tx * size, ty * size, size, size);
+                if (fg > 0) {
+                    color.fillStyle = palette.colors[fg];
+                    color.fillRect(tx * size, ty * size, size, size);
+                }
 
                 tiles.drawImage(
                     tileset.canvas,
