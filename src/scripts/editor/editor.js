@@ -152,7 +152,7 @@ class PaletteEditor {
         this.colorValue = ui.slider("color-value");
         this.colorHex = ui.text("color-hex");
 
-        this.colorIndex.selectedIndex = 0;
+        this.colorIndex.selectedIndex = 1;
 
         this.colorIndex.addEventListener("change", () => {
             this.updateTemporaryFromData();
@@ -246,7 +246,7 @@ class PaletteEditor {
 
         // recolor the color select buttons to the corresponding color
         ALL("#color-index-select label").forEach((label, i) => {
-            label.style.background = palette.colors[i];
+            label.style.background = palette.colors[i+1];
         });
 
         // color wheel:
@@ -1344,7 +1344,7 @@ class BipsiEditor extends EventTarget {
             const palette = getPaletteById(data, id);
             const index = data.palettes.indexOf(palette);
             this.paletteSelectWindow.select.selectedIndex = index;
-            this.paletteEditor.colorIndex.selectedIndex = color;
+            this.paletteEditor.colorIndex.selectedIndex = color-1;
 
             this.requestRedraw();
             this.eventEditor.refresh();

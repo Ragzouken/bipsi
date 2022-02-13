@@ -235,7 +235,7 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
  * @param {BipsiDataRoom} room 
  */
  function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette.colors;
+    const [, background, foreground, highlight] = palette.colors;
     for (let y = 0; y < 16; ++y) {
         for (let x = 0; x < 16; ++x) {
             const color = room.wallmap[y][x] === 1 ? foreground : background;
@@ -262,6 +262,7 @@ function drawPaletteThumbnail(rendering, palette) {
             rendering.fillRect(x, y, 1, 1);
         }
     }
+    rendering.clearRect(0, 0, 1, 1);
 }
 
 

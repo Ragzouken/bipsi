@@ -382,6 +382,8 @@ input + *, input + * + * {
 .picker-toggle > canvas {
     width: 32px;
     height: 32px;
+
+    background: var(--trans-gradient);
 }
 
 .picker-toggle > * + * + svg {
