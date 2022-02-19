@@ -69,9 +69,13 @@ function updateProject(project) {
         room.id = room.id ?? nextRoomId(project);
     });
 
+    const fixPalettes = project.palettes[0].id === undefined && project.palettes[0].length === 3;
+
     project.palettes.forEach((palette, i) => {
-        if (palette.id === undefined) project.palettes[i] = { id: i, colors: palette };
-        if (palette.colors.length === 3) {
+        if (fixPalettes) {
+            project.palettes[i] = { id: i, colors: palette };
+            palette = project.palettes[i];
+
             palette.colors.splice(0, 0, "#000000");
             for (let i = 4; i < 8; ++i) {
                 palette.colors.push(rgbToHex({ 
@@ -80,17 +84,19 @@ function updateProject(project) {
                     b: getRandomInt(0, 256),
                 }));
             }
-            
-            project.rooms.forEach((room) => {
-                for (let y = 0; y < 16; ++y) {
-                    for (let x = 0; x < 16; ++x) {
-                        room.backmap[y][x] += 1;
-                        room.foremap[y][x] += 1;
-                    }
-                }
-            });
         }
     });
+
+    if (fixPalettes) {
+        project.rooms.forEach((room) => {
+            for (let y = 0; y < 16; ++y) {
+                for (let x = 0; x < 16; ++x) {
+                    room.backmap[y][x] += 1;
+                    room.foremap[y][x] += 1;
+                }
+            }
+        });
+    }
 
     if (repairLocations) {
         locationFields.forEach((field) => {
@@ -1130,6 +1136,7 @@ class BipsiEditor extends EventTarget {
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
         this.roomColorMode = ui.radio("room-color-mode");
+        this.roomColorMode.selectedIndex = 0;
 
         this.fgIndex = ui.radio("foreground-index");
         this.bgIndex = ui.radio("background-index");
@@ -1890,10 +1897,10 @@ class BipsiEditor extends EventTarget {
         });
 
         this.paletteSelectWindow.updatePalettes(thumbs);
-
+        
         if (paletteIndex >= 0) {
             this.colorSelect.updatePalettes(data.palettes);
-            this.colorSelect.select.setSelectedIndexSilent(paletteIndex * 3 + colorIndex);
+            this.colorSelect.select.setSelectedIndexSilent(paletteIndex * 7 + colorIndex);
         }
 
         this.paletteSelectWindow.select.setSelectedIndexSilent(Math.max(this.paletteSelectWindow.select.selectedIndex, 0));

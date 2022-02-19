@@ -103,11 +103,11 @@
         button(name="field-file-select") select file
         input#field-file-info(type="text" readonly value="test")
     #field-colors-editor.color-index-select(hidden)
-        #field-color-select-foreground.radio-select.grid4.color-select(title="select foreground")
+        #field-color-select-foreground.radio-select.horizontal-capsule.color-select(title="select foreground")
             each _, i in (new Array(8).fill(0))
                 label
                     input(type="radio" name="field-foreground-index" value=`${i}` title=`select foreground color ${i}`)
-        #field-color-select-background.radio-select.grid4.color-select(title="select foreground")
+        #field-color-select-background.radio-select.horizontal-capsule.color-select(title="select foreground")
             each _, i in (new Array(8).fill(0))
                 label
                     input(type="radio" name="field-background-index" value=`${i}` title=`select background color ${i}`)

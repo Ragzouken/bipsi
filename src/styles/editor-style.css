@@ -1023,20 +1023,6 @@ label.toggle#tile-grid {
     height: 320px;
 }
 
-#color-select-window {
-    flex-direction: column;
-    gap: 6px;
-}
-
-#color-select-window .row {
-    gap: 6px;
-}
-
-#color-select-window .row > label {
-    flex: 0;
-    min-width: 48px;
-}
-
 #color-select-window .radio-select {
     background: none;
     padding: 0;
@@ -1046,18 +1032,17 @@ label.toggle#tile-grid {
 .color-index-select {
     height: unset;
     /* height: 128px; */
-    display: flex; flex-direction: row;
-    gap: 1rem;
+    display: flex; flex-direction: column;
+    gap: 6px;
+
+    overflow: visible;
 }
 
 .color-index-select .radio-select {
     flex: 1;
 
-    padding: .5rem;
 
     border-radius: .5rem;
-    background: var(--trans-gradient);
-    overflow: hidden;
 }
 
 .color-index-select:not(#color-select-window) .radio-select label:first-child {
