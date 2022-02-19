@@ -610,10 +610,14 @@ label.toggle#tile-grid {
 .color-select input[type="radio"]:checked {
     background: none;
     z-index: 5;
-    box-shadow: 0 0 0 .5em white;
+    box-shadow: 0 0 0 6px white;
 }
 
-.color-select label > input {
+.color-select.radio-select, .color-select .horizontal-capsule {
+    gap: 0;
+}
+
+.color-select label > input[type="radio"] {
     background: none;
 }
 
@@ -1019,6 +1023,26 @@ label.toggle#tile-grid {
     height: 320px;
 }
 
+#color-select-window {
+    flex-direction: column;
+    gap: 6px;
+}
+
+#color-select-window .row {
+    gap: 6px;
+}
+
+#color-select-window .row > label {
+    flex: 0;
+    min-width: 48px;
+}
+
+#color-select-window .radio-select {
+    background: none;
+    padding: 0;
+    overflow: visible;
+}
+
 .color-index-select {
     height: unset;
     /* height: 128px; */
@@ -1036,7 +1060,11 @@ label.toggle#tile-grid {
     overflow: hidden;
 }
 
-.color-index-select .radio-select label:first-child {
+.color-index-select:not(#color-select-window) .radio-select label:first-child {
+    background: var(--trans-gradient);
+}
+
+#color-select-window .radio-select label:nth-child(2) {
     background: var(--trans-gradient);
 }
 

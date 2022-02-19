@@ -990,6 +990,11 @@ class BipsiEditor extends EventTarget {
             });
         }
 
+        this.paintBackground = ui.toggle("room-paint-background");
+        this.paintForeground = ui.toggle("room-paint-foreground")
+        this.paintBackground.checked = true;
+        this.paintForeground.checked = true;
+
         this.frameAdjustWindow = ONE("#frame-adjust-window");
         this.showFrameAdjust = ui.toggle("show-frame-adjust");
         this.showFrameAdjust.addEventListener("change", () => {
@@ -1555,8 +1560,8 @@ class BipsiEditor extends EventTarget {
                 const plots = {
                     tile: (x, y) => { 
                         setIfWithin(room.tilemap, x, y, nextTile); 
-                        setIfWithin(room.backmap, x, y, bgIndex); 
-                        setIfWithin(room.foremap, x, y, fgIndex); 
+                        if (this.paintBackground.checked) setIfWithin(room.backmap, x, y, bgIndex); 
+                        if (this.paintForeground.checked) setIfWithin(room.foremap, x, y, fgIndex); 
                     },
                     wall: (x, y) => setIfWithin(room.wallmap, x, y, nextWall),
                     color: (x, y) => setIfWithin(this.roomColorMode.value === "bg" ? room.backmap : room.foremap, x, y, colorIndex+1),
