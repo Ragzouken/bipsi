@@ -10,6 +10,13 @@
         include /pages/room-select-toggle.pug
         include /pages/palette-select-toggle.pug
         include /pages/color-select-toggle.pug
+        .horizontal-capsule.radio-select#draw-room-color-mode
+            label
+                input(type="radio" name="room-color-mode" value="fg" title="paint foreground color")
+                include /icons/foreground.svg
+            label
+                input(type="radio" name="room-color-mode" value="bg" title="paint background color")
+                include /icons/background.svg
         .horizontal-capsule#room-events-toolbar(hidden)
             button(name="copy-event" title="copy event")
                 include /icons/copy.svg

@@ -159,8 +159,7 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
                 let tileIndex = tilemap[ty][tx];
                 
                 if (tileIndex === 0) {
-                    back = 1;
-                    fore = 1;
+                    fore = back;
                     tileIndex = 1;
                 }
 

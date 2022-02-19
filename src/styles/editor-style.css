@@ -379,11 +379,28 @@ input + *, input + * + * {
     z-index: 6;
 }
 
+.picker-toggle-preview {
+    border-radius: 0.25rem;
+    box-shadow: var(--black-outline-shadow);
+    pointer-events: none;
+
+    width: 32px;
+    height: 32px;
+    background: var(--trans-gradient);
+
+    display: flex;
+    overflow: hidden;
+}
+
 .picker-toggle > canvas {
     width: 32px;
     height: 32px;
 
     background: var(--trans-gradient);
+
+    border-radius: .25rem;
+    box-shadow: var(--black-outline-shadow);
+    pointer-events: none;
 }
 
 .picker-toggle > * + * + svg {
@@ -393,12 +410,6 @@ input + *, input + * + * {
 
 label.toggle#tile-grid {
     max-width: 64px;
-}
-
-.picker-toggle > canvas {
-    border-radius: .25rem;
-    box-shadow: var(--black-outline-shadow);
-    pointer-events: none;
 }
 
 .picker-toggle > *:checked + canvas {
@@ -588,6 +599,12 @@ label.toggle#tile-grid {
 
 #color-select label {
     min-height: 44px;
+}
+
+.color-select.grid4 label:first-child {
+    border: solid gray 1px;
+    border-right: none;
+    border-bottom: none;
 }
 
 .color-select input[type="radio"]:checked {

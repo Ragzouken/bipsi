@@ -1003,7 +1003,7 @@ class BipsiEditor extends EventTarget {
             this.colorSelectWindow.hidden = !this.showColorSelect.checked;
         });
         autoCloseToggledWindow(this.colorSelectWindow, this.showColorSelect, "show-color-window");
-        this.colorSelectPreview = ONE(`[name="show-color-window"] + canvas`);
+        this.colorSelectPreview = ONE(`[name="show-color-window"] + div canvas`);
 
         this.logWindow = ONE("#log-window");
         this.showLog = ui.toggle("show-log");
@@ -1124,6 +1124,7 @@ class BipsiEditor extends EventTarget {
         this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
+        this.roomColorMode = ui.radio("room-color-mode");
 
         this.fgIndex = ui.radio("foreground-index");
         this.bgIndex = ui.radio("background-index");
@@ -1145,6 +1146,7 @@ class BipsiEditor extends EventTarget {
         this.roomPaintTool.tab(ONE("#draw-room-events-controls"), "events");
         this.roomPaintTool.tab(ONE("#room-events-toolbar"), "events");
         this.roomPaintTool.tab(ONE("#draw-room-palette-controls"), "color");
+        this.roomPaintTool.tab(ONE("#draw-room-color-mode"), "color");
         
         this.roomPaintTool.tab(ONE("#color-select-window-toggle"), "tile");
 
@@ -1507,7 +1509,7 @@ class BipsiEditor extends EventTarget {
                 return;
             }
 
-            const { tile, room, data, bgIndex, fgIndex } = this.getSelections();
+            const { tile, room, data, bgIndex, fgIndex, colorIndex } = this.getSelections();
 
             const scale = canvas.width / (8 * 16);
 
@@ -1543,13 +1545,13 @@ class BipsiEditor extends EventTarget {
                     setSelectedTile(index);
                     setSelectedColors(room.backmap[y][x], room.foremap[y][x]);
                 }
-            } else if (tool === "wall" || tool === "tile" || tool === "high") {    
+            } else if (tool === "wall" || tool === "tile" || tool === "high" || tool === "color") {    
                 this.stateManager.makeCheckpoint();
 
                 const setIfWithin = (map, x, y, value) => {
                     if (x >= 0 && x < 16 && y >= 0 && y < 16) map[y][x] = value ?? 0;
                 } 
-                
+
                 const plots = {
                     tile: (x, y) => { 
                         setIfWithin(room.tilemap, x, y, nextTile); 
@@ -1557,6 +1559,7 @@ class BipsiEditor extends EventTarget {
                         setIfWithin(room.foremap, x, y, fgIndex); 
                     },
                     wall: (x, y) => setIfWithin(room.wallmap, x, y, nextWall),
+                    color: (x, y) => setIfWithin(this.roomColorMode.value === "bg" ? room.backmap : room.foremap, x, y, colorIndex+1),
                 }
 
                 const plot = plots[tool];
@@ -1606,7 +1609,7 @@ class BipsiEditor extends EventTarget {
                     cycleEvents(room.events, -dx, -dy);
                     redraw();
                 });
-            }
+            } 
         };
 
         this.renderings.tileMapPaint.canvas.addEventListener("pointerdown", (event) => onRoomPointer(event, this.renderings.tileMapPaint.canvas));
@@ -1751,7 +1754,7 @@ class BipsiEditor extends EventTarget {
     redraw() {
         this.tileEditor.redraw();
 
-        const { data, room, tileSize, roomIndex, tileset } = this.getSelections();
+        const { data, room, tileSize, roomIndex, tileset, fgIndex, bgIndex } = this.getSelections();
         const palette = this.roomPaintTool.value === "color" 
                       ? this.paletteEditor.getPreviewPalette()  
                       : getPaletteById(data, room.palette);
@@ -1842,8 +1845,8 @@ class BipsiEditor extends EventTarget {
         this.actions.reorderPaletteBefore.disabled = this.paletteSelectWindow.select.selectedIndex <= 0;
         this.actions.reorderPaletteAfter.disabled = this.paletteSelectWindow.select.selectedIndex >= this.stateManager.present.palettes.length - 1;
 
-        const fg = palette.colors[this.fgIndex.selectedIndex];
-        const bg = palette.colors[this.bgIndex.selectedIndex];
+        const fg = fgIndex === 0 ? "transparent" : palette.colors[fgIndex];
+        const bg = bgIndex === 0 ? "transparent" : palette.colors[bgIndex];
         this.colorSelectPreview.style.background = `linear-gradient(135deg, ${fg} 0%, ${fg} 50%, ${bg} 50%, ${bg} 100%)`
 
         this.redrawDialoguePreview();
