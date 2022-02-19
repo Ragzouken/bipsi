@@ -150,7 +150,7 @@ class PaletteEditor {
         ).canvas;
 
         const margin = constants.colorwheelMargin;
-        this.colorHueSat.style.setProperty("margin", `-${margin}px`);
+        //this.colorHueSat.style.setProperty("margin", `-${margin}px`);
         this.colorHueSat.width += margin * 2;
         this.colorHueSat.height += margin * 2;
 
@@ -1252,6 +1252,8 @@ class BipsiEditor extends EventTarget {
             copyEvent: ui.action("copy-event", () => this.copySelectedEvent()),
             pasteEvent: ui.action("paste-event", () => this.pasteSelectedEvent()),
             deleteEvent: ui.action("delete-event", () => this.deleteSelectedEvent()),
+
+            randomiseColor: ui.action("randomise-color", () => this.randomiseSelectedColor()),
         };
 
         // can't undo/redo/paste yet
@@ -2279,6 +2281,16 @@ class BipsiEditor extends EventTarget {
             const event = getEventById(data, this.selectedEventId);
             arrayDiscard(room.events, event);
             this.selectedEventId = undefined;
+        });
+    }
+
+    randomiseSelectedColor() {
+        this.stateManager.makeChange(async (data) => {
+            const { colorIndex, palette } = this.getSelections(data);
+            const h = Math.random();
+            const s = Math.random();
+            const v = Math.random();
+            palette.colors[colorIndex+1] = rgbToHex(HSVToRGB({ h, s, v }));
         });
     }
 

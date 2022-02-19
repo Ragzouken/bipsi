@@ -1308,12 +1308,19 @@ p {
 }
 
 #palette-edit {
-    width: 278px;
+    width: 268px;
 }
 
 #color-huesat {
-    width: 270px;
-    height: 270px;
+    width: 260px;
+    height: 260px;
+
+    margin: -12px -4px;
+}
+
+[name="randomise-color"] {
+    min-height: 48px;
+    min-width: 48px;
 }
 
 .info-action-list > .button, .info-action-list > button {
