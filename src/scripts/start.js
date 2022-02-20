@@ -60,12 +60,16 @@ async function makePlayback(font, bundle, story) {
     keyToCode.set("ArrowRight", "KeyD");
 
     function doMove(key) {
-        if(playback.preventMoving) return;
         const move = keys.get(key);
         if (move) {
             move();
             moveCooldown = .2;
         }
+    }
+
+    function doChoice(key){
+        const choiceEvent = new CustomEvent('choice', { detail: key});
+        playback.dispatchEvent(choiceEvent);
     }
 
     let prev;
@@ -88,6 +92,9 @@ async function makePlayback(font, bundle, story) {
 
     function down(key, code) {
         if (!playback.dialoguePlayback.empty) {
+            if(playback.choiceExpected){
+                return doChoice(key);
+            };
             playback.proceed();
         } else {
             heldKeys.add(key);
@@ -124,7 +131,10 @@ async function makePlayback(font, bundle, story) {
         const drag = ui.drag(event);
         let [x0, y0] = [drag.downEvent.clientX, drag.downEvent.clientY];
 
-        playback.proceed();
+        if(!playback.choiceExpected){
+            playback.proceed();
+        };
+        
 
         drag.addEventListener("move", () => {
             const [x1, y1] = [drag.lastEvent.clientX, drag.lastEvent.clientY];
@@ -136,9 +146,14 @@ async function makePlayback(font, bundle, story) {
             const nextKey = turnToKey[turns];
 
             if (dist >= threshold) {
-                doMove(nextKey);
-                x0 = x1;
-                y0 = y1;
+                if(playback.choiceExpected){
+                    return doChoice(nextKey);
+                }else{
+                    doMove(nextKey);
+                    x0 = x1;
+                    y0 = y1;
+                }
+                
             } 
         });
     });

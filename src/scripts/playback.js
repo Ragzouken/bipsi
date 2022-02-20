@@ -265,7 +265,8 @@ let id = FIELD(EVENT, "say-shared-id", "text") ?? "SAY-ITERATORS/" + EVENT_ID(EV
 let mode = FIELD(EVENT, "say-mode", "text") ?? "cycle";
 let say = SAMPLE(id, mode, FIELDS(EVENT, "say", "dialogue"));
 if (say) {
-    await SAY(say, FIELD(EVENT, "say-style", "json"));
+    const sayStyle = FIELD(EVENT, "say-style", "json");
+    await SAY(say, sayStyle);
 }
 `;
 
@@ -376,7 +377,7 @@ class BipsiPlayback extends EventTarget {
 
         this.extra_behaviours = [];
         
-        this.preventMoving = false;
+        this.choiceExpected = false;
         this.story = undefined
     }
 
@@ -471,7 +472,7 @@ class BipsiPlayback extends EventTarget {
 
         // game starts by running the touch behaviour of the player avatar
         //await this.touch(avatar);
-        await this.continueStory();
+        await this.continueStory(avatar);
     }
 
     async spawnAt(target, event){
@@ -485,8 +486,30 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async continueStory(){
+    async sayWithPortrait(text, character, sentiment, options){
+        const characterEvent = findEventByTag(this.data, character);
+        let portraitShown = false;
+        if(characterEvent){
+            const sentimentImageId =  oneField(characterEvent, sentiment, "file")?.data
+                                   || oneField(characterEvent, "neutral", "file")?.data
+            if(sentimentImageId){
+                await this.showImage("portrait", sentimentImageId, 3, 104, 102);
+                portraitShown = true;
+            }
+        }
+        await this.say(text, options);
+        if(portraitShown){
+            await this.hideImage("portrait");
+        }
+    }
+
+    async continueStory(EVENT){
         const story = this.story;
+        const AVATAR = findEventByTag(this.data, "is-player");
+        const sayStyle = oneField(EVENT, "say-style", "json")?.data 
+                        || oneField(AVATAR, "say-style", "json")?.data 
+                        || {};
+
         while(story.canContinue) {
             // Get ink to generate the next paragraph
             var paragraphText = this.story.Continue().trim();
@@ -494,7 +517,6 @@ class BipsiPlayback extends EventTarget {
 
             if(paragraphText.length > 0){
                 const matchSpawn = paragraphText.trim().match(/SPAWN_AT\(([^),\s]*)([\s]*,[\s]*([^)]*)*)*\)/)
-                console.log(matchSpawn)
                 if( matchSpawn ){
                     const target = matchSpawn[1];
                     const event = matchSpawn[3] || "is-player";
@@ -502,7 +524,17 @@ class BipsiPlayback extends EventTarget {
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
-                    await this.say(paragraphText);
+                    
+                    const portrait = tags.find(t => t.match(/[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
+                    if(portrait){
+                        const matchPortrait = portrait.match(/([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
+                        const character = matchPortrait[1];
+                        const sentiment = matchPortrait[2];
+                        await this.sayWithPortrait(paragraphText, character, sentiment, sayStyle)
+                    }else{
+                        await this.say(paragraphText, sayStyle);
+                    }
+                    
                 }
             }
         }
@@ -512,7 +544,7 @@ class BipsiPlayback extends EventTarget {
         const autoChoice = choices.find( (choice) => choice.text.startsWith("auto:"))
         if(autoChoice !== undefined){
             story.ChooseChoiceIndex(autoChoice.index)
-            return await this.continueStory();
+            return await this.continueStory(EVENT);
         }
 
         const dialogChoices = choices.filter( (choice) => {
@@ -524,35 +556,50 @@ class BipsiPlayback extends EventTarget {
         const continueStory = this.continueStory.bind(this)
 
         if(dialogChoices.length > 0){
-            const choiceListContainer = ONE("#player-choices-list");
-            this.preventMoving = true;
-            dialogChoices.forEach(function(choice) {
+            const availableArrows = [
+                ["ArrowUp", "↑"],
+                ["ArrowDown", "↓"],
+                ["ArrowLeft", "←"],
+                ["ArrowRight", "→"]
+            ];
+            this.choiceExpected = true;
+            const dialogChoicesTexts = [];
+            const playback = this;
 
-                // Create paragraph with anchor element
-                var choiceParagraphElement = document.createElement('li');
-                choiceParagraphElement.classList.add("choice");
-                choiceParagraphElement.innerHTML = `<a href='#'>${choice.text}</a>`
-                choiceListContainer.appendChild(choiceParagraphElement);
-    
-                // Click on choice
-                var choiceAnchorEl = choiceParagraphElement.querySelectorAll("a")[0];
-                choiceAnchorEl.addEventListener("click", function(event) {
-    
-                    // Don't follow <a> link
-                    event.preventDefault();
-    
-                    // Remove all existing choices
-                    choiceListContainer.innerHTML = "";
-    
-                    // Tell the story where to go next
-                    story.ChooseChoiceIndex(choice.index);
-    
-                    // Aaand loop
-                    continueStory();
-                });
+            const choiceEvents = new Map();
+            
+            dialogChoices.forEach(function(choice) {
+                const [arrowEvent, glyph] = availableArrows.shift();
+                if(arrowEvent){
+                    dialogChoicesTexts.push(`${glyph} ${choice.text}`);
+                    choiceEvents.set(arrowEvent,  () => {
+                        console.log(`Making choice ${choice.index}`)
+                        story.ChooseChoiceIndex(choice.index);
+                    });
+                }
             });
+            //always display choices at the bottom
+            this.say(dialogChoicesTexts.join("\n"), {
+                ...sayStyle, 
+                ...{"noMargin": true,
+                    "anchorX": 0, "anchorY": 1, lineWidth: 40*6,
+                    "lines": dialogChoicesTexts.length,
+                    }
+                })
+            const listenToChoice = (event) =>{
+                const choiceAction = choiceEvents.get(event.detail)
+                if(choiceAction){
+                    choiceAction();
+                    playback.proceed();
+                    playback.removeEventListener('choice', listenToChoice);
+                    playback.choiceExpected = false;
+                    continueStory(EVENT);
+                }
+            }
+            console.log(`We have ${choiceEvents.size} events to listen to`)
+            this.addEventListener("choice", listenToChoice);
         }else{
-            this.preventMoving = false
+            this.choiceExpected = false
         }
     }
 
@@ -741,7 +788,7 @@ class BipsiPlayback extends EventTarget {
             await this.runJS(event, touch);
         }else if(taggedChoice !== undefined){
             this.story.ChooseChoiceIndex(taggedChoice.index)
-            await this.continueStory();
+            await this.continueStory(event);
         } else {
             await this.runJS(event, BEHAVIOUR_BEFORE);
             await standardEventTouch(this, event);

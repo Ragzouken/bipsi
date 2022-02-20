@@ -11,6 +11,7 @@
  * @property {number} anchorY
  * @property {number} lines
  * @property {number} lineGap
+ * @property {number} lineWidth
  * @property {number} padding
  * @property {number} glyphRevealDelay
  * @property {string} backgroundColor
@@ -101,7 +102,7 @@ class DialoguePlayback extends EventTarget {
      */
     async queue(script, options={}) {
         const { font, lines } = this.getOptions(options);
-        const lineWidth = 192;
+        const lineWidth = options.lineWidth ||192;
 
         script = parseFakedown(script);
         const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines });
@@ -146,7 +147,7 @@ class DialoguePlayback extends EventTarget {
         const options = this.getOptions(this.currentPage.options);
         const height = options.padding * 2 
                      + (options.font.lineHeight + options.lineGap) * options.lines;
-        const width = 208;
+        const width = (options.lineWidth || 192) + 16;
 
         fillRendering2D(this.dialogueRendering, options.backgroundColor);
         

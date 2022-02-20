@@ -356,6 +356,9 @@ class EventFieldEditor extends EventTarget {
 
 const EVENT_TEMPLATES = {
     empty: [],
+    tag: [
+        { key: "tagname", type: "tag", data: true},
+    ],
     exit: [
         { key: "exit", type: "location", data: { room: 0, position: [0, 0] } },
     ],
@@ -452,6 +455,7 @@ class EventEditor {
         }
 
         ui.action("create-event-empty", () => this.editor.createEvent(EVENT_TEMPLATES.empty));
+        ui.action("create-event-tag", () => this.editor.createEvent(EVENT_TEMPLATES.tag));
         ui.action("create-event-code", () => this.editor.createEvent(EVENT_TEMPLATES.code));
         ui.action("create-event-exit", () => this.editor.createEvent(EVENT_TEMPLATES.exit));
         ui.action("create-event-message", () => this.editor.createEvent(EVENT_TEMPLATES.message));
@@ -2326,6 +2330,10 @@ class BipsiEditor extends EventTarget {
         const bundle = maker.bundleFromHTML(html);
         // load the contents of the bundle into the editor
         await this.loadBundle(bundle);
+
+        const story = maker.bundleFromHTML(html, "#story-embed");
+        await this.loadStory(story);
+
     } 
 
     async importBundle() {
