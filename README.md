@@ -20,4 +20,4 @@ Push your bipsi games further by driving the narration with the powerful ink eng
 ### Documentation
 
 * [asset pipeline](pipeline.md)
-* [binksi specifics](binksi-guide.md)
+* [binksi specifics](docs/index.md)
