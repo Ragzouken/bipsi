@@ -2,11 +2,11 @@
  * @param {CanvasRenderingContext2D} destination 
  * @param {CanvasRenderingContext2D} tileset 
  * @param {Map<number, number>} tileToFrame 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {BipsiDataRoom} room
  */
  function drawRoomPreview(destination, tileset, tileToFrame, palette, room) {
-    const [background] = palette;
+    const [background] = palette.colors;
 
     fillRendering2D(destination, background);
     drawTilemapLayer(destination, tileset, tileToFrame, palette, room);
@@ -33,7 +33,7 @@
 function drawRoomPreviewPlayback(destination, playback, roomId) {
     const tileset = playback.stateManager.resources.get(playback.data.tileset);
     const room = getRoomById(playback.data, roomId);
-    const palette = playback.data.palettes[room.palette];
+    const palette = getPaletteById(playback.data, room.palette);
     const tileToFrame = makeTileToFrameMap(playback.data.tiles, 0);
     drawRoomPreview(destination, tileset, tileToFrame, palette, room);
 }
@@ -45,7 +45,7 @@ function drawRoomPreviewPlayback(destination, playback, roomId) {
  */
  function drawRoomThumbPlayback(destination, playback, roomId) {
     const room = getRoomById(playback.data, roomId);
-    const palette = playback.data.palettes[room.palette];
+    const palette = getPaletteById(playback.data, room.palette);
     drawRoomThumbnail(destination, palette, room);
 }
 

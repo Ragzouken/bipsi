@@ -192,7 +192,7 @@ function tokeniseScript(script) {
 
     function newLine() {
         flushBuffer();
-        tokens.push(["markup", "el"]);
+        tokens.push(["markup", "br"]);
     }
 
     function flushBuffer() {
@@ -226,8 +226,8 @@ function textBufferToCommands(buffer) {
 }
 
 function markupBufferToCommands(buffer) {
-    if (buffer === "ep") return [{ type: "break", target: "page" }];
-    if (buffer === "el") return [{ type: "break", target: "line" }];
+    if (buffer === "pg") return [{ type: "break", target: "page" }];
+    if (buffer === "br") return [{ type: "break", target: "line" }];
     else                 return [{ type: "style", style: buffer }];
 }
 
@@ -296,6 +296,7 @@ function commandsToPages(commands, options, styleHandler) {
         const char = getFontChar(options.font, command.char) ?? getFontChar(options.font, "?");
         const position = { x: offset, y: currLine * (options.font.lineHeight + 4) };
         const glyph = { 
+            char: command.char,
             image: char.image,
             position,
             offset: { x: 0, y: 0 },

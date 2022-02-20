@@ -28,7 +28,7 @@ h1, h2, h3, h4, h5, h6 {
     gap: 1em;
 }
 
-button {
+button, a.button {
     flex: 1;
     flex-direction: column;
     white-space: nowrap;
@@ -47,7 +47,7 @@ button {
     padding: .25em;
 }
 
-button:active {
+button:active, a.button:active {
     background-color: #972f26;
 }
 
@@ -71,7 +71,7 @@ button:disabled {
     background-color: var(--button-color);
 }
 
-.radio-select input[type="radio"] {
+.radio-select label > input[type="radio"] {
     margin: 0;
     appearance: none;
     -moz-appearance: none;
@@ -82,12 +82,12 @@ button:disabled {
     width: 100%; height: 100%;
 }
 
-.radio-select label img, .radio-select label svg, button img, button svg {
+.radio-select > label img, .radio-select > label svg, button img, button svg, a svg {
     pointer-events: none;
     width: 32px; height: 32px;
 }
 
-.radio-select label img, .radio-select label svg {
+.radio-select > label img, .radio-select > label svg {
     position: absolute;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
@@ -162,6 +162,7 @@ button:disabled {
 
 input[type="text"], textarea {
     font-family: monospace;
+    tab-size: 2;
 
     flex: 1;
     flex-basis: 100%;
@@ -264,6 +265,7 @@ select {
 
 .viewport-body {
     position: relative;
+    height: 512px;
 }
 
 .controls-tab {
@@ -293,10 +295,15 @@ select {
     max-width: 72px;
 }
 
+#highlight-toggle, #picker-toggle {
+    flex: 0;
+    min-width: 64px;
+}
+
 .tile-select {
     flex: 1;
 
-    padding: .5rem;
+    padding: 7px;
 
     display: flex; flex-direction: row;
     flex-wrap: wrap;
@@ -324,6 +331,10 @@ select {
 }
 
 .room-select label > input {
+    background: none;
+}
+
+.palette-select label > input {
     background: none;
 }
 
@@ -371,23 +382,6 @@ input + *, input + * + * {
 
 label.toggle#tile-grid {
     max-width: 64px;
-}
-
-.room-picker-toggle {
-    gap: .25rem;
-}
-
-label.room-picker-toggle {
-    flex: 0;
-    /* min-width: 72px; */
-    border-radius: .5rem 1rem 1rem .5rem;
-    padding: 8px;
-    gap: 6px;
-}
-
-label.room-picker-toggle > svg {
-    margin: 0;
-    margin-left: 2px;
 }
 
 .picker-toggle > canvas {
@@ -458,6 +452,40 @@ label.room-picker-toggle > svg {
     width: 100%; height: 100%;
 }
 
+.tile-select label > input {
+    background: none;
+}
+
+#palette-select-window canvas {
+    width: 100%; height: 100%;
+}
+
+#palette-select-window label {
+    width: 80px;
+}
+
+.item-select {
+    flex: 1;
+
+    padding: 7px;
+
+    display: flex; flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-start;
+    align-content: flex-start;
+
+    border-radius: .5rem;
+    background: var(--trans-gradient);
+    overflow: hidden scroll;
+}
+
+.item-select label {
+    min-height: unset;
+
+    width: 40px; height: 40px;
+}
+
 .item-management-buttons {
     display: flex; flex-direction: row;
     gap: .5rem;
@@ -517,11 +545,12 @@ label.room-picker-toggle > svg {
 #palette-edit {
     flex: 1;
 
-    border-radius: .5rem;
-    background: var(--trans-gradient);
+    /* border-radius: .5rem; */
+    /* background: var(--trans-gradient); */
 
     padding: 1rem;
     gap: 1rem;
+    padding-right: 0;
 }
 
 #palette-edit-select > :first-child {
@@ -537,21 +566,32 @@ label.room-picker-toggle > svg {
 }
 
 #color-select {
+    padding: .5rem;
     gap: .5rem;
+    padding-left: 0;
+}
+
+#color-select > .horizontal-capsule {
+    flex: 0;
 }
 
 #color-select label {
-    min-height: 0;
+    min-height: 44px;
 }
 
-#color-select input[type="radio"]:checked {
+.color-select input[type="radio"]:checked {
     background: none;
     z-index: 5;
     box-shadow: 0 0 0 .5em white;
 }
 
+.color-select label > input {
+    background: none;
+}
+
 #color-edit {
     gap: 1rem;
+    align-items: flex-start;
 }
 
 #controls {
@@ -618,21 +658,21 @@ label.room-picker-toggle > svg {
 }
 
 #tile-paint-room {
-    width: 256px; height: 256px;
+    width: 512px; height: 512px;
 
     cursor: crosshair;
 }
 
-#tile-paint-canvases * {
+#tile-paint-canvases > label * {
     background: none;
 }
 
-#tile-paint-canvases input:checked {
+#tile-paint-canvases > label input:checked {
     pointer-events: none;
     background: none;
 }
 
-#tile-paint-canvases input:not(:checked) + canvas {
+#tile-paint-canvases > label input:not(:checked) + canvas {
     pointer-events: none;
     opacity: 50%;
 }
@@ -877,7 +917,7 @@ label.room-picker-toggle > svg {
     border-radius: 1rem;
 }
 
-.tile-select input[type="radio"]:checked, .room-select input[type="radio"]:checked {
+.tile-select input[type="radio"]:checked, .room-select input[type="radio"]:checked, .item-select input[type="radio"]:checked {
     z-index: 5;
     background: none;
     box-shadow: 0 0 0 5px white;
@@ -919,10 +959,6 @@ label.room-picker-toggle > svg {
     cursor: pointer;
 }
 
-#tile-paint-buttons > * {
-    max-width: unset;
-}
-
 #move-to-window {
     position: absolute;
     width: 512px; height: 256px;
@@ -949,6 +985,41 @@ label.room-picker-toggle > svg {
 
     display: flex; flex-direction: column;
     border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
+
+    background: var(--frame-color);
+
+    cursor: initial;
+    z-index: 100;
+
+    box-shadow: 0 0 0 2px black;
+}
+
+#palette-select-window {
+    position: absolute;
+    width: 512px; height: 320px;
+    bottom: calc(48px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: 1rem;
+    padding: 1rem; gap: .5rem;
+
+    background: var(--frame-color);
+
+    cursor: initial;
+    z-index: 100;
+
+    box-shadow: 0 0 0 2px black;
+}
+
+#frame-adjust-window {
+    position: absolute;
+    width: 256px;
+    right: 0;
+    bottom: calc(72px + .5rem);
+
+    display: flex; flex-direction: column;
+    border-radius: 1.5rem;
     padding: 1rem; gap: .5rem;
 
     background: var(--frame-color);
@@ -1034,17 +1105,37 @@ label.room-picker-toggle > svg {
     gap: 1rem;
 }
 
-#tile-paint-canvases {
+#tile-paint-row {
+    gap: .5rem;
     flex: 0;
+}
+
+#tile-paint-row > .column {
+    gap: .5rem;
+    max-width: 72px;
+}
+
+#tile-paint-canvases {
+    flex: 1;
 
     display: flex; flex-direction: row;
 
-    padding: 1rem; gap: 1rem;
+    padding: .5rem; gap: 1rem;
     background: var(--trans-gradient);
-    border-radius: 1rem;
+    border-radius: .5rem;
 
-    align-items: center;
+    align-items: stretch;
     justify-content: space-evenly;
+}
+
+
+#tile-paint-canvases > label {
+    /* height: calc(160px + 1rem); */
+    height: 160px;
+
+    /* padding: .5rem; */
+    /* border-radius: .5rem; */
+    /* background: var(--trans-gradient); */
 }
 
 #tile-paint-canvases canvas {
@@ -1052,22 +1143,26 @@ label.room-picker-toggle > svg {
     cursor: crosshair;
 }
 
-#tile-paint-buttons {
+.tile-paint-buttons {
     flex: 1;
     gap: .5rem;
     display: flex; flex-direction: column;
 }
 
-#tile-paint-buttons > .row {
+.tile-paint-buttons > .row {
     gap: 8px;
 }
 
-#tile-paint-buttons > .grid3 {
+.tile-paint-buttons > .grid3 {
     gap: 2px;
 }
 
-#tile-paint-buttons button {
+.tile-paint-buttons button {
     height: 48px;
+}
+
+.tile-paint-buttons > * {
+    max-width: unset;
 }
 
 #tile-paint-a {
@@ -1082,12 +1177,13 @@ label.room-picker-toggle > svg {
     flex: 0;
 }
 
-#color-select label > input {
-    background: none;
+#info-tab-body, #play-tab-body {
+    font-size: larger;
 }
 
-#play-tab-body {
-    font-size: larger;
+p {
+    margin: 0;
+    margin-bottom: 1rem;
 }
 
 #room-events-toolbar {
@@ -1133,4 +1229,104 @@ label.room-picker-toggle > svg {
 #draw-room-events-controls {
     height: 100%;
     display: flex; flex-direction: column;
+}
+
+#tile-select-row {
+    overflow: hidden;
+}
+
+#tile-management {
+    flex: 0; gap: 2px;
+    flex-direction: column;
+}
+
+#tile-management button {
+    max-width: 48px;
+}
+
+#tile-management > * {
+    border-radius: 0;
+}
+
+#tile-management > :first-child {
+    border-radius: 0 1rem 0 0;
+}
+
+#tile-management > :last-child {
+    border-radius: 0 0 1rem 0;
+}
+
+#frame-column {
+    gap: .5rem;
+    flex: 1;
+
+    justify-content: center;
+}
+
+#frame-column label, #frame-column button {
+    max-width: none;
+    min-height: 48px;
+    flex: 0;
+}
+
+#draw-room-tile-controls {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+#color-index-select {
+    height: 48px;
+}
+
+#palette-edit {
+    width: 278px;
+}
+
+#color-huesat {
+    width: 270px;
+    height: 270px;
+}
+
+.info-action-list > .button, .info-action-list > button {
+    flex: 0;
+
+    display: flex; flex-direction: row;
+    padding: .5rem; gap: .5rem;
+    justify-content: flex-start;
+    
+    font-size: 16px;
+}
+
+.info-action-list > .button {
+    color: black;
+    text-decoration: none;
+}
+
+.info-action-list {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+#info-tab-viewport {
+    width: 512px;
+}
+
+#info-tab-viewport svg {
+    width: 100%; height: 100%;
+}
+
+#draw-room-palette-controls {
+    display: flex; flex-direction: row;
+    background: var(--trans-gradient);
+    border-radius: .5rem 0 0 .5rem;
+    /* gap: 1rem; */
+    overflow: hidden;
+}
+
+#color-select {
+    padding-left: .5rem;
+    overflow: hidden scroll;
 }

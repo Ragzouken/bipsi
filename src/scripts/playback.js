@@ -13,6 +13,22 @@
     canvas.style.setProperty("height", `${canvas.height * scale}px`);
 }
 
+/**
+ * @param {HTMLElement} element 
+ */
+ function scaleElementToParent(element, margin=0) {
+    const parent = element.parentElement;
+
+    const [tw, th] = [parent.clientWidth-margin*2, parent.clientHeight-margin*2];
+    const [sw, sh] = [tw / element.clientWidth, th / element.clientHeight];
+    let scale = Math.min(sw, sh);
+    if (scale > 1) scale = Math.floor(scale); 
+
+    element.style.setProperty("transform", `translate(-50%, -50%) scale(${scale})`);
+
+    return scale;
+}
+
 // async equivalent of Function constructor
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor
 
@@ -182,6 +198,20 @@ const ERROR_STYLE = {
 
     anchorX: .5, anchorY: .5,
 }
+
+const BEHAVIOUR_BEFORE = `
+let script = $FIELD("before", "javascript");
+if (script) {
+    await RUN_JS(script);
+}
+`;
+
+const BEHAVIOUR_AFTER = `
+let script = $FIELD("after", "javascript");
+if (script) {
+    await RUN_JS(script);
+}
+`;
 
 const BEHAVIOUR_PAGE_COLOR = `
 let color = FIELD(EVENT, "page-color", "text");
@@ -548,7 +578,7 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const palette = this.getActivePalette();
-        const [background] = palette;
+        const [background] = palette.colors;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
@@ -635,7 +665,7 @@ class BipsiPlayback extends EventTarget {
     }
 
     async title(script, options={}) {
-        const [background] = this.getActivePalette();
+        const [background] = this.getActivePalette().colors;
         options = { anchorY: .5, backgroundColor: background, ...options };
         return this.say(script, options);
     }
@@ -691,7 +721,7 @@ class BipsiPlayback extends EventTarget {
      */
     async touch(event) {
         this.log(`> TOUCHING EVENT ${this.eventDebugInfo(event)}`);
-
+    
         const touch = oneField(event, "touch", "javascript")?.data;
 
         const tags = allTags(event);
@@ -713,18 +743,20 @@ class BipsiPlayback extends EventTarget {
             this.story.ChooseChoiceIndex(taggedChoice.index)
             await this.continueStory();
         } else {
+            await this.runJS(event, BEHAVIOUR_BEFORE);
             await standardEventTouch(this, event);
+            await this.runJS(event, BEHAVIOUR_AFTER);
         }
     }
 
     async runJS(event, js) {
-        const defines = generateScriptingDefines(this, event);
+        const defines = this.makeScriptingDefines(event);
         const names = Object.keys(defines).join(", ");
-        const preamble = `const { ${names} } = COMMANDS;\n`;
+        const preamble = `const { ${names} } = this;\n`;
 
         try {
-            const script = new AsyncFunction("COMMANDS", preamble + js);
-            await script(defines);
+            const script = new AsyncFunction("", preamble + js);
+            await script.call(defines);
         } catch (e) {
             const long = `> SCRIPT ERROR "${e}"\n---\n${js}\n---`;
             this.log(long);
@@ -732,6 +764,12 @@ class BipsiPlayback extends EventTarget {
             const error = `SCRIPT ERROR:\n${e}`;
             this.showError(error);
         }
+    }
+
+    makeScriptingDefines(event) {
+        const defines = bindScriptingDefines(SCRIPTING_FUNCTIONS);
+        addScriptingConstants(defines, this, event);
+        return defines;
     }
 
     playMusic(src) {
@@ -772,7 +810,7 @@ class BipsiPlayback extends EventTarget {
     getActivePalette() {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
-        const palette = this.data.palettes[room.palette];
+        const palette = getPaletteById(this.data, room.palette);
         return palette;
     }
 }
@@ -909,33 +947,142 @@ const WALK_DIRECTIONS = {
     "v": [ 0,  1],
 }
 
-/**
- * @param {BipsiPlayback} playback 
- * @param {BipsiDataEvent} event 
- */
-function generateScriptingDefines(playback, event) {
-    // edit here to add new scripting functions
-    const defines = {};
+function bindScriptingDefines(defines) {
+    const bound = {};
+
+    for (const [name, func] of Object.entries(defines)) {
+        bound[name] = func.bind(bound);
+    }
+
+    return bound;
+}
+
+const FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
+const FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
+const IS_TAGGED = (event, name) => eventIsTagged(event, name);
+
+const SCRIPTING_FUNCTIONS = {
+    SAY(dialogue, options) {
+        return this.PLAYBACK.say(dialogue, options);
+    },
+
+    SAY_FIELD(name, options=undefined, event=this.EVENT) {
+        const text = this.FIELD(event, name, "dialogue") ?? `[FIELD MISSING: ${name}]`;
+        return this.SAY(text, options);
+    },
+
+    TITLE(dialogue, options) {
+        return this.PLAYBACK.title(dialogue, options);
+    },
+
+    TOUCH(event) {
+        return this.PLAYBACK.touch(event);
+    },
+
+    EVENT_AT(location) {
+        return getEventAtLocation(this.PLAYBACK.data, location);
+    },
+
+    LOCATION_OF(event) {
+        return getLocationOfEvent(this.PLAYBACK.data, event);
+    },
+
+    FIND_EVENTS(tag) {
+        return findEventsByTag(this.PLAYBACK.data, tag);
+    },
+
+    FIND_EVENT(tag) {
+        return findEventByTag(this.PLAYBACK.data, tag); 
+    },
+
+    PLAY_MUSIC(file) {
+        this.PLAYBACK.playMusic(this.PLAYBACK.getFileObjectURL(file));
+    },
+    STOP_MUSIC() {
+        this.PLAYBACK.stopMusic();
+    },
+
+    SHOW_IMAGE(id, file, layer, x, y) {
+        this.PLAYBACK.showImage(id, file, layer, x, y);
+    },
+    HIDE_IMAGE(id) {
+        this.PLAYBACK.hideImage(id);
+    },
+
+    FILE_TEXT(file) { 
+        return this.PLAYBACK.stateManager.resources.get(file).text();
+    },
+
+    FIELD_OR_LIBRARY(field, event=this.EVENT) {
+        let file = FIELD(event, field, "file");
+        let name = FIELD(event, field, "text");
+
+        if (!file && name && this.LIBRARY) {
+            file = FIELD(this.LIBRARY, name, "file");
+        } else if (!file && this.LIBRARY) {
+            file = FIELD(this.LIBRARY, field, "file");
+        }
+
+        return file;
+    },
+
+    DO_STANDARD() { 
+        return standardEventTouch(this.PLAYBACK, this.EVENT); 
+    },
+
+    MOVE(event, location) {
+        moveEvent(this.PLAYBACK.data, event, location); 
+    },
+
+    FIELD,
+    FIELDS,
+    SET_FIELDS(event, name, type, ...values) {
+        replaceFields(event, name, type, ...values);
+    },
+
+    $FIELD(name, type=undefined, event=this.EVENT) {
+        return this.FIELD(event, name, type);
+    },
+    $FIELDS(name, type=undefined, event=this.EVENT) {
+        return this.FIELDS(event, name, type);
+    },
+    $SET_FIELDS(name, type=undefined, ...values) {
+        return this.SET_FIELDS(this.EVENT, name, type, ...values);
+    },
     
-    defines.PLAYBACK = playback;
-    defines.AVATAR = getEventById(playback.data, playback.avatarId);
-    defines.LIBRARY = getEventById(playback.data, playback.libraryId);
-    defines.EVENT = event;
-    defines.PALETTE = playback.getActivePalette();
+    IS_TAGGED,
+    TAG(event, name) {
+        replaceFields(event, name, "tag", true);
+    },
+    UNTAG(event, name) {
+        clearFields(event, name, "tag");
+    },
 
-    defines.DO_STANDARD = () => standardEventTouch(playback, event);
+    $IS_TAGGED(name, event=this.EVENT) {
+        return this.IS_TAGGED(event, name);
+    },
+    $TAG(name, event=this.EVENT) {
+        this.TAG(event, name);
+    },
+    $UNTAG(name, event=this.EVENT) {
+        this.UNTAG(event, name);
+    },
 
-    defines.SET_FIELDS = (event, name, type, ...values) => replaceFields(event, name, type, ...values);
-    defines.FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
-    defines.FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
-    
-    defines.IS_TAGGED = (event, name) => eventIsTagged(event, name);
-    defines.TAG = (event, name) => replaceFields(event, name, "tag", true);
-    defines.UNTAG = (event, name) => clearFields(event, name, "tag");
+    REMOVE(event=this.EVENT) {
+        removeEvent(this.PLAYBACK.data, event);
+    },
+    $REMOVE(event=this.EVENT) {
+        this.REMOVE(event);
+    },
 
-    defines.SET_GRAPHIC = (event, tile) => replaceFields(event, "graphic", "tile", tile);
+    SET_GRAPHIC(event, tile) {
+        replaceFields(event, "graphic", "tile", tile);
+    },
+    $SET_GRAPHIC(tile, event=this.EVENT) {
+        this.SET_GRAPHIC(event, tile);
+    },
 
-    defines.WALK = async (event, sequence, delay=.4, wait=.4) => {
+    async WALK(event, sequence, delay=.4, wait=.4) {
         const dirs = Array.from(sequence);
         for (const dir of dirs) {
             if (dir === ".") {
@@ -949,75 +1096,87 @@ function generateScriptingDefines(playback, event) {
                 await sleep(delay * 1000);
             }
         }
-    };
-    defines.MOVE = (event, location) => moveEvent(playback.data, event, location);
-    defines.REMOVE = (event) => removeEvent(playback.data, event);
+    },
+    async $WALK(sequence, delay=.4, wait=.4, event=this.EVENT) {
+        return this.WALK(event, sequence, delay, wait);
+    },
 
-    defines.TOUCH = (event) => playback.touch(event);
-    defines.EVENT_AT = (location) => getEventAtLocation(playback.data, location);
-    defines.LOCATION_OF = (event) => getLocationOfEvent(playback.data, event);
-    defines.FIND_EVENTS = (tag) => findEventsByTag(playback.data, tag); 
-    defines.FIND_EVENT = (tag) => findEventByTag(playback.data, tag); 
+    GET(key, fallback=undefined, target=undefined) {
+        key = target ? `${this.EVENT_ID(target)}/${key}` : key;
+        return this.PLAYBACK.variables.get(key) ?? fallback;
+    },
+    SET(key, value, target=undefined) {
+        key = target ? `${this.EVENT_ID(target)}/${key}` : key;
+        this.PLAYBACK.setVariable(key, value);
+    },
+    $GET(key, fallback=undefined, target=this.EVENT) {
+        return this.GET(key, fallback, target);
+    },
+    $SET(key, value, target=this.EVENT) {
+        this.SET(key, value, target);
+    },
 
-    defines.GET = (key, fallback=undefined) => playback.variables.get(key) ?? fallback;
-    defines.SET = (key, value) => playback.setVariable(key, value);
+    EVENT_ID(event) { 
+        return event.id; 
+    },
+    TEXT_REPLACE(text, ...values) {
+        return replace(text, ...values);
+    },
 
-    defines.EVENT_ID = (event) => event.id;
+    LOG(...data) {
+        this.PLAYBACK.log(...data);
+    },
+    DELAY(seconds) {
+        return sleep(seconds * 1000);
+    },
 
-    defines.TEXT_REPLACE = (text, ...values) => replace(text, ...values);
+    RESTART() {
+        this.PLAYBACK.end();
+    },
 
-    defines.SAY = async (dialogue, options) => playback.say(dialogue, options);
-    defines.SAY_FIELD = async (name, options) => {
-        let text = oneField(event, name, "dialogue")?.data ?? `[FIELD MISSING: ${name}]`;
-        await playback.say(text, options);
+    SAMPLE(id, type, ...values) {
+        return sample(this.PLAYBACK, id, type, ...values);
+    },
+    SET_CSS(name, value) {
+        ONE(":root").style.setProperty(name, value);
+    },
+
+    RUN_JS(script, event=this.EVENT) {
+        this.PLAYBACK.runJS(event, script);
+    },
+
+    ADD_BEHAVIOURS(...scripts) {
+        this.PLAYBACK.extra_behaviours.push(...scripts);
+    },
+    POST(message, origin="*") {
+        postMessageParent(message, origin);
+    },
+    //binksi
+    SET_INK_VAR(field, value) {
+        this.STORY.variablesState.$(field, value);
+    },
+    GET_INK_VAR(field) {
+        this.STORY.variablesState.$(field);
+    },
+    DIVERT_TO(knot_name) {
+        this.STORY.ChoosePathString(knot_name);
+        return this.PLAYBACK.continueStory();
     }
+}
 
-    defines.TITLE = async (dialogue, options) => playback.title(dialogue, options);
+/**
+ * @param {BipsiPlayback} playback 
+ * @param {BipsiDataEvent} event 
+ */
+function addScriptingConstants(defines, playback, event) {
+    // edit here to add new scripting functions
+    defines.PLAYBACK = playback;
+    defines.AVATAR = getEventById(playback.data, playback.avatarId);
+    defines.LIBRARY = getEventById(playback.data, playback.libraryId);
+    defines.EVENT = event;
+    defines.PALETTE = playback.getActivePalette();
+
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
-
-    defines.LOG = (...data) => playback.log(...data);
-    defines.DELAY = async (seconds) => sleep(seconds * 1000);
-
-    defines.RESTART = () => playback.end();
-
-    defines.SAMPLE = (id, type, ...values) => sample(playback, id, type, ...values);
-    defines.SET_CSS = (name, value) => ONE(":root").style.setProperty(name, value);
-
-    defines.RUN_JS = (script, event=defines.EVENT) => playback.runJS(event, script);
-    defines.ADD_BEHAVIOURS = (...scripts) => playback.extra_behaviours.push(...scripts);
-    
-    defines.PLAY_MUSIC = (file) => playback.playMusic(playback.getFileObjectURL(file));
-    defines.STOP_MUSIC = () => playback.stopMusic();
-
-    defines.SHOW_IMAGE = (id, file, layer, x, y) => playback.showImage(id, file, layer, x, y);
-    defines.HIDE_IMAGE = (id) => playback.hideImage(id);
-
-    defines.FILE_TEXT = (file) => playback.stateManager.resources.get(file).text();
-
-    defines.FIELD_OR_LIBRARY = (field, event=defines.EVENT) => {
-        let file = oneField(event, field, "file")?.data;
-        let name = oneField(event, field, "text")?.data;
-
-        if (!file && name && defines.LIBRARY) {
-            file = oneField(defines.LIBRARY, name, "file")?.data;
-        } else if (!file && defines.LIBRARY) {
-            file = oneField(defines.LIBRARY, field, "file")?.data;
-        }
-
-        return file;
-    };
-
-    defines.POST = (message, origin="*") => postMessageParent(message, origin);
-
-    //binksi
     defines.STORY = playback.story;
-    defines.SET_INK_VAR = (field, value) => playback.story.variablesState.$(field, value);
-    defines.GET_INK_VAR = (field) => playback.story.variablesState.$(field);
-    defines.DIVERT_TO = (knot_name) => {
-        playback.story.ChoosePathString(knot_name);
-        return playback.continueStory();
-    }
-
-    return defines;
 }

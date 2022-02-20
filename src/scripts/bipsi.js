@@ -40,9 +40,15 @@ const storage = new maker.ProjectStorage("bipsi");
  */
 
 /**
+ * @typedef {Object} BipsiDataPalette
+ * @property {number} id 
+ * @property {string[]} colors
+ */
+
+/**
  * @typedef {Object} BipsiDataProject
  * @property {BipsiDataRoom[]} rooms
- * @property {string[][]} palettes
+ * @property {BipsiDataPalette[]} palettes
  * @property {string} tileset
  * @property {BipsiDataTile[]} tiles
  */
@@ -79,6 +85,7 @@ const constants = {
     wallTile: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAAlQTFRFAAAA////AAAAc8aDcQAAAAN0Uk5TAP//RFDWIQAAADlJREFUGJVlj0EOACAIw2D/f7QmLAa7XeyaKFgVkfSjum1M9xhDeN24+pjdbVYPwSt8lGMDcnV+DjlaUACpjVBfxAAAAABJRU5ErkJggg==",
     eventTile: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAAlQTFRFAAAA////AAAAc8aDcQAAAAN0Uk5TAP//RFDWIQAAACVJREFUGJVjYMAATCgAJMCIBCACCHmYAFz3AAugOwzd6eieQwMAdfAA3XvBXggAAAAASUVORK5CYII=",
     startTile: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAAZQTFRFAAAA////pdmf3QAAAAJ0Uk5TAP9bkSK1AAAAJUlEQVQYlWNgwACMKAC7ALJqnALIqkEETD8lAhiGEnIHIb+gAQBFEACBGFbz9wAAAABJRU5ErkJggg==",
+    pluginTile: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAAXNSR0IArs4c6QAAAFJJREFUKJGVkVEOwCAIQ4vp/a/MPkwUisOtXxBfaQTgIgPg3TvREAaAu1RNG3Ob3QmIUyI8dKxLoABVzK2VCAHqh/9EnNe1gNOqAvB+DnbuT3oAhXsLLn/W2IoAAAAASUVORK5CYII=",
 
     colorwheelMargin: 12,
 }
@@ -140,7 +147,7 @@ function makeTileToFrameMap(tiles, frame) {
  * @param {CanvasRenderingContext2D} destination
  * @param {CanvasRenderingContext2D} tileset 
  * @param {Map<number, number>} tileToFrame 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {{ tilemap: number[][], backmap: number[][], foremap: number[][] }} layer 
  */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
@@ -156,10 +163,10 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
 
                 if (tileIndex === 0) continue;
 
-                backg.fillStyle = palette[back];
+                backg.fillStyle = palette.colors[back];
                 backg.fillRect(tx * size, ty * size, size, size);
 
-                color.fillStyle = palette[fore];
+                color.fillStyle = palette.colors[fore];
                 color.fillRect(tx * size, ty * size, size, size);
 
                 tiles.drawImage(
@@ -176,11 +183,11 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
  * @param {CanvasRenderingContext2D} destination 
  * @param {CanvasRenderingContext2D} tileset 
  * @param {Map<number, number>} tileToFrame 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {BipsiDataEvent[]} events 
  */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
-    const [background, foreground, highlight] = palette;
+    const [background, foreground, highlight] = palette.colors;
 
     drawRecolorLayer(destination, (backg, color, tiles) => {
         events.forEach((event) => {
@@ -210,11 +217,11 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
 
 /**
  * @param {CanvasRenderingContext2D} rendering 
- * @param {string[]} palette 
+ * @param {BipsiDataPalette} palette 
  * @param {BipsiDataRoom} room 
  */
  function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette;
+    const [background, foreground, highlight] = palette.colors;
     for (let y = 0; y < 16; ++y) {
         for (let x = 0; x < 16; ++x) {
             const color = room.wallmap[y][x] === 1 ? foreground : background;
@@ -229,6 +236,18 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
         rendering.fillRect(x, y, 1, 1);
     });
 }
+
+/**
+ * @param {CanvasRenderingContext2D} rendering 
+ * @param {BipsiDataPalette} palette
+ */
+ function drawPaletteThumbnail(rendering, palette) {
+    palette.colors.forEach((color, i) => {
+        rendering.fillStyle = color;
+        rendering.fillRect(i, 0, 1, 1);
+    });
+}
+
 
 /**
  * @param {any[][]} map 
@@ -281,6 +300,7 @@ function getById(items, id) {
 /** 
  * @param {BipsiDataProject} data 
  * @param {number} id
+ * @returns {BipsiDataRoom}
  */
 function getRoomById(data, id) {
     return getById(data.rooms, id);
@@ -289,6 +309,16 @@ function getRoomById(data, id) {
 /** 
  * @param {BipsiDataProject} data 
  * @param {number} id
+ * @returns {BipsiDataPalette}
+ */
+function getPaletteById(data, id) {
+    return getById(data.palettes, id);
+}
+
+/** 
+ * @param {BipsiDataProject} data 
+ * @param {number} id
+ * @returns {BipsiDataEvent}
  */
 function getEventById(data, id) {
     return getById(allEvents(data), id);
@@ -297,6 +327,7 @@ function getEventById(data, id) {
 /** 
  * @param {BipsiDataProject} data 
  * @param {number} id
+ * @returns {BipsiDataTile}
  */
 function getTileById(data, id) {
     return getById(data.tiles, id);
@@ -333,6 +364,9 @@ const nextTileId = (data) => nextId(data.tiles);
 
 /** @param {BipsiDataProject} data */
 const nextEventId = (data) => nextId(data.rooms.flatMap((room) => room.events));
+
+/** @param {BipsiDataProject} data */
+const nextPaletteId = (data) => nextId(data.palettes);
 
 /**
  * @param {CanvasRenderingContext2D} tileset 

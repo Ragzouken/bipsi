@@ -37,8 +37,10 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://smwhr.github.
             include scripts/editor/tile-select.js
         script(data-editor-only)
             include scripts/lib/perfect-json.js
-        //script(data-editor-only)
-            include scripts/editor/palette-picker.js
+        script(data-editor-only)
+            include scripts/editor/palette-select.js
+        script(data-editor-only)
+            include scripts/editor/color-select.js
         script
             include scripts/start.js
         // styles
@@ -50,10 +52,7 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://smwhr.github.
             include styles/editor-style.css
     body(onload="start()").no-select
         #player(hidden)
-            #player-container
-                canvas#player-canvas(width=256 height=256)
-                div#player-choices
-                    ul#player-choices-list
+            canvas#player-canvas(width=256 height=256)
         #editor(data-editor-only)
             include editor.pug
         script#plugins

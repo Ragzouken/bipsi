@@ -1,0 +1,24 @@
+#draw-room-tab-controls.controls-tab(hidden)
+    .controls-tab-body
+        #draw-room-events-controls(hidden)
+            include events-controls.pug
+        #draw-room-tile-controls(hidden)
+            include tiles-controls.pug
+        #draw-room-palette-controls(hidden)
+            include colors-controls.pug
+    .viewport-toolbar
+        include /pages/room-select-toggle.pug
+        include /pages/palette-select-toggle.pug
+        .horizontal-capsule#room-events-toolbar(hidden)
+            button(name="copy-event" title="copy event")
+                include /icons/copy.svg
+            button(name="paste-event" title="paste event")
+                include /icons/paste.svg
+            button(name="delete-event" title="delete event")
+                include /icons/delete.svg
+        label.toggle#highlight-toggle
+            input(type="checkbox" name="highlight" title="highlight")
+            include /icons/sparkle.svg
+        label.toggle#picker-toggle
+            input(type="checkbox" name="tile-picker" title="pick tile")
+            include /icons/picker.svg

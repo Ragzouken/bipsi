@@ -3,5 +3,5 @@ async function preload() {
     const canvas = ONE("#player-canvas");
     const rendering = canvas.getContext("2d");
     rendering.drawImage(splash, 0, 0);
-    fitCanvasToParent(canvas);
+    scaleElementToParent(canvas.parentElement);
 }

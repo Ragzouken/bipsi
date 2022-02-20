@@ -3,56 +3,12 @@ body, canvas {
 }
 
 #player {
+    width: 256px;
+    height: 256px;
+
     position: absolute;
-    width: 100%; height: 100%;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+
     overflow: hidden;
-
-    display: flex;
-    flex-direction: column;
-
-    padding-bottom: 0;
-    gap: 1em;
-}
-
-#player-container {
-    flex: 1;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    align-items: center;
-
-    margin: 0 auto;
-    max-width: 512px;
-    width: 100%;
-}
-
-@media screen and (max-width: 640px) {
-    #player-container {
-        max-width: 100%;
-        width: 100%;
-    }
-}
-
-
-#player-container #player-choices{
-    margin-top: 0.8em;
-    width: 100%;
-    padding: 1em;
-}
-#player-container #player-choices ul{
-    font-family: "Press Start 2P";
-    list-style: none;
-    font-size: 0.8em;
-    margin: 0; padding: 0
-}
-#player-container #player-choices ul li{
-    margin: 0; padding: 0;
-}
-#player-container #player-choices ul li:not(last-child){
-    margin-bottom: 1em;
-}
-#player-container #player-choices a{
-    color: white;
-    text-decoration: none;
 }

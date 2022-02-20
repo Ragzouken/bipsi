@@ -48,13 +48,6 @@ class TileBrowser {
         this.select.addEventListener("change", () => this.redraw());
 
         this.frame = 0;
-
-        window.setInterval(() => {
-            if (!this.editor.ready) return;
-            this.frame = 1 - this.frame;
-            this.updateCSS();
-            this.redraw();
-        }, constants.frameInterval);
     }
 
     get selectedTileIndex() {
@@ -64,6 +57,12 @@ class TileBrowser {
     set selectedTileIndex(value) { 
         this.select.setValueSilent(value);
         this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "center" }); 
+    }
+
+    setFrame(frame) {
+        this.frame = frame;
+        this.updateCSS();
+        this.redraw();
     }
 
     redraw() {
@@ -94,7 +93,7 @@ class TileBrowser {
         const { data, room } = this.editor.getSelections();
 
         root.style.setProperty("--tileset-background-size", `${w}px ${h}px`);
-        root.style.setProperty("--tileset-background-color", data.palettes[room.palette][0]);
+        root.style.setProperty("--tileset-background-color", getPaletteById(data, room.palette).colors[0]);
 
         this.items.map(data.tiles, (tile, item, index) => {
             const { x, y } = getTileCoords(canvases[0], index);
