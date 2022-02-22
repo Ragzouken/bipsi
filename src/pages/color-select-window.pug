@@ -1,0 +1,15 @@
+#color-select-window.popup-window.color-index-select(hidden)
+    #color-select-foreground.radio-select.horizontal-capsule.color-select(title="select foreground")
+        label.toggle
+            input(type="checkbox" name="room-paint-foreground" title="paint foreground color")
+            include /icons/foreground.svg
+        each _, i in (new Array(8).fill(0))
+            label
+                input(type="radio" name="foreground-index" value=`${i}` title=`select foreground color ${i}`)
+    #color-select-background.radio-select.horizontal-capsule.color-select(title="select foreground")
+        label.toggle
+            input(type="checkbox" name="room-paint-background" title="paint background color")
+            include /icons/background.svg
+        each _, i in (new Array(8).fill(0))
+            label
+                input(type="radio" name="background-index" value=`${i}` title=`select background color ${i}`)

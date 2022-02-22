@@ -1,15 +1,17 @@
 #palette-edit.column
-    canvas#color-huesat(width="246" height="246")
+    canvas#color-huesat(width="236" height="236")
     input(name="color-value" type="range" min="0" max="1" step=".01")
     .button-row
         input(name="color-hex" type="text" value="#ffffff")
+        button(name="randomise-color" title="randomise color")
+            include /icons/dice.svg
     #color-index-select.radio-select.color-select.horizontal-capsule
-        each _, i in (new Array(3).fill(0))
+        each _, i in (new Array(7).fill(0))
             label
-                input(type="radio" name="color-index" value=`${i}` title=`select palette color ${i}`)
+                input(type="radio" name="color-index" value=`${i+1}` title=`select palette color ${i+1}`)
 #color-select.color-select.column.radio-select(title="select palette")
     template#color-select-template
         .horizontal-capsule
-            each _ in (new Array(3).fill(0))
+            each _ in (new Array(7).fill(0))
                 label
                     input(type="radio" name="color-select" value=`0,0` title=`select palette 0, color 0`)

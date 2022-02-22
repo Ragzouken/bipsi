@@ -187,6 +187,17 @@ input[type="text"], textarea {
 .grid3 > *:nth-last-child(3) { border-bottom-left-radius: 1em; }
 .grid3 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
 
+.grid4 {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+}
+
+.grid4 > * { border-radius: 0; }
+.grid4 > *:nth-child(1) { border-top-left-radius: 1em; }
+.grid4 > *:nth-child(4) { border-top-right-radius: 1em; }
+.grid4 > *:nth-last-child(4) { border-bottom-left-radius: 1em; }
+.grid4 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
+
 body {
     touch-action: none;
     background: var(--page-color, black);
@@ -321,7 +332,7 @@ select {
 
     width: 40px; height: 40px;
 
-    background-color: var(--tileset-background-color);
+    /* background-color: var(--tileset-background-color); */
     background-image: var(--tileset-background-image);
     background-size: var(--tileset-background-size);
 }
@@ -370,9 +381,28 @@ input + *, input + * + * {
     z-index: 6;
 }
 
+.picker-toggle-preview {
+    border-radius: 0.25rem;
+    box-shadow: var(--black-outline-shadow);
+    pointer-events: none;
+
+    width: 32px;
+    height: 32px;
+    background: var(--trans-gradient);
+
+    display: flex;
+    overflow: hidden;
+}
+
 .picker-toggle > canvas {
     width: 32px;
     height: 32px;
+
+    background: var(--trans-gradient);
+
+    border-radius: .25rem;
+    box-shadow: var(--black-outline-shadow);
+    pointer-events: none;
 }
 
 .picker-toggle > * + * + svg {
@@ -382,12 +412,6 @@ input + *, input + * + * {
 
 label.toggle#tile-grid {
     max-width: 64px;
-}
-
-.picker-toggle > canvas {
-    border-radius: .25rem;
-    box-shadow: var(--black-outline-shadow);
-    pointer-events: none;
 }
 
 .picker-toggle > *:checked + canvas {
@@ -579,13 +603,23 @@ label.toggle#tile-grid {
     min-height: 44px;
 }
 
+.color-select.grid4 label:first-child {
+    border: solid gray 1px;
+    border-right: none;
+    border-bottom: none;
+}
+
 .color-select input[type="radio"]:checked {
     background: none;
     z-index: 5;
-    box-shadow: 0 0 0 .5em white;
+    box-shadow: 0 0 0 6px white;
 }
 
-.color-select label > input {
+.color-select.radio-select, .color-select .horizontal-capsule {
+    gap: 0;
+}
+
+.color-select label > input[type="radio"] {
     background: none;
 }
 
@@ -655,6 +689,8 @@ label.toggle#tile-grid {
 
 #tile-map-paint {
     cursor: crosshair;
+
+    background: var(--trans-gradient);
 }
 
 #tile-paint-room {
@@ -955,11 +991,7 @@ label.toggle#tile-grid {
     height: 236px;
 }
 
-#move-to-window-position {
-    cursor: pointer;
-}
-
-#move-to-window {
+.popup-window {
     position: absolute;
     width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
@@ -973,61 +1005,60 @@ label.toggle#tile-grid {
     cursor: initial;
     z-index: 100;
 
-    display: flex;
-    flex-direction: row;
+    box-shadow: 0 0 0 2px black;
+}
+
+#move-to-window-position {
+    cursor: pointer;
+}
+
+#move-to-window {
+    display: flex; flex-direction: row;
     gap: 1rem;
 }
 
 #room-select-window {
-    position: absolute;
-    width: 512px; height: 320px;
-    bottom: calc(48px + .5rem);
-
-    display: flex; flex-direction: column;
-    border-radius: 1rem;
-    padding: 1rem; gap: .5rem;
-
-    background: var(--frame-color);
-
-    cursor: initial;
-    z-index: 100;
-
-    box-shadow: 0 0 0 2px black;
+    height: 320px;
 }
 
 #palette-select-window {
-    position: absolute;
-    width: 512px; height: 320px;
-    bottom: calc(48px + .5rem);
+    height: 320px;
+}
 
+#color-select-window .radio-select {
+    background: none;
+    padding: 0;
+    overflow: visible;
+}
+
+.color-index-select {
+    height: unset;
+    /* height: 128px; */
     display: flex; flex-direction: column;
-    border-radius: 1rem;
-    padding: 1rem; gap: .5rem;
+    gap: 6px;
 
-    background: var(--frame-color);
+    overflow: visible;
+}
 
-    cursor: initial;
-    z-index: 100;
+.color-index-select .radio-select {
+    flex: 1;
 
-    box-shadow: 0 0 0 2px black;
+
+    border-radius: .5rem;
+}
+
+.color-index-select:not(#color-select-window) .radio-select label:first-child {
+    background: var(--trans-gradient);
+}
+
+#color-select-window .radio-select label:nth-child(2) {
+    background: var(--trans-gradient);
 }
 
 #frame-adjust-window {
-    position: absolute;
     width: 256px;
     right: 0;
     bottom: calc(72px + .5rem);
-
-    display: flex; flex-direction: column;
-    border-radius: 1.5rem;
-    padding: 1rem; gap: .5rem;
-
-    background: var(--frame-color);
-
-    cursor: initial;
-    z-index: 100;
-
-    box-shadow: 0 0 0 2px black;
 }
 
 #log-window {
@@ -1063,8 +1094,6 @@ label.toggle#tile-grid {
 }
 
 #variables-window {
-    position: absolute;
-    width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
 
     display: flex; flex-direction: column;
@@ -1281,12 +1310,19 @@ p {
 }
 
 #palette-edit {
-    width: 278px;
+    width: 268px;
 }
 
 #color-huesat {
-    width: 270px;
-    height: 270px;
+    width: 260px;
+    height: 260px;
+
+    margin: -12px -4px;
+}
+
+[name="randomise-color"] {
+    min-height: 48px;
+    min-width: 48px;
 }
 
 .info-action-list > .button, .info-action-list > button {
