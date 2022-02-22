@@ -6,9 +6,9 @@ class ColorSelectItem {
 
     setup(id, colors) {
         this.inputs.forEach((input, i) => {
-            input.title = `select palette ${id}, color ${i}`;
-            input.value = `${id},${i}`;
-            input.style.backgroundColor = colors[i];
+            input.title = `select palette ${id}, color ${i+1}`;
+            input.value = `${id},${i+1}`;
+            input.style.backgroundColor = colors[i+1];
         });
     }
 

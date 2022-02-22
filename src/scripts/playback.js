@@ -338,11 +338,44 @@ function drawRecolorLayer(destination, render) {
 
     render(BACKG_PAGE, COLOR_PAGE, TILES_PAGE);
 
+    BACKG_PAGE.globalCompositeOperation = "destination-out";
+    BACKG_PAGE.drawImage(TILES_PAGE.canvas, 0, 0);
+    BACKG_PAGE.globalCompositeOperation = "source-over";
+
     COLOR_PAGE.globalCompositeOperation = "destination-in";
     COLOR_PAGE.drawImage(TILES_PAGE.canvas, 0, 0);
     COLOR_PAGE.globalCompositeOperation = "source-over";
+
     destination.drawImage(BACKG_PAGE.canvas, 0, 0);
     destination.drawImage(COLOR_PAGE.canvas, 0, 0);
+}
+
+const BACKG_PAGE_D = createRendering2D(128, 128); 
+const COLOR_PAGE_D = createRendering2D(128, 128);
+const TILES_PAGE_D = createRendering2D(128, 128);
+
+function drawRecolorLayerDynamic(destination, render) {
+    const { width, height } = destination.canvas;
+    resizeRendering2D(BACKG_PAGE_D, width, height);
+    resizeRendering2D(COLOR_PAGE_D, width, height);
+    resizeRendering2D(TILES_PAGE_D, width, height);
+
+    fillRendering2D(BACKG_PAGE_D);
+    fillRendering2D(COLOR_PAGE_D);
+    fillRendering2D(TILES_PAGE_D);
+
+    render(BACKG_PAGE_D, COLOR_PAGE_D, TILES_PAGE_D);
+
+    BACKG_PAGE_D.globalCompositeOperation = "destination-out";
+    BACKG_PAGE_D.drawImage(TILES_PAGE_D.canvas, 0, 0);
+    BACKG_PAGE_D.globalCompositeOperation = "source-over";
+
+    COLOR_PAGE_D.globalCompositeOperation = "destination-in";
+    COLOR_PAGE_D.drawImage(TILES_PAGE_D.canvas, 0, 0);
+    COLOR_PAGE_D.globalCompositeOperation = "source-over";
+
+    destination.drawImage(BACKG_PAGE_D.canvas, 0, 0);
+    destination.drawImage(COLOR_PAGE_D.canvas, 0, 0);
 }
 
 class BipsiPlayback extends EventTarget {
@@ -625,7 +658,7 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const palette = this.getActivePalette();
-        const [background] = palette.colors;
+        const [, background] = palette.colors;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
@@ -712,7 +745,7 @@ class BipsiPlayback extends EventTarget {
     }
 
     async title(script, options={}) {
-        const [background] = this.getActivePalette().colors;
+        const [, background] = this.getActivePalette().colors;
         options = { anchorY: .5, backgroundColor: background, ...options };
         return this.say(script, options);
     }

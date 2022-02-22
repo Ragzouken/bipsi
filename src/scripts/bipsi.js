@@ -154,20 +154,27 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
     drawRecolorLayer(destination, (backg, color, tiles) => {
         for (let ty = 0; ty < 16; ++ty) {
             for (let tx = 0; tx < 16; ++tx) {
-                const back = backmap[ty][tx];
-                const fore = foremap[ty][tx];
-                const tileIndex = tilemap[ty][tx];
+                let back = backmap[ty][tx];
+                let fore = foremap[ty][tx];
+                let tileIndex = tilemap[ty][tx];
                 
+                if (tileIndex === 0) {
+                    fore = back;
+                    tileIndex = 1;
+                }
+
                 const frameIndex = tileToFrame.get(tileIndex);
                 const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
 
-                if (tileIndex === 0) continue;
+                if (back > 0) {
+                    backg.fillStyle = palette.colors[back];
+                    backg.fillRect(tx * size, ty * size, size, size);
+                }
 
-                backg.fillStyle = palette.colors[back];
-                backg.fillRect(tx * size, ty * size, size, size);
-
-                color.fillStyle = palette.colors[fore];
-                color.fillRect(tx * size, ty * size, size, size);
+                if (fore > 0) {
+                    color.fillStyle = palette.colors[fore];
+                    color.fillRect(tx * size, ty * size, size, size);
+                }
 
                 tiles.drawImage(
                     tileset.canvas,
@@ -187,23 +194,29 @@ function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap,
  * @param {BipsiDataEvent[]} events 
  */
 function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
-    const [background, foreground, highlight] = palette.colors;
-
     drawRecolorLayer(destination, (backg, color, tiles) => {
         events.forEach((event) => {
             const [tx, ty] = event.position;
             const graphicField = oneField(event, "graphic", "tile");
             if (graphicField) {
+                let { fg, bg } = FIELD(event, "colors", "colors") ?? { bg: 1, fg: 3 };
+
                 const frameIndex = tileToFrame.get(graphicField.data) ?? 0;
                 const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
     
-                if (background && !eventIsTagged(event, "transparent")) {
-                    backg.fillStyle = background;
+                if (eventIsTagged(event, "transparent")) {
+                    bg = 0;
+                }
+
+                if (bg > 0) {
+                    backg.fillStyle = palette.colors[bg];
                     backg.fillRect(tx * size, ty * size, size, size);
                 }
 
-                color.fillStyle = highlight;
-                color.fillRect(tx * size, ty * size, size, size);
+                if (fg > 0) {
+                    color.fillStyle = palette.colors[fg];
+                    color.fillRect(tx * size, ty * size, size, size);
+                }
 
                 tiles.drawImage(
                     tileset.canvas,
@@ -221,9 +234,12 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
  * @param {BipsiDataRoom} room 
  */
  function drawRoomThumbnail(rendering, palette, room) {
-    const [background, foreground, highlight] = palette.colors;
+    const [, background, foreground, highlight] = palette.colors;
     for (let y = 0; y < 16; ++y) {
         for (let x = 0; x < 16; ++x) {
+            const foreground = palette.colors[room.foremap[y][x]];
+            const background = palette.colors[room.backmap[y][x]];
+
             const color = room.wallmap[y][x] === 1 ? foreground : background;
             rendering.fillStyle = color;
             rendering.fillRect(x, y, 1, 1);
@@ -241,11 +257,14 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
  * @param {CanvasRenderingContext2D} rendering 
  * @param {BipsiDataPalette} palette
  */
- function drawPaletteThumbnail(rendering, palette) {
-    palette.colors.forEach((color, i) => {
-        rendering.fillStyle = color;
-        rendering.fillRect(i, 0, 1, 1);
-    });
+function drawPaletteThumbnail(rendering, palette) {
+    for (let y = 0; y < 2; ++y) {
+        for (let x = 0; x < 4; ++x) {
+            rendering.fillStyle = palette.colors[y * 4 + x];
+            rendering.fillRect(x, y, 1, 1);
+        }
+    }
+    rendering.clearRect(0, 0, 1, 1);
 }
 
 
