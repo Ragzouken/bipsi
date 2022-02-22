@@ -237,6 +237,9 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
     const [, background, foreground, highlight] = palette.colors;
     for (let y = 0; y < 16; ++y) {
         for (let x = 0; x < 16; ++x) {
+            const foreground = palette.colors[room.foremap[y][x]];
+            const background = palette.colors[room.backmap[y][x]];
+
             const color = room.wallmap[y][x] === 1 ? foreground : background;
             rendering.fillStyle = color;
             rendering.fillRect(x, y, 1, 1);

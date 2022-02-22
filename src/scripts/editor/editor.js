@@ -1291,10 +1291,10 @@ class BipsiEditor extends EventTarget {
                     this.actions.save.invoke();
                 }
             } else if (!textedit) {
-                const topkeys = ["KeyQ", "KeyW", "KeyE", "KeyR"]; 
+                const topkeys = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT"]; 
                 topkeys.forEach((code, i) => {
                     if (event.code === code) {
-                        this.modeSelect.selectedIndex = i;
+                        this.roomPaintTool.selectedIndex = i;
                         event.preventDefault();
                     }
                 });
