@@ -511,7 +511,6 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const palette = this.getActivePalette();
-        const [, background] = palette.colors;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
@@ -527,7 +526,7 @@ class BipsiPlayback extends EventTarget {
         const images_above_all    = images.filter((image) => image.layer >= 3);
 
         fillRendering2D(this.rendering);
-        fillRendering2D(TEMP_128, background);
+        // fillRendering2D(TEMP_128, background);
         images_below_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
         drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
         images_below_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));

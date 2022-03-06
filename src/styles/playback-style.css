@@ -1,3 +1,7 @@
+body {    
+    background: var(--page-color, black);
+}
+
 body, canvas {
     touch-action: none;
 }

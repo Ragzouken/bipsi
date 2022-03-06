@@ -199,7 +199,6 @@ input[type="text"], textarea {
 
 body {
     touch-action: none;
-    background: var(--page-color, black);
 }
 
 canvas {

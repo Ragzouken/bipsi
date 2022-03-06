@@ -174,10 +174,11 @@ async function makePlayback(font, bundle) {
     debugHandlers.set("capture-gif", (message) => captureGif());
     debugHandlers.set("get-room-listing", (message) => getRoomListing());
 
+    debugHandlers.set("touch-location", (message) => playback.touch(getEventAtLocation(playback.data, message.location)));
+    debugHandlers.set("touch-tagged", (message) => playback.touch(findEventByTag(playback.data, message.tag)));
+
     // only allow these when playtesting from editor
     if (document.documentElement.getAttribute("data-debug")) {
-        debugHandlers.set("touch-location", (message) => playback.touch(getEventAtLocation(playback.data, message.location)));
-
         // if the game runs javascript from variables then this would be a 
         // vector to run arbitrary javascript on the game's origin giving
         // read/write access to storage for that origin and the power to e.g
