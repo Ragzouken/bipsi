@@ -526,15 +526,15 @@ class BipsiPlayback extends EventTarget {
         const images_above_all    = images.filter((image) => image.layer >= 3);
 
         fillRendering2D(this.rendering);
-        // fillRendering2D(TEMP_128, background);
-        images_below_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
-        drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
-        images_below_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
-        drawEventLayer(TEMP_128, tileset, tileToFrame, palette, room.events);
-        images_above_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
+        // fillRendering2D(TEMP_ROOM, background);
+        images_below_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
+        images_below_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
+        images_above_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
 
         // upscale tilemaps to display area
-        this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+        this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
 
         // render dialogue box if necessary
         if (!this.dialoguePlayback.empty) {
@@ -547,9 +547,9 @@ class BipsiPlayback extends EventTarget {
             this.rendering.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0);
         }
         
-        fillRendering2D(TEMP_128);
-        images_above_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
-        this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+        fillRendering2D(TEMP_ROOM);
+        images_above_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
 
         if (this.ended) {
             fillRendering2D(this.rendering);

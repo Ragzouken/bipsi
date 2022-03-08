@@ -1784,15 +1784,15 @@ class BipsiEditor extends EventTarget {
 
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
 
-        fillRendering2D(TEMP_128);
-        drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
+        fillRendering2D(TEMP_ROOM);
+        drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
         fillRendering2D(this.renderings.tileMapPaint);
-        this.renderings.tileMapPaint.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+        this.renderings.tileMapPaint.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
         
-        fillRendering2D(TEMP_128);
-        drawEventLayer(TEMP_128, tileset, tileToFrame, palette, room.events);
+        fillRendering2D(TEMP_ROOM);
+        drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
         this.renderings.tileMapPaint.globalAlpha = .75;
-        this.renderings.tileMapPaint.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+        this.renderings.tileMapPaint.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
         this.renderings.tileMapPaint.globalAlpha = 1;
 
         if (this.roomGrid.checked) {
@@ -1830,31 +1830,40 @@ class BipsiEditor extends EventTarget {
             this.eventEditor.valueEditors.bgIndex.inputs[i].style.backgroundColor = color;
         });
 
-        this.drawRoom(TEMP_128, roomIndex, { palette });
-        this.renderings.paletteRoom.drawImage(TEMP_128.canvas, 0, 0);
+        this.drawRoom(TEMP_ROOM, roomIndex, { palette });
+        this.renderings.paletteRoom.drawImage(TEMP_ROOM.canvas, 0, 0);
 
         if (!this.eventEditor.showDialoguePreview) {
             this.eventEditor.dialoguePreviewToggle.checked = false;
 
-            fillRendering2D(TEMP_256);
+            fillRendering2D(TEMP_SCREEN);
     
             room.events.forEach((event) => {
                 const [x, y] = event.position;
                 const plugin = IS_TAGGED(event, "is-plugin");
 
-                TEMP_256.drawImage(plugin ? this.PLUGIN_TILE : this.EVENT_TILE, x * tileSize * 2, y * tileSize * 2);
+                TEMP_SCREEN.drawImage(
+                    plugin ? this.PLUGIN_TILE : this.EVENT_TILE, 
+                    x * tileSize * SCREEN_ZOOM, 
+                    y * tileSize * SCREEN_ZOOM
+                );
             });
 
             if (this.selectedEventCell && this.roomPaintTool.value === "events") {
                 const { x, y } = this.selectedEventCell;
-                TEMP_256.fillStyle = "white";
-                TEMP_256.fillRect(0, y * 16 + 6, 256, 4);
-                TEMP_256.fillRect(x * 16 + 6, 0, 4, 256);
+                TEMP_SCREEN.fillStyle = "white";
+
+                const tile_px = TILE_PX * SCREEN_ZOOM;
+                const width = 4;
+                const margin = Math.floor((tile_px - width) / 2);
+
+                TEMP_SCREEN.fillRect(0, y * tile_px + margin, SCREEN_PX, width);
+                TEMP_SCREEN.fillRect(x * tile_px + margin, 0, width, SCREEN_PX);
             }
 
             if (this.roomPaintTool.value === "events" || this.roomPaintTool.value === "shift") {
                 this.renderings.tileMapPaint.globalAlpha = .5;
-                this.renderings.tileMapPaint.drawImage(TEMP_256.canvas, 0, 0);
+                this.renderings.tileMapPaint.drawImage(TEMP_SCREEN.canvas, 0, 0);
                 this.renderings.tileMapPaint.globalAlpha = 1;
             }
         }

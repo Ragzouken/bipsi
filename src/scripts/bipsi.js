@@ -77,7 +77,10 @@ function getManifest(data) {
 
 const TILE_PX = 8;
 const ROOM_SIZE = 16;
+const SCREEN_ZOOM = 2;
+
 const ROOM_PX = TILE_PX * ROOM_SIZE;
+const SCREEN_PX = ROOM_PX * SCREEN_ZOOM;
 
 const constants = {
     frameInterval: 400,
@@ -91,8 +94,9 @@ const constants = {
 
     colorwheelMargin: 12,
 }
-const TEMP_128 = createRendering2D(128, 128);
-const TEMP_256 = createRendering2D(256, 256);
+
+const TEMP_ROOM = createRendering2D(ROOM_PX, ROOM_PX);
+const TEMP_SCREEN = createRendering2D(SCREEN_PX, SCREEN_PX);
 
 /**
  * @param {HTMLCanvasElement} tileset 
