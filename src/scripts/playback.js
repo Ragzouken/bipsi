@@ -622,7 +622,7 @@ class BipsiPlayback extends EventTarget {
         const [tx, ty] = [px+dx, py+dy];
 
         // is the movement stopped by the room edge or solid cells?
-        const bounded = tx < 0 || tx >= 16 || ty < 0 || ty >= 16;
+        const bounded = tx < 0 || tx >= constants.roomSize || ty < 0 || ty >= constants.roomSize;
         const blocked = bounded ? false : cellIsSolid(room, tx, ty);
 
         // if not, then update avatar position

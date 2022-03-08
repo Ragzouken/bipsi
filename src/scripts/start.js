@@ -155,7 +155,7 @@ async function makePlayback(font, bundle) {
     function getRoomListing() {
         const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
         const rooms = [];
-        const thumb = createRendering2D(16, 16);
+        const thumb = createRendering2D(constants.roomSize, constants.roomSize);
         const preview = createRendering2D(128, 128);
         playback.data.rooms.forEach((room) => {
             drawRoomPreviewPlayback(preview, playback, room.id);

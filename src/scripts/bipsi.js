@@ -152,8 +152,8 @@ function makeTileToFrameMap(tiles, frame) {
  */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
     drawRecolorLayer(destination, (backg, color, tiles) => {
-        for (let ty = 0; ty < 16; ++ty) {
-            for (let tx = 0; tx < 16; ++tx) {
+        for (let ty = 0; ty < constants.roomSize; ++ty) {
+            for (let tx = 0; tx < constants.roomSize; ++tx) {
                 let back = backmap[ty][tx];
                 let fore = foremap[ty][tx];
                 let tileIndex = tilemap[ty][tx];
@@ -274,8 +274,8 @@ function drawPaletteThumbnail(rendering, palette) {
  * @param {number} dy 
  */
 function cycleMap(map, dx, dy) {
-    const x = dx > 0 ? dx : 16 + dx;
-    const y = dy > 0 ? dy : 16 + dy;
+    const x = dx > 0 ? dx : constants.roomSize + dx;
+    const y = dy > 0 ? dy : constants.roomSize + dy;
     
     map.push(...map.splice(0, y));
     map.forEach((row) => {
@@ -290,8 +290,8 @@ function cycleMap(map, dx, dy) {
  */
 function cycleEvents(events, dx, dy) {
     events.forEach((event) => {
-        event.position[0] = (event.position[0] + 16 + dx) % 16;
-        event.position[1] = (event.position[1] + 16 + dy) % 16;
+        event.position[0] = (event.position[0] + constants.roomSize + dx) % constants.roomSize;
+        event.position[1] = (event.position[1] + constants.roomSize + dy) % constants.roomSize;
     });
 }
 

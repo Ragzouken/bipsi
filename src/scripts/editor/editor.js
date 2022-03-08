@@ -4,10 +4,10 @@ function makeBlankRoom(id) {
     return {
         id,
         palette: 0,
-        tilemap: ZEROES(16).map(() => REPEAT(16, 0)),
-        backmap: ZEROES(16).map(() => REPEAT(16, 0)),
-        foremap: ZEROES(16).map(() => REPEAT(16, 1)),
-        wallmap: ZEROES(16).map(() => REPEAT(16, 0)),
+        tilemap: ZEROES(constants.roomSize).map(() => REPEAT(constants.roomSize, 0)),
+        backmap: ZEROES(constants.roomSize).map(() => REPEAT(constants.roomSize, 0)),
+        foremap: ZEROES(constants.roomSize).map(() => REPEAT(constants.roomSize, 1)),
+        wallmap: ZEROES(constants.roomSize).map(() => REPEAT(constants.roomSize, 0)),
         events: [],
     }
 }
@@ -33,7 +33,7 @@ function generateGrid(width, height, gap) {
 }
 
 const TILE_GRID = generateGrid(160, 160, 20);
-const ROOM_GRID = generateGrid(256, 256, 16);
+const ROOM_GRID = generateGrid(16 * constants.roomSize, 16 * constants.roomSize, 16);
 
 /** 
  * Update the given bipsi project data so that it's valid for this current
@@ -49,12 +49,12 @@ function updateProject(project) {
     const repairLocations = !locationFields.every((location) => getRoomById(project, location.data.room));
 
     project.rooms.forEach((room) => {
-        room.backmap = room.backmap ?? ZEROES(16).map(() => REPEAT(16, 0));
-        room.foremap = room.foremap ?? ZEROES(16).map(() => REPEAT(16, 1));
+        room.backmap = room.backmap ?? ZEROES(constants.roomSize).map(() => REPEAT(constants.roomSize, 0));
+        room.foremap = room.foremap ?? ZEROES(constants.roomSize).map(() => REPEAT(constants.roomSize, 1));
         
         if (room.highmap) {
-            for (let y = 0; y < 16; ++y) {
-                for (let x = 0; x < 16; ++x) {
+            for (let y = 0; y < constants.roomSize; ++y) {
+                for (let x = 0; x < constants.roomSize; ++x) {
                     const high = room.highmap[y][x];
 
                     if (high > 0) {
@@ -1563,7 +1563,7 @@ class BipsiEditor extends EventTarget {
                 this.stateManager.makeCheckpoint();
 
                 const setIfWithin = (map, x, y, value) => {
-                    if (x >= 0 && x < 16 && y >= 0 && y < 16) map[y][x] = value ?? 0;
+                    if (x >= 0 && x < constants.roomSize && y >= 0 && y < constants.roomSize) map[y][x] = value ?? 0;
                 } 
 
                 const plots = {
@@ -1870,7 +1870,7 @@ class BipsiEditor extends EventTarget {
         const { data } = this.getSelections();
 
         const thumbs = data.rooms.map((room) => {
-            const thumb = createRendering2D(16, 16);
+            const thumb = createRendering2D(constants.roomSize, constants.roomSize);
             drawRoomThumbnail(thumb, getPaletteById(data, room.palette), room);
             return { id: room.id, thumb: thumb.canvas };
         });
@@ -1885,7 +1885,7 @@ class BipsiEditor extends EventTarget {
         canvases.forEach((canvas) => {
             const rendering = canvas.getContext("2d");
             rendering.imageSmoothingEnabled = false;
-            rendering.drawImage(thumb, 0, 0, 16, 16);
+            rendering.drawImage(thumb, 0, 0, constants.roomSize, constants.roomSize);
         });
     }
 
