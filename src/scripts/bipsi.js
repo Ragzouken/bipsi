@@ -75,9 +75,11 @@ function getManifest(data) {
     return [data.tileset, ...files];
 }
 
+const TILE_PX = 8;
+const ROOM_SIZE = 16;
+const ROOM_PX = TILE_PX * ROOM_SIZE;
+
 const constants = {
-    tileSize: 8,
-    roomSize: 16,
     frameInterval: 400,
 
     tileset: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAjUlEQVR42u3XMQ4AEBAEwPv/p2kUIo5ScmYqQWU3QsSkDbu5TFBHVoDTfqemAFQKfy3BOs7WKBT+HLQCfBB+dgPcHnoKULAIp7ECfFoA30AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCFDjCu5xlD93/uAAAAAElFTkSuQmCC",
@@ -234,9 +236,12 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
  * @param {BipsiDataRoom} room 
  */
  function drawRoomThumbnail(rendering, palette, room) {
+    rendering.canvas.width = ROOM_SIZE;
+    rendering.canvas.height = ROOM_SIZE;
+
     const [, background, foreground, highlight] = palette.colors;
-    for (let y = 0; y < 16; ++y) {
-        for (let x = 0; x < 16; ++x) {
+    for (let y = 0; y < ROOM_SIZE; ++y) {
+        for (let x = 0; x < ROOM_SIZE; ++x) {
             const foreground = palette.colors[room.foremap[y][x]];
             const background = palette.colors[room.backmap[y][x]];
 
@@ -393,8 +398,7 @@ const nextPaletteId = (data) => nextId(data.palettes);
  */
 function resizeTileset(tileset, tiles) {
     const maxFrame = Math.max(...tiles.flatMap((tile) => tile.frames));
-    const size = 8
     const cols = 16;
     const rows = Math.ceil((maxFrame + 1) / cols);
-    resizeRendering2D(tileset, cols * size, rows * size);
+    resizeRendering2D(tileset, cols * TILE_PX, rows * TILE_PX);
 }

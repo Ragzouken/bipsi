@@ -18,7 +18,7 @@
         destination.fillStyle = "white";
         destination.globalAlpha = .5;
         destination.fillRect(
-            x * 8 + 1, y * 8 + 1, 
+            x * TILE_SIZE + 1, y * TILE_SIZE + 1, 
             6, 6,
         );
     });

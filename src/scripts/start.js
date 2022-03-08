@@ -118,7 +118,7 @@ async function makePlayback(font, bundle) {
     document.addEventListener("pointerdown", (event) => {
         if (ignoreMouse) return;
 
-        const threshold = playCanvas.getBoundingClientRect().width / 16 * 2;
+        const threshold = playCanvas.getBoundingClientRect().width / ROOM_SIZE * 2;
 
         const drag = ui.drag(event);
         let [x0, y0] = [drag.downEvent.clientX, drag.downEvent.clientY];
@@ -156,7 +156,7 @@ async function makePlayback(font, bundle) {
         const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
         const rooms = [];
         const thumb = createRendering2D(constants.roomSize, constants.roomSize);
-        const preview = createRendering2D(128, 128);
+        const preview = createRendering2D(ROOM_PX, ROOM_PX);
         playback.data.rooms.forEach((room) => {
             drawRoomPreviewPlayback(preview, playback, room.id);
             drawRoomThumbPlayback(thumb, playback, room.id);
