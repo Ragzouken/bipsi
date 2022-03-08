@@ -18,8 +18,10 @@
         destination.fillStyle = "white";
         destination.globalAlpha = .5;
         destination.fillRect(
-            x * TILE_SIZE + 1, y * TILE_SIZE + 1, 
-            6, 6,
+            x * TILE_PX + 1, 
+            y * TILE_PX + 1, 
+            TILE_PX - 2, 
+            TILE_PX - 2,
         );
     });
     destination.globalAlpha = 1;

@@ -99,13 +99,12 @@ const TEMP_256 = createRendering2D(256, 256);
  * @param {number} index 
  */
 function getTileCoords(tileset, index) {
-    const size = constants.tileSize;
-    const columns = tileset.width / size;
+    const cols = tileset.width / TILE_PX;
 
     return {
-        x: size * (index % columns),
-        y: size * Math.floor(index / columns),
-        size,
+        x: TILE_PX * (index % cols),
+        y: TILE_PX * Math.floor(index / cols),
+        size: TILE_PX,
     }
 }
 
@@ -154,8 +153,8 @@ function makeTileToFrameMap(tiles, frame) {
  */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
     drawRecolorLayer(destination, (backg, color, tiles) => {
-        for (let ty = 0; ty < constants.roomSize; ++ty) {
-            for (let tx = 0; tx < constants.roomSize; ++tx) {
+        for (let ty = 0; ty < ROOM_SIZE; ++ty) {
+            for (let tx = 0; tx < ROOM_SIZE; ++tx) {
                 let back = backmap[ty][tx];
                 let fore = foremap[ty][tx];
                 let tileIndex = tilemap[ty][tx];
@@ -279,8 +278,8 @@ function drawPaletteThumbnail(rendering, palette) {
  * @param {number} dy 
  */
 function cycleMap(map, dx, dy) {
-    const x = dx > 0 ? dx : constants.roomSize + dx;
-    const y = dy > 0 ? dy : constants.roomSize + dy;
+    const x = dx > 0 ? dx : ROOM_SIZE + dx;
+    const y = dy > 0 ? dy : ROOM_SIZE + dy;
     
     map.push(...map.splice(0, y));
     map.forEach((row) => {
@@ -295,8 +294,8 @@ function cycleMap(map, dx, dy) {
  */
 function cycleEvents(events, dx, dy) {
     events.forEach((event) => {
-        event.position[0] = (event.position[0] + constants.roomSize + dx) % constants.roomSize;
-        event.position[1] = (event.position[1] + constants.roomSize + dy) % constants.roomSize;
+        event.position[0] = (event.position[0] + ROOM_SIZE + dx) % ROOM_SIZE;
+        event.position[1] = (event.position[1] + ROOM_SIZE + dy) % ROOM_SIZE;
     });
 }
 

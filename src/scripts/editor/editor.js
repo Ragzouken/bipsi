@@ -1685,7 +1685,7 @@ class BipsiEditor extends EventTarget {
         data = data || this.stateManager.present;
         
         const tileset = this.stateManager.resources.get(data.tileset);
-        const tileSize = constants.tileSize;
+        const tileSize = TILE_PX;
         const roomIndex = this.roomSelectWindow.select.selectedIndex;
         const tileIndex = this.tileBrowser.selectedTileIndex;
         const frameIndex = this.tilePaintFrameSelect.selectedIndex;
@@ -1936,16 +1936,15 @@ class BipsiEditor extends EventTarget {
     }
 
     async redrawTileBrowser() {
-        const { data, room, tileset, bg, fg } = this.getSelections();
+        const { data, tileset, bg, fg } = this.getSelections();
 
-        const hi = this.roomPaintTool.value === "events";
         const tilesetC = recolorMask(tileset, fg, TEMP_TILESET0);
 
         // draw tileset frame
         const cols = 16;
         const rows = Math.ceil(data.tiles.length / cols);
-        const width = cols * constants.tileSize;
-        const height = rows * constants.tileSize;
+        const width = cols * TILE_PX;
+        const height = rows * TILE_PX;
 
         const frame0 = createRendering2D(width, height);
         const frame1 = createRendering2D(width, height);
@@ -1954,8 +1953,8 @@ class BipsiEditor extends EventTarget {
             data.tiles.forEach(({ frames }, i) => {
                 const index = frames[frame] ?? frames[0];
     
-                const tx = i % 16;
-                const ty = Math.floor(i / 16);
+                const tx = i % cols;
+                const ty = Math.floor(i / cols);
 
                 const { x, y, size } = getTileCoords(tilesetC.canvas, index);
                 destination.drawImage(
