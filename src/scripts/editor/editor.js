@@ -5,8 +5,8 @@ function makeBlankRoom(id) {
         id,
         palette: 0,
         tilemap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 0)),
-        backmap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 0)),
-        foremap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 1)),
+        backmap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 1)),
+        foremap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 2)),
         wallmap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 0)),
         events: [],
     }
@@ -552,6 +552,9 @@ class EventEditor {
         this.positionSelect = ONE("#field-position-select");
         this.positionSelectRendering = this.positionSelect.getContext("2d");
 
+        this.positionSelect.width = ROOM_PX;
+        this.positionSelect.height = ROOM_PX;
+
         this.dialoguePreviewToggle = ui.toggle("show-dialogue-preview");
         this.dialoguePreviewToggle.addEventListener("change", () => {
             this.resetDialoguePreview();
@@ -745,6 +748,7 @@ class EventEditor {
 
     refreshPositionSelect(index, position = undefined) {
         this.positionSelectRendering.globalCompositeOperation = "source-over";
+        fillRendering2D(this.positionSelectRendering);
         this.editor.drawRoom(this.positionSelectRendering, index);
 
         if (position) {
@@ -982,10 +986,11 @@ class BipsiEditor extends EventTarget {
         this.renderings = {
             tilePaint0: ONE("#tile-paint-0").getContext("2d"),
             tilePaint1: ONE("#tile-paint-1").getContext("2d"),
-
             tileMapPaint: ONE("#tile-map-paint").getContext("2d"),
-            paletteRoom: ONE("#palette-room").getContext("2d"),
         };
+
+        this.renderings.tileMapPaint.canvas.width = SCREEN_PX;
+        this.renderings.tileMapPaint.canvas.height = SCREEN_PX;
 
         this.tilesetDataURIs = [];
 
@@ -1113,7 +1118,6 @@ class BipsiEditor extends EventTarget {
 
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
-        // this.roomTileBrowser = new EventTileBrowser(this, "draw-room-tile-select", ONE("#draw-room-tile-template"));
 
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
@@ -1400,7 +1404,6 @@ class BipsiEditor extends EventTarget {
             this.tilePaintFrameSelect.selectedIndex = 0;
 
             this.tileBrowser.select.setSelectedIndexSilent(index);
-            // this.roomTileBrowser.select.setSelectedIndexSilent(index);
             this.tileEditor.redraw();
         }
 
@@ -1418,10 +1421,6 @@ class BipsiEditor extends EventTarget {
 
             setSelectedTile(this.tileBrowser.select.selectedIndex);
         })
-
-        // this.roomTileBrowser.select.addEventListener("change", () => {
-        //     setSelectedTile(this.roomTileBrowser.select.selectedIndex);
-        // });
 
         // whenever the project data is changed
         this.stateManager.addEventListener("change", () => {
@@ -1446,7 +1445,6 @@ class BipsiEditor extends EventTarget {
             // render room
             this.requestRedraw();
             this.tileBrowser.redraw();
-            // this.roomTileBrowser.redraw();
 
             // events
             this.eventEditor.refresh();
@@ -1465,7 +1463,7 @@ class BipsiEditor extends EventTarget {
             }
 
             const { room } = this.getSelections();
-            const scale = this.renderings.tileMapPaint.canvas.width / (8 * 16);
+            const scale = this.renderings.tileMapPaint.canvas.width / ROOM_PX;
 
             const round = (position) => {
                 return {
@@ -1534,7 +1532,7 @@ class BipsiEditor extends EventTarget {
 
             const { tile, room, data, bgIndex, fgIndex, colorIndex } = this.getSelections();
 
-            const scale = canvas.width / (8 * 16);
+            const scale = canvas.width / ROOM_PX;
 
             const round = (position) => {
                 return {
@@ -1787,12 +1785,12 @@ class BipsiEditor extends EventTarget {
         fillRendering2D(TEMP_ROOM);
         drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
         fillRendering2D(this.renderings.tileMapPaint);
-        this.renderings.tileMapPaint.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
+        this.renderings.tileMapPaint.drawImage(TEMP_ROOM.canvas, 0, 0, SCREEN_PX, SCREEN_PX);
         
         fillRendering2D(TEMP_ROOM);
         drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
         this.renderings.tileMapPaint.globalAlpha = .75;
-        this.renderings.tileMapPaint.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
+        this.renderings.tileMapPaint.drawImage(TEMP_ROOM.canvas, 0, 0, SCREEN_PX, SCREEN_PX);
         this.renderings.tileMapPaint.globalAlpha = 1;
 
         if (this.roomGrid.checked) {
@@ -1831,7 +1829,6 @@ class BipsiEditor extends EventTarget {
         });
 
         this.drawRoom(TEMP_ROOM, roomIndex, { palette });
-        this.renderings.paletteRoom.drawImage(TEMP_ROOM.canvas, 0, 0);
 
         if (!this.eventEditor.showDialoguePreview) {
             this.eventEditor.dialoguePreviewToggle.checked = false;
@@ -1902,6 +1899,8 @@ class BipsiEditor extends EventTarget {
         const canvases = ALL(`[name="show-room-window"] + canvas`);
         canvases.forEach((canvas) => {
             const rendering = canvas.getContext("2d");
+            rendering.canvas.width = ROOM_SIZE;
+            rendering.canvas.height = ROOM_SIZE;
             rendering.imageSmoothingEnabled = false;
             rendering.drawImage(thumb, 0, 0, ROOM_SIZE, ROOM_SIZE);
         });
@@ -1999,7 +1998,6 @@ class BipsiEditor extends EventTarget {
 
             this.tileBrowser.setURIs(uris, canvases);
             this.eventTileBrowser.setURIs(uris, canvases);
-            // this.roomTileBrowser.setURIs(uris, canvases);
 
             prev.map(URL.revokeObjectURL);
         });
@@ -2093,7 +2091,7 @@ class BipsiEditor extends EventTarget {
             
             const { x, y, size } = getTileCoords(tileset.canvas, frames[0]);
             tileset.clearRect(x, y, size, size);
-        });
+        });        
         this.tileBrowser.selectedTileIndex += 1;
     }
 
