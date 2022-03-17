@@ -86,18 +86,19 @@ class TileBrowser {
         this.thumbnailURIs = uris;
         this.updateCSS();
 
-        const root = ONE(":root");
-        const w = canvases[0].width * BROWSER_TILE_SCALE;
-        const h = canvases[0].height * BROWSER_TILE_SCALE;
+        const factor = BROWSER_TILE_SCALE * 8 / TILE_PX;
 
-        const { data, room } = this.editor.getSelections();
+        const root = ONE(":root");
+        const w = canvases[0].width * factor;
+        const h = canvases[0].height * factor;
+
+        const { data } = this.editor.getSelections();
 
         root.style.setProperty("--tileset-background-size", `${w}px ${h}px`);
-        //root.style.setProperty("--tileset-background-color", getPaletteById(data, room.palette).colors[0]);
 
         this.items.map(data.tiles, (tile, item, index) => {
             const { x, y } = getTileCoords(canvases[0], index);
-            item.setup(tile.id, x * BROWSER_TILE_SCALE, y * BROWSER_TILE_SCALE, index);
+            item.setup(tile.id, x * factor, y * factor, index);
         });
     }
 

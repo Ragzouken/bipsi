@@ -859,6 +859,11 @@ class TileEditor {
         const tile0 = this.editor.renderings.tilePaint0;
         const tile1 = this.editor.renderings.tilePaint1;
 
+        resizeRendering2D(tile0, TILE_PX * TILE_ZOOM, TILE_PX * TILE_ZOOM);
+        resizeRendering2D(tile1, TILE_PX * TILE_ZOOM, TILE_PX * TILE_ZOOM);
+        tile0.imageSmoothingEnabled = false;
+        tile1.imageSmoothingEnabled = false;
+
         tile0.canvas.addEventListener("pointerdown", (event) => this.startDrag(event, 0));
         tile1.canvas.addEventListener("pointerdown", (event) => this.startDrag(event, 1));
 
@@ -893,8 +898,8 @@ class TileEditor {
 
         const round = (position) => {
             return {
-                x: Math.floor(position.x / 20),
-                y: Math.floor(position.y / 20),
+                x: Math.floor(position.x / TILE_ZOOM),
+                y: Math.floor(position.y / TILE_ZOOM),
             };
         };
 
@@ -929,7 +934,7 @@ class TileEditor {
     }
 
     redraw() {
-        const { data, tileset, room, tile, bg, fg } = this.editor.getSelections();
+        const { tileset, tile, bg, fg } = this.editor.getSelections();
         if (!tile) return;
 
         this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
@@ -947,7 +952,7 @@ class TileEditor {
             rendering.drawImage(
                 tilesetC.canvas,
                 x, y, size, size,
-                0, 0, size * 20, size * 20,
+                0, 0, size * TILE_ZOOM, size * TILE_ZOOM,
             );
             rendering.globalCompositeOperation = "source-over";
 
@@ -1532,12 +1537,12 @@ class BipsiEditor extends EventTarget {
 
             const { tile, room, data, bgIndex, fgIndex, colorIndex } = this.getSelections();
 
-            const scale = canvas.width / ROOM_PX;
+            const factor = ROOM_SIZE / canvas.width;
 
             const round = (position) => {
                 return {
-                    x: Math.floor(position.x / (8 * scale)),
-                    y: Math.floor(position.y / (8 * scale)),
+                    x: Math.floor(position.x * factor),
+                    y: Math.floor(position.y * factor),
                 };
             };
 
