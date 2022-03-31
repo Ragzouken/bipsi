@@ -126,7 +126,7 @@ async function makePlayback(font, bundle, story) {
     document.addEventListener("pointerdown", (event) => {
         if (ignoreMouse) return;
 
-        const threshold = playCanvas.getBoundingClientRect().width / 16 * 2;
+        const threshold = playCanvas.getBoundingClientRect().width / ROOM_SIZE * 2;
 
         const drag = ui.drag(event);
         let [x0, y0] = [drag.downEvent.clientX, drag.downEvent.clientY];
@@ -171,8 +171,8 @@ async function makePlayback(font, bundle, story) {
     function getRoomListing() {
         const current = getLocationOfEvent(playback.data, getEventById(playback.data, playback.avatarId));
         const rooms = [];
-        const thumb = createRendering2D(16, 16);
-        const preview = createRendering2D(128, 128);
+        const thumb = createRendering2D(ROOM_SIZE, ROOM_SIZE);
+        const preview = createRendering2D(ROOM_PX, ROOM_PX);
         playback.data.rooms.forEach((room) => {
             drawRoomPreviewPlayback(preview, playback, room.id);
             drawRoomThumbPlayback(thumb, playback, room.id);
@@ -190,10 +190,11 @@ async function makePlayback(font, bundle, story) {
     debugHandlers.set("capture-gif", (message) => captureGif());
     debugHandlers.set("get-room-listing", (message) => getRoomListing());
 
+    debugHandlers.set("touch-location", (message) => playback.touch(getEventAtLocation(playback.data, message.location)));
+    debugHandlers.set("touch-tagged", (message) => playback.touch(findEventByTag(playback.data, message.tag)));
+
     // only allow these when playtesting from editor
     if (document.documentElement.getAttribute("data-debug")) {
-        debugHandlers.set("touch-location", (message) => playback.touch(getEventAtLocation(playback.data, message.location)));
-
         // if the game runs javascript from variables then this would be a 
         // vector to run arbitrary javascript on the game's origin giving
         // read/write access to storage for that origin and the power to e.g
