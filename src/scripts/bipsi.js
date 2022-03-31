@@ -75,9 +75,14 @@ function getManifest(data) {
     return [data.tileset, ...files];
 }
 
+const TILE_PX = 8;
+const ROOM_SIZE = 16;
+const SCREEN_ZOOM = 2;
+
+const ROOM_PX = TILE_PX * ROOM_SIZE;
+const SCREEN_PX = ROOM_PX * SCREEN_ZOOM;
+
 const constants = {
-    tileSize: 8,
-    roomSize: 16,
     frameInterval: 400,
 
     tileset: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAjUlEQVR42u3XMQ4AEBAEwPv/p2kUIo5ScmYqQWU3QsSkDbu5TFBHVoDTfqemAFQKfy3BOs7WKBT+HLQCfBB+dgPcHnoKULAIp7ECfFoA30AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCFDjCu5xlD93/uAAAAAElFTkSuQmCC",
@@ -89,21 +94,21 @@ const constants = {
 
     colorwheelMargin: 12,
 }
-const TEMP_128 = createRendering2D(128, 128);
-const TEMP_256 = createRendering2D(256, 256);
+
+const TEMP_ROOM = createRendering2D(ROOM_PX, ROOM_PX);
+const TEMP_SCREEN = createRendering2D(SCREEN_PX, SCREEN_PX);
 
 /**
  * @param {HTMLCanvasElement} tileset 
  * @param {number} index 
  */
 function getTileCoords(tileset, index) {
-    const size = constants.tileSize;
-    const columns = tileset.width / size;
+    const cols = tileset.width / TILE_PX;
 
     return {
-        x: size * (index % columns),
-        y: size * Math.floor(index / columns),
-        size,
+        x: TILE_PX * (index % cols),
+        y: TILE_PX * Math.floor(index / cols),
+        size: TILE_PX,
     }
 }
 
@@ -152,8 +157,8 @@ function makeTileToFrameMap(tiles, frame) {
  */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
     drawRecolorLayer(destination, (backg, color, tiles) => {
-        for (let ty = 0; ty < 16; ++ty) {
-            for (let tx = 0; tx < 16; ++tx) {
+        for (let ty = 0; ty < ROOM_SIZE; ++ty) {
+            for (let tx = 0; tx < ROOM_SIZE; ++tx) {
                 let back = backmap[ty][tx];
                 let fore = foremap[ty][tx];
                 let tileIndex = tilemap[ty][tx];
@@ -234,9 +239,12 @@ function drawEventLayer(destination, tileset, tileToFrame, palette, events) {
  * @param {BipsiDataRoom} room 
  */
  function drawRoomThumbnail(rendering, palette, room) {
+    rendering.canvas.width = ROOM_SIZE;
+    rendering.canvas.height = ROOM_SIZE;
+
     const [, background, foreground, highlight] = palette.colors;
-    for (let y = 0; y < 16; ++y) {
-        for (let x = 0; x < 16; ++x) {
+    for (let y = 0; y < ROOM_SIZE; ++y) {
+        for (let x = 0; x < ROOM_SIZE; ++x) {
             const foreground = palette.colors[room.foremap[y][x]];
             const background = palette.colors[room.backmap[y][x]];
 
@@ -274,8 +282,8 @@ function drawPaletteThumbnail(rendering, palette) {
  * @param {number} dy 
  */
 function cycleMap(map, dx, dy) {
-    const x = dx > 0 ? dx : 16 + dx;
-    const y = dy > 0 ? dy : 16 + dy;
+    const x = dx > 0 ? dx : ROOM_SIZE + dx;
+    const y = dy > 0 ? dy : ROOM_SIZE + dy;
     
     map.push(...map.splice(0, y));
     map.forEach((row) => {
@@ -290,8 +298,8 @@ function cycleMap(map, dx, dy) {
  */
 function cycleEvents(events, dx, dy) {
     events.forEach((event) => {
-        event.position[0] = (event.position[0] + 16 + dx) % 16;
-        event.position[1] = (event.position[1] + 16 + dy) % 16;
+        event.position[0] = (event.position[0] + ROOM_SIZE + dx) % ROOM_SIZE;
+        event.position[1] = (event.position[1] + ROOM_SIZE + dy) % ROOM_SIZE;
     });
 }
 
@@ -393,8 +401,7 @@ const nextPaletteId = (data) => nextId(data.palettes);
  */
 function resizeTileset(tileset, tiles) {
     const maxFrame = Math.max(...tiles.flatMap((tile) => tile.frames));
-    const size = 8
     const cols = 16;
     const rows = Math.ceil((maxFrame + 1) / cols);
-    resizeRendering2D(tileset, cols * size, rows * size);
+    resizeRendering2D(tileset, cols * TILE_PX, rows * TILE_PX);
 }

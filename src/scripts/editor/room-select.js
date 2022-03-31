@@ -4,6 +4,9 @@ class RoomSelectItem {
         this.input = input;
         this.canvas = canvas;
         this.rendering = canvas.getContext("2d");
+        
+        this.canvas.width = ROOM_SIZE;
+        this.canvas.height = ROOM_SIZE;
     }
 
     setup(id, thumb) {

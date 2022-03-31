@@ -327,9 +327,9 @@ const STANDARD_SCRIPTS = [
     BEHAVIOUR_ADD_BEHAVIOUR,
 ];
 
-const BACKG_PAGE = createRendering2D(128, 128); 
-const COLOR_PAGE = createRendering2D(128, 128);
-const TILES_PAGE = createRendering2D(128, 128);
+const BACKG_PAGE = createRendering2D(ROOM_PX, ROOM_PX); 
+const COLOR_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
+const TILES_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
 
 function drawRecolorLayer(destination, render) {
     fillRendering2D(BACKG_PAGE);
@@ -350,9 +350,9 @@ function drawRecolorLayer(destination, render) {
     destination.drawImage(COLOR_PAGE.canvas, 0, 0);
 }
 
-const BACKG_PAGE_D = createRendering2D(128, 128); 
-const COLOR_PAGE_D = createRendering2D(128, 128);
-const TILES_PAGE_D = createRendering2D(128, 128);
+const BACKG_PAGE_D = createRendering2D(555, 555); 
+const COLOR_PAGE_D = createRendering2D(555, 555);
+const TILES_PAGE_D = createRendering2D(555, 555);
 
 function drawRecolorLayerDynamic(destination, render) {
     const { width, height } = destination.canvas;
@@ -658,7 +658,6 @@ class BipsiPlayback extends EventTarget {
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
         const palette = this.getActivePalette();
-        const [, background] = palette.colors;
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
@@ -674,15 +673,15 @@ class BipsiPlayback extends EventTarget {
         const images_above_all    = images.filter((image) => image.layer >= 3);
 
         fillRendering2D(this.rendering);
-        fillRendering2D(TEMP_128, background);
-        images_below_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
-        drawTilemapLayer(TEMP_128, tileset, tileToFrame, palette, room);
-        images_below_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
-        drawEventLayer(TEMP_128, tileset, tileToFrame, palette, room.events);
-        images_above_events.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
+        // fillRendering2D(TEMP_ROOM, background);
+        images_below_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
+        images_below_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
+        images_above_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
 
         // upscale tilemaps to display area
-        this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+        this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
 
         // render dialogue box if necessary
         if (!this.dialoguePlayback.empty) {
@@ -695,9 +694,9 @@ class BipsiPlayback extends EventTarget {
             this.rendering.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0);
         }
         
-        fillRendering2D(TEMP_128);
-        images_above_all.forEach(({ image, x, y }) => TEMP_128.drawImage(image, x, y));
-        this.rendering.drawImage(TEMP_128.canvas, 0, 0, 256, 256);
+        fillRendering2D(TEMP_ROOM);
+        images_above_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
 
         if (this.ended) {
             fillRendering2D(this.rendering);
@@ -770,7 +769,7 @@ class BipsiPlayback extends EventTarget {
         const [tx, ty] = [px+dx, py+dy];
 
         // is the movement stopped by the room edge or solid cells?
-        const bounded = tx < 0 || tx >= 16 || ty < 0 || ty >= 16;
+        const bounded = tx < 0 || tx >= ROOM_SIZE || ty < 0 || ty >= ROOM_SIZE;
         const blocked = bounded ? false : cellIsSolid(room, tx, ty);
 
         // if not, then update avatar position
