@@ -92,7 +92,7 @@ async function makePlayback(font, bundle, story) {
 
     function down(key, code) {
         if (!playback.dialoguePlayback.empty) {
-            if(playback.choiceExpected){
+            if(playback.choiceExpected && playback.dialoguePlayback.completed()){
                 return doChoice(key);
             };
             playback.proceed();
