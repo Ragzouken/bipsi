@@ -38,6 +38,10 @@ const ROOM_ZOOM = 16;
 const TILE_GRID = generateGrid(TILE_ZOOM * TILE_PX, TILE_ZOOM * TILE_PX, TILE_ZOOM);
 const ROOM_GRID = generateGrid(ROOM_ZOOM * ROOM_SIZE, ROOM_ZOOM * ROOM_SIZE, ROOM_ZOOM);
 
+const TILE_SELECT_ZOOM = 5;
+
+const TILE_ICON_SCALE = Math.max(1, Math.floor(TILE_PX / 8));
+
 /** 
  * Update the given bipsi project data so that it's valid for this current
  * version of bipsi.
@@ -112,6 +116,15 @@ function updateProject(project) {
         event.fields = event.fields ?? [];
         event.fields = event.fields.filter((field) => field !== null);
     }));
+}
+
+function makeCanvasRounder(canvas, cells) {
+    const factor = cells / canvas.width;
+
+    return (position) => ({
+        x: Math.floor(position.x * factor),
+        y: Math.floor(position.y * factor),
+    });
 }
 
 function generateColorWheel(width, height) {
@@ -450,6 +463,10 @@ class EventEditor {
      */
     constructor(editor) {
         this.editor = editor;
+
+        const root = ONE(":root");
+        root.style.setProperty("--tile-px", `${TILE_PX}px`);
+        root.style.setProperty("--tile-select-zoom", `${TILE_SELECT_ZOOM}`);
 
         const { parent, element } = prepareTemplate(ONE("#event-field-template"));
         this.fieldContainer = parent;
@@ -896,12 +913,7 @@ class TileEditor {
         const drag = ui.drag(event);
         const positions = trackCanvasStroke(rendering.canvas, drag);
 
-        const round = (position) => {
-            return {
-                x: Math.floor(position.x / TILE_ZOOM),
-                y: Math.floor(position.y / TILE_ZOOM),
-            };
-        };
+        const round = makeCanvasRounder(rendering.canvas, TILE_PX);
 
         // "brush" is a single pixel which is either transparent or white,
         // whichever the existing pixel isn't
@@ -947,12 +959,12 @@ class TileEditor {
             fillRendering2D(rendering, bg === "#000000" ? undefined : bg);
 
             const frameIndex = tile.frames[i] ?? tile.frames[0];
-            const { x, y, size } = getTileCoords(tileset.canvas, frameIndex);
+            const { x, y } = getTileCoords(tileset.canvas, frameIndex);
             rendering.globalCompositeOperation = fg === "#000000" ? "destination-out" : "source-over"; 
             rendering.drawImage(
                 tilesetC.canvas,
-                x, y, size, size,
-                0, 0, size * TILE_ZOOM, size * TILE_ZOOM,
+                x, y, TILE_PX, TILE_PX,
+                0, 0, TILE_PX * TILE_ZOOM, TILE_PX * TILE_ZOOM,
             );
             rendering.globalCompositeOperation = "source-over";
 
@@ -1295,7 +1307,7 @@ class BipsiEditor extends EventTarget {
             
             const textedit = isElementTextInput(event.target);
 
-            if (event.ctrlKey) {
+            if (event.ctrlKey || event.metaKey) {
                 if (event.key === "z" && !textedit) this.actions.undo.invoke();
                 if (event.key === "y" && !textedit) this.actions.redo.invoke();
                 if (event.key === "s") {
@@ -1468,14 +1480,8 @@ class BipsiEditor extends EventTarget {
             }
 
             const { room } = this.getSelections();
-            const scale = this.renderings.tileMapPaint.canvas.width / ROOM_PX;
 
-            const round = (position) => {
-                return {
-                    x: Math.floor(position.x / (8 * scale)),
-                    y: Math.floor(position.y / (8 * scale)),
-                };
-            };
+            const round = makeCanvasRounder(this.renderings.tileMapPaint.canvas, ROOM_SIZE);
 
             const redraw = () => {
                 this.requestRedraw();
@@ -1780,7 +1786,7 @@ class BipsiEditor extends EventTarget {
     redraw() {
         this.tileEditor.redraw();
 
-        const { data, room, tileSize, roomIndex, tileset, fgIndex, bgIndex } = this.getSelections();
+        const { data, room, roomIndex, tileset, fgIndex, bgIndex } = this.getSelections();
         const palette = this.roomPaintTool.value === "color" 
                       ? this.paletteEditor.getPreviewPalette()  
                       : getPaletteById(data, room.palette);
@@ -1813,7 +1819,8 @@ class BipsiEditor extends EventTarget {
                     if (wall > 0) {
                         rendering.drawImage(
                             this.WALL_TILE, 
-                            x * tileSize * 2, y * tileSize * 2,
+                            x * TILE_PX * 2, y * TILE_PX * 2,
+                            TILE_PX * 2, TILE_PX * 2,
                         );
                     }
                 });
@@ -1846,8 +1853,10 @@ class BipsiEditor extends EventTarget {
 
                 TEMP_SCREEN.drawImage(
                     plugin ? this.PLUGIN_TILE : this.EVENT_TILE, 
-                    x * tileSize * SCREEN_ZOOM, 
-                    y * tileSize * SCREEN_ZOOM
+                    x * TILE_PX * SCREEN_ZOOM, 
+                    y * TILE_PX * SCREEN_ZOOM,
+                    TILE_PX * SCREEN_ZOOM,
+                    TILE_PX * SCREEN_ZOOM
                 );
             });
 

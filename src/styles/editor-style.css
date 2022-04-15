@@ -11,6 +11,9 @@
 
     --black-outline-shadow: 0 0 0 2px black;
     --white-outline-shadow: 0 0 0 2px white;
+
+    --tile-px: 8px;
+    --tile-select-zoom: 5;
 }
 
 :root[data-app-mode="editor"] [data-hidden-in-editor] {
@@ -327,9 +330,9 @@ select {
 .tile-select label {
     min-height: unset;
 
-    width: 40px; height: 40px;
+    width: calc(var(--tile-px) * var(--tile-select-zoom)); 
+    aspect-ratio: 1;
 
-    /* background-color: var(--tileset-background-color); */
     background-image: var(--tileset-background-image);
     background-size: var(--tileset-background-size);
 }

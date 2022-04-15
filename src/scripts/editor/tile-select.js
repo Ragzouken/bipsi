@@ -15,8 +15,6 @@ class TileSelectItem {
     }
 }
 
-const BROWSER_TILE_SCALE = 5;
-
 class TileBrowser {
     /**
      * @param {BipsiEditor} editor
@@ -86,11 +84,9 @@ class TileBrowser {
         this.thumbnailURIs = uris;
         this.updateCSS();
 
-        const factor = BROWSER_TILE_SCALE * 8 / TILE_PX;
-
         const root = ONE(":root");
-        const w = canvases[0].width * factor;
-        const h = canvases[0].height * factor;
+        const w = canvases[0].width * TILE_SELECT_ZOOM;
+        const h = canvases[0].height * TILE_SELECT_ZOOM;
 
         const { data } = this.editor.getSelections();
 
@@ -98,7 +94,7 @@ class TileBrowser {
 
         this.items.map(data.tiles, (tile, item, index) => {
             const { x, y } = getTileCoords(canvases[0], index);
-            item.setup(tile.id, x * factor, y * factor, index);
+            item.setup(tile.id, x * TILE_SELECT_ZOOM, y * TILE_SELECT_ZOOM, index);
         });
     }
 
