@@ -208,7 +208,9 @@ async function start() {
 
     if (bundle) {
         PLAYBACK = await makePlayback(font, bundle);
+        window.PLAYBACK = PLAYBACK;
     } else {
         EDITOR = await startEditor(font);
+        window.EDITOR = EDITOR;
     }
 }
