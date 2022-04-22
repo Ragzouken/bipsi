@@ -156,6 +156,8 @@ function makeTileToFrameMap(tiles, frame) {
  * @param {{ tilemap: number[][], backmap: number[][], foremap: number[][] }} layer 
  */
 function drawTilemapLayer(destination, tileset, tileToFrame, palette, { tilemap, backmap, foremap }) {
+    console.log(palette)
+
     drawRecolorLayer(destination, (backg, color, tiles) => {
         for (let ty = 0; ty < ROOM_SIZE; ++ty) {
             for (let tx = 0; tx < ROOM_SIZE; ++tx) {

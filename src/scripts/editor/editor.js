@@ -1745,7 +1745,7 @@ class BipsiEditor extends EventTarget {
     drawRoom(rendering, roomIndex, { palette = undefined } = {}) {
         const { data, tileset } = this.getSelections();
         const room = data.rooms[roomIndex];
-        palette = palette ?? data.palettes[room.palette];
+        palette = palette ?? getPaletteById(data, room.palette);
 
         // find current animation frame for each tile
         const tileToFrame = makeTileToFrameMap(data.tiles, this.frame);
