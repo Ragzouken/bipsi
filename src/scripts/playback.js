@@ -295,7 +295,7 @@ const BEHAVIOUR_TOUCH_LOCATION = `
 let location = FIELD(EVENT, "touch-location", "location");
 let event = location ? EVENT_AT(location) : undefined;
 if (event) {
-    TOUCH(event);
+    await TOUCH(event);
 }
 `;
 
