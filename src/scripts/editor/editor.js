@@ -758,11 +758,7 @@ class EventEditor {
                     ONE("#field-location-editor").hidden = false;
                     let index = data.rooms.findIndex((room) => room.id == field.data.room);
 
-                    if (index === -1) {
-                        console.log("BAD LOCATION ROOM")
-                        return;
-                    }
-
+                    if (index === -1) index = 0;
                     this.editor.fieldRoomSelect.select.selectedIndex = index;
                     this.refreshPositionSelect(index, field.data.position);
                 } else if (field.type === "json") {
