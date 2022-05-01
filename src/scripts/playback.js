@@ -506,7 +506,7 @@ class BipsiPlayback extends EventTarget {
         this.render();
     }
 
-    render() {
+    render(frame=undefined) {
         // find avatar, current room, current palette
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
@@ -514,7 +514,7 @@ class BipsiPlayback extends EventTarget {
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
-        const frame = this.frameCount % 2;
+        frame = frame ?? this.frameCount % 2;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
         // sort images
