@@ -1,5 +1,27 @@
 const TEMP_TILESET0 = createRendering2D(1, 1);
 
+/**
+ * @returns {maker.ProjectBundle<BipsiDataProject>}
+ */
+function makeBlankBundle() {
+    return {
+        project: makeBlankProject(),
+        resources: { "1": { type: "canvas-datauri", data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAAXNSR0IArs4c6QAAAAtJREFUCJljYGAAAAADAAGgpqPUAAAAAElFTkSuQmCC" } },
+    };
+}
+
+/**
+ * @returns {BipsiDataProject}
+ */
+function makeBlankProject() {
+    return {
+        rooms: [makeBlankRoom(1)],
+        palettes: [makeBlankPalette(0)],
+        tileset: "1",
+        tiles: [{ id: 1, frames: [0] }],
+    }
+}
+
 function makeBlankRoom(id) {
     return {
         id,
@@ -2335,6 +2357,10 @@ class BipsiEditor extends EventTarget {
 
         await this.stateManager.loadBundle(bundle);
         this.unsavedChanges = false;
+
+        const data = this.stateManager.present;
+        const tileset = this.stateManager.resources.get(data.tileset);
+        resizeTileset(tileset, data.tiles);
 
         this.modeSelect.dispatchEvent(new Event("change"));
     }

@@ -7,7 +7,8 @@ async function startEditor(font) {
 
     // no embedded project, start editor with save or editor embed
     const save = await storage.load("slot0").catch(() => undefined);
-    const bundle = save || maker.bundleFromHTML(document, "#editor-embed");
+    const fallback = BIPSI_HD ? makeBlankBundle() :  maker.bundleFromHTML(document, "#editor-embed");
+    const bundle = save || fallback;
     
     // load bundle and enter editor mode
     await editor.loadBundle(bundle);
@@ -202,6 +203,8 @@ let EDITOR;
 
 async function start() {
     const font = await loadBasicFont(ONE("#font-embed"));
+
+    if (BIPSI_HD) document.documentElement.dataset.hd = "true";
 
     // determine if there is a project bundle embedded in this page
     const bundle = maker.bundleFromHTML(document);
