@@ -665,7 +665,7 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async runJS(event, js) {
+    async runJS(event, js, debug=false) {
         const defines = this.makeScriptingDefines(event);
         const names = Object.keys(defines).join(", ");
         const preamble = `const { ${names} } = this;\n`;
@@ -1058,7 +1058,7 @@ const SCRIPTING_FUNCTIONS = {
     },
 
     RUN_JS(script, event=this.EVENT) {
-        this.PLAYBACK.runJS(event, script);
+        return this.PLAYBACK.runJS(event, script);
     },
 
     ADD_BEHAVIOURS(...scripts) {
