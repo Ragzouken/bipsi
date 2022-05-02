@@ -248,7 +248,7 @@ if (music) {
 const BEHAVIOUR_TITLE = `
 let title = FIELD(EVENT, "title", "dialogue");
 if (title) {
-    await TITLE(title);
+    await TITLE(title, FIELD(EVENT, "say-style", "json"));
 }
 `;
 
@@ -258,6 +258,11 @@ let mode = FIELD(EVENT, "say-mode", "text") ?? "cycle";
 let say = SAMPLE(id, mode, FIELDS(EVENT, "say", "dialogue"));
 if (say) {
     await SAY(say, FIELD(EVENT, "say-style", "json"));
+} else if (say === undefined) {
+    let nosays = FIELD(EVENT, "no-says", "javascript");
+    if (nosays) {
+        await RUN_JS(nosays);
+    }
 }
 `;
 
@@ -278,7 +283,7 @@ const BEHAVIOUR_ENDING = `
 let ending = FIELD(EVENT, "ending", "dialogue");
 if (ending !== undefined) {
     if (ending.length > 0) {
-        await TITLE(ending);
+        await TITLE(ending, FIELD(EVENT, "say-style", "json"));
     }
     RESTART();
 }
@@ -761,6 +766,7 @@ const ITERATOR_FUNCS = {
     "shuffle": makeShuffleIterator,
     "cycle": makeCycleIterator,
     "sequence": makeSequenceIterator,
+    "sequence-once": makeSequenceOnceIterator,
 }
 
 function* makeShuffleIterator(values) {
@@ -789,6 +795,13 @@ function* makeSequenceIterator(values) {
     }
     while (values.length > 0) {
         yield values[values.length - 1];
+    }
+}
+
+function* makeSequenceOnceIterator(values) {
+    values = [...values];
+    for (let value of values) {
+        yield value;
     }
 }
 
