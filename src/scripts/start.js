@@ -87,7 +87,7 @@ async function makePlayback(font, bundle) {
     timer();
 
     function down(key, code) {
-        if (!playback.dialoguePlayback.empty) {
+        if (!playback.canMove) {
             playback.proceed();
         } else {
             heldKeys.add(key);

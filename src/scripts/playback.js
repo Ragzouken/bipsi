@@ -394,6 +394,9 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
         this.error = false;
 
+        this.inputWait = undefined;
+        this.inputWaitResolve = undefined;
+
         this.objectURLs = new Map();
         this.imageElements = new Map();
 
@@ -443,6 +446,10 @@ class BipsiPlayback extends EventTarget {
         this.ended = false;
         this.dialoguePlayback.clear();
         this.variables.clear();
+
+        this.inputWaitResolve?.apply();
+        this.inputWaitResolve = undefined;
+        this.inputWait = undefined;
 
         this.music.removeAttribute("src");
         this.music.pause();
@@ -586,12 +593,32 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
+    get canMove() {
+        return this.ready
+            && this.dialoguePlayback.empty
+            && !this.busy
+            && !this.ended
+            && !this.inputWait;
+    }
+
+    async waitInput() {
+        this.inputWait = this.inputWait ?? new Promise((resolve) => {
+            this.inputWaitResolve = resolve;
+        });
+
+        return this.inputWait;
+    }
+
     async proceed() {
         if (!this.ready) return;
 
         if (this.ended) {
             this.restart();
         }
+
+        this.inputWaitResolve?.apply();
+        this.inputWaitResolve = undefined;
+        this.inputWait = undefined;
 
         this.dialoguePlayback.skip();
 
@@ -615,7 +642,7 @@ class BipsiPlayback extends EventTarget {
 
     async move(dx, dy) {
         if (this.ended) this.proceed();
-        if (!this.ready || !this.dialoguePlayback.empty || this.busy || this.ended) return;
+        if (!this.canMove) return;
 
         this.busy = true;
 
@@ -1080,6 +1107,10 @@ const SCRIPTING_FUNCTIONS = {
     POST(message, origin="*") {
         postMessageParent(message, origin);
     },
+
+    async WAIT_INPUT() {
+        return this.PLAYBACK.waitInput();
+    }
 }
 
 /**
