@@ -586,11 +586,17 @@ class BipsiPlayback extends EventTarget {
     }
 
     sendVariables() {
-        try {
-            window.parent.postMessage({ type: "variables", data: this.variables });
-        } catch (e) {
-            this.log("> CAN'T TRACK VARIABLES (COMPLEX VALUE)");
-        }
+        const variables = new Map();
+
+        this.variables.forEach((value, key) => {
+            try {
+                variables.set(key, JSON.parse(JSON.stringify(value)));
+            } catch (e) {
+                variables.set(key, "[COMPLEX VALUE]");
+            }
+        });
+
+        window.parent.postMessage({ type: "variables", data: variables });
     }
 
     get canMove() {

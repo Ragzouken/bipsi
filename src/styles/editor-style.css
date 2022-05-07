@@ -1094,6 +1094,8 @@ label.toggle#tile-grid {
 }
 
 #variables-window {
+    position: absolute;
+    width: 512px; height: 256px;
     bottom: calc(48px + .5rem);
 
     display: flex; flex-direction: column;
@@ -1121,6 +1123,7 @@ label.toggle#tile-grid {
     overflow-y: scroll;
 
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 #tile-paint-body {

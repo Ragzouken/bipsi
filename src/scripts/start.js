@@ -109,7 +109,7 @@ async function makePlayback(font, bundle) {
 
     document.addEventListener("keydown", (event) => {
         if (!event.repeat) down(event.key, event.code);
-        if (event.key !== "Tab") {
+        if (keys.has(event.key)) {
             event.stopPropagation();
             event.preventDefault();
         }
