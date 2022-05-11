@@ -15,17 +15,17 @@ function makeBlankBundle() {
  */
 function makeBlankProject() {
     return {
-        rooms: [makeBlankRoom(1)],
+        rooms: [makeBlankRoom(1, 0)],
         palettes: [makeBlankPalette(0)],
         tileset: "1",
         tiles: [{ id: 1, frames: [0] }],
     }
 }
 
-function makeBlankRoom(id) {
+function makeBlankRoom(id, palette) {
     return {
         id,
-        palette: 0,
+        palette,
         tilemap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 0)),
         backmap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 1)),
         foremap: ZEROES(ROOM_SIZE).map(() => REPEAT(ROOM_SIZE, 2)),
@@ -2040,30 +2040,6 @@ class BipsiEditor extends EventTarget {
         }
     }
 
-    async copySelectedRoom() {
-        const { room } = this.getSelections();
-        this.copiedRoom = COPY(room);
-        this.actions.pasteRoom.disabled = false;
-    }
-
-    async pasteSelectedRoom() {
-        return this.stateManager.makeChange(async (data) => {
-            const { roomIndex } = this.getSelections(data);
-            const copy = COPY(this.copiedRoom);
-            copy.id = nextRoomId(data);
-            const eventId = nextEventId(data);
-            copy.events.forEach((event, i) => event.id = eventId + i);
-            data.rooms[roomIndex] = copy;
-        });
-    }
-    
-    async clearSelectedRoom() {
-        return this.stateManager.makeChange(async (data) => {
-            const { roomIndex } = this.getSelections(data);
-            data.rooms[roomIndex] = makeBlankRoom();
-        });
-    }
-
     /**
      * @param {(CanvasRenderingContext2D) => void} process 
      */
@@ -2195,7 +2171,7 @@ class BipsiEditor extends EventTarget {
     async newRoom() {
         await this.stateManager.makeChange(async (data) => {
             const { roomIndex } = this.getSelections(data);
-            const room = makeBlankRoom(nextRoomId(data));
+            const room = makeBlankRoom(nextRoomId(data), data.palettes[0].id);
             data.rooms.splice(roomIndex+1, 0, room);
         });
         this.roomSelectWindow.select.selectedIndex += 1;
