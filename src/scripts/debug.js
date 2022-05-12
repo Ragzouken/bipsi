@@ -64,12 +64,12 @@ function recordFrames(playback) {
     const frames = [];
     const temp = createRendering2D(512, 512);
 
-    playback.update(.4);
+    playback.render(0);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
     frames.push([temp.canvas.toDataURL(), 400]);
-    playback.update(.4);
+    playback.render(1);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
     frames.push([temp.canvas.toDataURL(), 400]);
-    
+
     return frames;
 }

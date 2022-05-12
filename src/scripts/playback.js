@@ -256,7 +256,7 @@ if (music) {
 const BEHAVIOUR_TITLE = `
 let title = FIELD(EVENT, "title", "dialogue");
 if (title) {
-    await TITLE(title);
+    await TITLE(title, FIELD(EVENT, "say-style", "json"));
 }
 `;
 
@@ -265,8 +265,12 @@ let id = FIELD(EVENT, "say-shared-id", "text") ?? "SAY-ITERATORS/" + EVENT_ID(EV
 let mode = FIELD(EVENT, "say-mode", "text") ?? "cycle";
 let say = SAMPLE(id, mode, FIELDS(EVENT, "say", "dialogue"));
 if (say) {
-    const sayStyle = FIELD(EVENT, "say-style", "json");
-    await SAY(say, sayStyle);
+    await SAY(say, FIELD(EVENT, "say-style", "json"));
+} else if (say === undefined) {
+    let nosays = FIELD(EVENT, "no-says", "javascript");
+    if (nosays) {
+        await RUN_JS(nosays);
+    }
 }
 `;
 
@@ -287,7 +291,7 @@ const BEHAVIOUR_ENDING = `
 let ending = FIELD(EVENT, "ending", "dialogue");
 if (ending !== undefined) {
     if (ending.length > 0) {
-        await TITLE(ending);
+        await TITLE(ending, FIELD(EVENT, "say-style", "json"));
     }
     RESTART();
 }
@@ -304,7 +308,7 @@ const BEHAVIOUR_TOUCH_LOCATION = `
 let location = FIELD(EVENT, "touch-location", "location");
 let event = location ? EVENT_AT(location) : undefined;
 if (event) {
-    TOUCH(event);
+    await TOUCH(event);
 }
 `;
 
@@ -398,6 +402,9 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
         this.error = false;
 
+        this.inputWait = undefined;
+        this.inputWaitResolve = undefined;
+
         this.objectURLs = new Map();
         this.imageElements = new Map();
 
@@ -456,6 +463,10 @@ class BipsiPlayback extends EventTarget {
         this.ended = false;
         this.dialoguePlayback.clear();
         this.variables.clear();
+
+        this.inputWaitResolve?.apply();
+        this.inputWaitResolve = undefined;
+        this.inputWait = undefined;
 
         this.music.removeAttribute("src");
         this.music.pause();
@@ -653,7 +664,7 @@ class BipsiPlayback extends EventTarget {
         this.render();
     }
 
-    render() {
+    render(frame=undefined) {
         // find avatar, current room, current palette
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
@@ -661,7 +672,7 @@ class BipsiPlayback extends EventTarget {
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
-        const frame = this.frameCount % 2;
+        frame = frame ?? this.frameCount % 2;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
         // sort images
@@ -721,11 +732,33 @@ class BipsiPlayback extends EventTarget {
     }
 
     sendVariables() {
-        try {
-            window.parent.postMessage({ type: "variables", data: this.variables });
-        } catch (e) {
-            this.log("> CAN'T TRACK VARIABLES (COMPLEX VALUE)");
-        }
+        const variables = new Map();
+
+        this.variables.forEach((value, key) => {
+            try {
+                variables.set(key, JSON.parse(JSON.stringify(value)));
+            } catch (e) {
+                variables.set(key, "[COMPLEX VALUE]");
+            }
+        });
+
+        window.parent.postMessage({ type: "variables", data: variables });
+    }
+
+    get canMove() {
+        return this.ready
+            && this.dialoguePlayback.empty
+            && !this.busy
+            && !this.ended
+            && !this.inputWait;
+    }
+
+    async waitInput() {
+        this.inputWait = this.inputWait ?? new Promise((resolve) => {
+            this.inputWaitResolve = resolve;
+        });
+
+        return this.inputWait;
     }
 
     async proceed() {
@@ -734,6 +767,10 @@ class BipsiPlayback extends EventTarget {
         if (this.ended) {
             this.restart();
         }
+
+        this.inputWaitResolve?.apply();
+        this.inputWaitResolve = undefined;
+        this.inputWait = undefined;
 
         this.dialoguePlayback.skip();
 
@@ -757,7 +794,7 @@ class BipsiPlayback extends EventTarget {
 
     async move(dx, dy) {
         if (this.ended) this.proceed();
-        if (!this.ready || !this.dialoguePlayback.empty || this.busy || this.ended) return;
+        if (!this.canMove) return;
 
         this.busy = true;
 
@@ -828,7 +865,7 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async runJS(event, js) {
+    async runJS(event, js, debug=false) {
         const defines = this.makeScriptingDefines(event);
         const names = Object.keys(defines).join(", ");
         const preamble = `const { ${names} } = this;\n`;
@@ -924,6 +961,7 @@ const ITERATOR_FUNCS = {
     "shuffle": makeShuffleIterator,
     "cycle": makeCycleIterator,
     "sequence": makeSequenceIterator,
+    "sequence-once": makeSequenceOnceIterator,
 }
 
 function* makeShuffleIterator(values) {
@@ -952,6 +990,13 @@ function* makeSequenceIterator(values) {
     }
     while (values.length > 0) {
         yield values[values.length - 1];
+    }
+}
+
+function* makeSequenceOnceIterator(values) {
+    values = [...values];
+    for (let value of values) {
+        yield value;
     }
 }
 
@@ -1221,7 +1266,7 @@ const SCRIPTING_FUNCTIONS = {
     },
 
     RUN_JS(script, event=this.EVENT) {
-        this.PLAYBACK.runJS(event, script);
+        return this.PLAYBACK.runJS(event, script);
     },
 
     ADD_BEHAVIOURS(...scripts) {
@@ -1230,6 +1275,7 @@ const SCRIPTING_FUNCTIONS = {
     POST(message, origin="*") {
         postMessageParent(message, origin);
     },
+<<<<<<< HEAD
     //binksi
     SET_INK_VAR(field, value) {
         this.STORY.variablesState.$(field, value);
@@ -1240,6 +1286,11 @@ const SCRIPTING_FUNCTIONS = {
     DIVERT_TO(knot_name) {
         this.STORY.ChoosePathString(knot_name);
         return this.PLAYBACK.continueStory();
+=======
+
+    async WAIT_INPUT() {
+        return this.PLAYBACK.waitInput();
+>>>>>>> 8f46b814b834b1076c6cc2e95ffeab2547ee31b6
     }
 }
 

@@ -6,8 +6,9 @@ async function startEditor(font) {
     document.documentElement.setAttribute("data-app-mode", "editor");
 
     // no embedded project, start editor with save or editor embed
-    const save = await storage.load("slot0").catch(() => undefined);
-    const bundle = save || maker.bundleFromHTML(document, "#editor-embed");
+    const save = await storage.load(SAVE_SLOT).catch(() => undefined);
+    const fallback = BIPSI_HD ? makeBlankBundle() :  maker.bundleFromHTML(document, "#editor-embed");
+    const bundle = save || fallback;
     
     // load bundle and enter editor mode
     await editor.loadBundle(bundle);
@@ -91,7 +92,7 @@ async function makePlayback(font, bundle, story) {
     timer();
 
     function down(key, code) {
-        if (!playback.dialoguePlayback.empty) {
+        if (!playback.canMove) {
             if(playback.choiceExpected && playback.dialoguePlayback.completed()){
                 return doChoice(key);
             };
@@ -116,7 +117,7 @@ async function makePlayback(font, bundle, story) {
 
     document.addEventListener("keydown", (event) => {
         if (!event.repeat) down(event.key, event.code);
-        if (event.key !== "Tab") {
+        if (keys.has(event.key)) {
             event.stopPropagation();
             event.preventDefault();
         }
@@ -219,6 +220,8 @@ let EDITOR;
 async function start() {
     const font = await loadBasicFont(ONE("#font-embed"));
 
+    if (BIPSI_HD) document.documentElement.dataset.hd = "true";
+
     // determine if there is a project bundle embedded in this page
     const bundle = maker.bundleFromHTML(document);
 
@@ -226,8 +229,14 @@ async function start() {
     const story = new inkjs.Story(storyContent);
 
     if (bundle) {
+<<<<<<< HEAD
         PLAYBACK = await makePlayback(font, bundle, story);
+=======
+        PLAYBACK = await makePlayback(font, bundle);
+        window.PLAYBACK = PLAYBACK;
+>>>>>>> 8f46b814b834b1076c6cc2e95ffeab2547ee31b6
     } else {
         EDITOR = await startEditor(font);
+        window.EDITOR = EDITOR;
     }
 }
