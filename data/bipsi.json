@@ -73,7 +73,7 @@
         }, {
           "key": "entry",
           "type": "javascript",
-          "data": "await WALK(EVENT, \"v>>>v\");"
+          "data": "await SAY(\"Grmbl...\");\nawait WALK(EVENT, \"v>>>v\");"
         }, {
           "key": "receptionist",
           "type": "tag",
@@ -85,10 +85,7 @@
         "fields": [{
           "key": "exit",
           "type": "location",
-          "data": {
-            "room": 0,
-            "position": [7, 11]
-          }
+          "data": { "room": 0, "position": [7, 11] }
         }]
       }, {
         "id": 11,
@@ -96,10 +93,7 @@
         "fields": [{
           "key": "exit",
           "type": "location",
-          "data": {
-            "room": 0,
-            "position": [7, 14]
-          }
+          "data": { "room": 0, "position": [7, 14] }
         }]
       }, {
         "id": 12,

@@ -572,7 +572,6 @@ class BipsiPlayback extends EventTarget {
                     const field = matchCutscene[3] || "touch";
                     let targetEvent = findEventByTag(this.data, target);
                     if(targetEvent){
-                        debugger;
                         const js_field = oneField(targetEvent, field, "javascript")?.data;
                         if (js_field !== undefined) {
                             await this.runJS(targetEvent, js_field);
@@ -630,7 +629,6 @@ class BipsiPlayback extends EventTarget {
                 if(arrowEvent){
                     dialogChoicesTexts.push(`${glyph} ${choice.text}`);
                     choiceEvents.set(arrowEvent,  () => {
-                        this.log(`> MAKING CHOICE ${choice.index}`);
                         story.ChooseChoiceIndex(choice.index);
                     });
                 }
@@ -653,7 +651,6 @@ class BipsiPlayback extends EventTarget {
                     continueStory(EVENT);
                 }
             }
-            this.log(`> ${choiceEvents.size} CHOICE EVENTS`);
             this.addEventListener("choice", listenToChoice);
         }else{
             this.choiceExpected = false

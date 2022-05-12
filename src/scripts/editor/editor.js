@@ -2429,6 +2429,7 @@ class BipsiEditor extends EventTarget {
         const formatted = perfectJson(bundle,{singleLine: ({ key, path, depth }) => {
             if (key == "position") return true;
             if (key == "frames") return true;
+            if (key == "data") return true;
             if (depth >= 5){
                return ["tilemap", "highmap", "backmap", "foremap", "wallmap"].includes(path[3]);
             }

@@ -57,7 +57,7 @@ function perfectJson(item) {
   }
 
   if (typeof item === 'string') {
-    return "\"".concat(item, "\"");
+    return JSON.stringify(item);
   }
 
   if (typeof item === 'boolean' || typeof item === 'number') {
