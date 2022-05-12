@@ -6,7 +6,7 @@ async function startEditor(font) {
     document.documentElement.setAttribute("data-app-mode", "editor");
 
     // no embedded project, start editor with save or editor embed
-    const save = await storage.load("slot0").catch(() => undefined);
+    const save = await storage.load(SAVE_SLOT).catch(() => undefined);
     const fallback = BIPSI_HD ? makeBlankBundle() :  maker.bundleFromHTML(document, "#editor-embed");
     const bundle = save || fallback;
     

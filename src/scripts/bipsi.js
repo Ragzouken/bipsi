@@ -1,5 +1,6 @@
 const URL_PARAMS = new URLSearchParams(window.location.search);
 const BIPSI_HD = URL_PARAMS.get("hd") === "true" || document.documentElement.dataset.hd;
+const SAVE_SLOT = URL_PARAMS.get("save") ?? "slot0";
 
 // browser saves will be stored under the id "bipsi"
 const storage = new maker.ProjectStorage(BIPSI_HD ? "bipsi-hd" : "bipsi");

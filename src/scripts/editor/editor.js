@@ -2473,7 +2473,7 @@ class BipsiEditor extends EventTarget {
 
         // make bundle and save it
         const bundle = await this.stateManager.makeBundle();
-        await storage.save(bundle, "slot0");
+        await storage.save(bundle, SAVE_SLOT);
         
         // successful save, no unsaved changes
         this.unsavedChanges = false;
