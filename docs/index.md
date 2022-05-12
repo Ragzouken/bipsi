@@ -46,16 +46,19 @@ The editor comes preloaded with an example story. You can find [the example file
     If a text is tagged with `#TITLE`, it will be displayed in bipsi's `TITLE` format (text only in the middle of the bipsi game area).
 
 * `#character-sentiment` :
-    If a text is tagged with `#character-sentiment`, it will try to find an event tagged `character` and look for a file field named `sentiment` (sentiment will default to `"neutral"` if given sentiment file is not found.)
-    _Example 1_: You cannot go there ! # guard-angry
-    _Example 2_: Thank you for the chocolate, please come in ! # guard-happy
+    If a text is tagged with `#character-sentiment`, it will try to find an event tagged `character` and look for a file field named `sentiment` (sentiment will default to `"neutral"` if given sentiment file is not found.). It will display the dialog using "portrait mode" :
+
+    ![portrait mode](portrait-mode.png)  
+
+    _Example 1_: You cannot go there ! # guard-angry  
+    _Example 2_: Thank you for the chocolate, please come in ! # guard-happy  
 
 ### Custom syntax in ink
 Just write those in your ink script as if it were text.  
 They should be written alone on a single line.
 
 * `SPAWN_AT(teleport_name)` :  
-    When encoutered in the text of the story, bipsi will try to teleport the avatar on an event tagged with `teleport_name`.  
+    When encountered in the text of the story, bipsi will try to teleport the avatar on an event tagged with `teleport_name`.  
     The name should _not_ be enclosed in any quotes.  
     If the teleport target does not exist, nothing happens and the story continues.  
     _Tip_: `teleport_name` can be a printed variable, (eg: `SPAWN_AT({lastVisitedRoom})`).
@@ -63,7 +66,14 @@ They should be written alone on a single line.
 
 
 * `SPAWN_AT(teleport_name, event_name)` :  
-    When encoutered in the text of the story, bipsi will try to move the selected event `event_name` on an event tagged with `teleport_name`.  
+    When encountered in the text of the story, bipsi will try to move the selected event `event_name` on an event tagged with `teleport_name`.  
     Both names should _not_ be enclosed in any quotes.  
-    If the teleport target or the event does not exist, nothing happens and the story continues. 
+    If the teleport target or the event do not exist, nothing happens and the story continues. 
     _Tip_: You cannot create new event _on-the-fly_, you should create a "store room" where you can take event from and put them back.
+
+* `CUTSCENE(event_name[ ,field_name])` :  
+    When encountered in the text of the story, bipsi will try to trigger the cutscene found in the javascript field `field_name` on a event tagged with `event_name`. `field_name` is optional and will default to the javascript `"touch"` field.  
+    Both names should _not_ be enclosed in any quotes.  
+    The field identified by `field_name` _must_ be a javascript field. In the context of the javascript field, all usual variables can be used. The `EVENT` variable references the event named in the first argument.  
+    If the event target or the field do not exist, nothing happens and the story continues. 
+    _Example_: See [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink).

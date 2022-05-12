@@ -8,6 +8,7 @@ demo ==binksi== game #TITLE
 
 === front_desk(from)
 SPAWN_AT(desk-from-{from})
+CUTSCENE(receptionist, entry)
 
 -(opts)
 
@@ -31,7 +32,6 @@ Do you have a room here ?
 -
 Then why bother me ?
 ->->
-
 
 === salon(from)
 SPAWN_AT(salon-from-{from})

@@ -229,12 +229,8 @@ async function start() {
     const story = new inkjs.Story(storyContent);
 
     if (bundle) {
-<<<<<<< HEAD
         PLAYBACK = await makePlayback(font, bundle, story);
-=======
-        PLAYBACK = await makePlayback(font, bundle);
         window.PLAYBACK = PLAYBACK;
->>>>>>> 8f46b814b834b1076c6cc2e95ffeab2547ee31b6
     } else {
         EDITOR = await startEditor(font);
         window.EDITOR = EDITOR;

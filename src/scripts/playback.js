@@ -561,10 +561,23 @@ class BipsiPlayback extends EventTarget {
 
             if(paragraphText.length > 0){
                 const matchSpawn = paragraphText.trim().match(/SPAWN_AT\(([^),\s]*)([\s]*,[\s]*([^)]*)*)*\)/)
+                const matchCutscene = paragraphText.trim().match(/CUTSCENE\(([^),\s]*)([\s]*,[\s]*([^)]*)*)*\)/)
+
                 if( matchSpawn ){
                     const target = matchSpawn[1];
                     const event = matchSpawn[3] || "is-player";
                     await this.spawnAt(target.trim(), event.trim());
+                }else if( matchCutscene ){
+                    const target = matchCutscene[1];
+                    const field = matchCutscene[3] || "touch";
+                    let targetEvent = findEventByTag(this.data, target);
+                    if(targetEvent){
+                        debugger;
+                        const js_field = oneField(targetEvent, field, "javascript")?.data;
+                        if (js_field !== undefined) {
+                            await this.runJS(targetEvent, js_field);
+                        }
+                    }
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
@@ -617,7 +630,7 @@ class BipsiPlayback extends EventTarget {
                 if(arrowEvent){
                     dialogChoicesTexts.push(`${glyph} ${choice.text}`);
                     choiceEvents.set(arrowEvent,  () => {
-                        console.log(`Making choice ${choice.index}`)
+                        this.log(`> MAKING CHOICE ${choice.index}`);
                         story.ChooseChoiceIndex(choice.index);
                     });
                 }
@@ -640,7 +653,7 @@ class BipsiPlayback extends EventTarget {
                     continueStory(EVENT);
                 }
             }
-            console.log(`We have ${choiceEvents.size} events to listen to`)
+            this.log(`> ${choiceEvents.size} CHOICE EVENTS`);
             this.addEventListener("choice", listenToChoice);
         }else{
             this.choiceExpected = false
@@ -1275,7 +1288,11 @@ const SCRIPTING_FUNCTIONS = {
     POST(message, origin="*") {
         postMessageParent(message, origin);
     },
-<<<<<<< HEAD
+
+    async WAIT_INPUT() {
+        return this.PLAYBACK.waitInput();
+    },
+
     //binksi
     SET_INK_VAR(field, value) {
         this.STORY.variablesState.$(field, value);
@@ -1286,11 +1303,6 @@ const SCRIPTING_FUNCTIONS = {
     DIVERT_TO(knot_name) {
         this.STORY.ChoosePathString(knot_name);
         return this.PLAYBACK.continueStory();
-=======
-
-    async WAIT_INPUT() {
-        return this.PLAYBACK.waitInput();
->>>>>>> 8f46b814b834b1076c6cc2e95ffeab2547ee31b6
     }
 }
 
