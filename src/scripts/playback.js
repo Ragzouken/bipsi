@@ -826,12 +826,16 @@ class BipsiPlayback extends EventTarget {
         // the cell the avatar tried to move into but settle for the cell 
         // they're already standing on otherwise
         const [fx, fy] = avatar.position;
-        const [event0] = getEventsAt(room.events, tx, ty, avatar);
-        const [event1] = getEventsAt(room.events, fx, fy, avatar);
-        const event = event0 ?? event1;
+        const events_at_destination = getEventsAt(room.events, tx, ty, avatar);
+        const events_at_position = getEventsAt(room.events, fx, fy, avatar);
+        const events = events_at_destination.length > 0 
+                     ? events_at_destination
+                     : events_at_position
 
-        // if there was such an event, touch it
-        if (event) await this.touch(event);
+        // if there are such events, touch them all
+        await events.forEach(async event => {
+            await this.touch(event);
+        }); 
 
         this.busy = false;
     }
