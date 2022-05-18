@@ -28,8 +28,20 @@ SPAWN_AT(desk-from-{from})
 Welcome to Binksi Hotel.
 Do you have a room here ?
 + [yes]
+    + + [101]
+        -> has_key("101")
+    + + [303]
+        -> has_key("303")
+    + + [I don't remember actually]
+        ->no_key
 + [no]
--
+    ->no_key
+
+= has_key(key)
+Here's your key to room {key}
+->->
+
+= no_key
 Then why bother me ?
 ->->
 

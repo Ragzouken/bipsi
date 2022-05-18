@@ -147,7 +147,7 @@ async function makePlayback(font, bundle, story) {
             const nextKey = turnToKey[turns];
 
             if (dist >= threshold) {
-                if(playback.choiceExpected){
+                if(playback.choiceExpected && playback.dialoguePlayback.completed()){
                     return doChoice(nextKey);
                 }else{
                     doMove(nextKey);
