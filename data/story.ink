@@ -8,7 +8,7 @@ demo ==binksi== game #TITLE
 
 === front_desk(from)
 SPAWN_AT(desk-from-{from})
-CUTSCENE(receptionist, entry)
+{CUTSCENE(receptionist, entry)|}
 
 -(opts)
 
