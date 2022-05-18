@@ -474,6 +474,7 @@ class BipsiPlayback extends EventTarget {
         this.extra_behaviours.length = 0;
         this.imageElements.clear();
         this.objectURLs.forEach((url) => URL.revokeObjectURL(url));
+        this.objectURLs.clear();
     }
 
     getFileObjectURL(id) {
