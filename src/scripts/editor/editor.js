@@ -1088,6 +1088,9 @@ class BipsiEditor extends EventTarget {
         this.moveToRoomSelect = new RoomSelect("move-to-window-room-select", ONE("#move-to-window-room-template"));
         this.moveToPositionSelect = ONE("#move-to-window-position");
         this.moveToPositionRendering = this.moveToPositionSelect.getContext("2d");
+
+        this.moveToPositionSelect.width = ROOM_PX;
+        this.moveToPositionSelect.height = ROOM_PX;
         
         this.moveToWindow = ONE("#move-to-window");
         this.showMoveTo = ui.toggle("show-move-to-debug");
