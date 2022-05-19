@@ -651,8 +651,8 @@ class EventEditor {
 
         this.positionSelect.addEventListener("click", (event) => {
             const { x, y } = mouseEventToCanvasPixelCoords(this.positionSelect, event);
-            const tx = Math.floor(x / 8);
-            const ty = Math.floor(y / 8);
+            const tx = Math.floor(x / TILE_PX);
+            const ty = Math.floor(y / TILE_PX);
             this.editor.stateManager.makeChange(async (data) => {
                 const { field } = this.getSelections(data);
                 field.data.room = this.editor.fieldRoomSelect.select.valueAsNumber;
