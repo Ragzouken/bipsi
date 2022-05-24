@@ -4,9 +4,14 @@ const TEMP_TILESET0 = createRendering2D(1, 1);
  * @returns {maker.ProjectBundle<BipsiDataProject>}
  */
 function makeBlankBundle() {
+    const tileset = createRendering2D(TILE_PX, TILE_PX);
+    tileset.fillStyle = "white";
+    tileset.fillRect(1, 1, TILE_PX-2, TILE_PX-2);
+    const data = tileset.canvas.toDataURL();
+
     return {
         project: makeBlankProject(),
-        resources: { "1": { type: "canvas-datauri", data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAAXNSR0IArs4c6QAAAAtJREFUCJljYGAAAAADAAGgpqPUAAAAAElFTkSuQmCC" } },
+        resources: { "1": { type: "canvas-datauri", data } },
     };
 }
 
@@ -14,14 +19,27 @@ function makeBlankBundle() {
  * @returns {BipsiDataProject}
  */
 function makeBlankProject() {
+    const room = makeBlankRoom(1, 0);
+    const player = { 
+        id: 1, 
+        position: [Math.floor(ROOM_SIZE / 2), Math.floor(ROOM_SIZE / 2)], 
+        fields: COPY(EVENT_TEMPLATES.player),
+    };
+    room.events.push(player);
+
     return {
-        rooms: [makeBlankRoom(1, 0)],
+        rooms: [room],
         palettes: [makeBlankPalette(0)],
         tileset: "1",
         tiles: [{ id: 1, frames: [0] }],
     }
 }
 
+/**
+ * @param {number} id
+ * @param {number} palette
+ * @returns {BipsiDataRoom}
+ */
 function makeBlankRoom(id, palette) {
     return {
         id,
@@ -1540,8 +1558,8 @@ class BipsiEditor extends EventTarget {
                     this.stateManager.makeCheckpoint();
                 }
 
-                const x = Math.max(0, Math.min(x1, 15));
-                const y = Math.max(0, Math.min(y1, 15));
+                const x = Math.max(0, Math.min(x1, ROOM_SIZE - 1));
+                const y = Math.max(0, Math.min(y1, ROOM_SIZE - 1));
                 const existing = getEventsAt(room.events, x, y)[0];
 
                 if (event_ && !existing) {
@@ -2446,8 +2464,8 @@ class BipsiEditor extends EventTarget {
     } 
 
     async resetProject() {
-        // open the default project in the editor
-        await this.loadBundle(maker.bundleFromHTML(document, "#editor-embed"));
+        // load a blank project
+        await this.loadBundle(makeBlankBundle());
     }
     
     /**

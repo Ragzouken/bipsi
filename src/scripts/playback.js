@@ -1053,8 +1053,8 @@ const SCRIPTING_FUNCTIONS = {
             } else {
                 let [x, y] = event.position;
                 const [dx, dy] = WALK_DIRECTIONS[dir];
-                x = Math.max(0, Math.min(15, x + dx));
-                y = Math.max(0, Math.min(15, y + dy));
+                x = Math.max(0, Math.min(ROOM_SIZE - 1, x + dx));
+                y = Math.max(0, Math.min(ROOM_SIZE - 1, y + dy));
                 event.position = [x, y];
                 await sleep(delay * 1000);
             }
