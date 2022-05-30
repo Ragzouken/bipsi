@@ -148,7 +148,7 @@ function makeTileToFrameMap(tiles, frame) {
     /** @type {[number, number][]} */
     return new Map(tiles.map((tile) => [
         tile.id, 
-        tile.frames[frame] ?? tile.frames[0],
+        tile.frames[frame % tile.frames.length],
     ]));
 }
 

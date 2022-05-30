@@ -527,7 +527,7 @@ class BipsiPlayback extends EventTarget {
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
-        frame = frame ?? this.frameCount % 2;
+        frame = frame ?? this.frameCount;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
         // sort images
