@@ -492,6 +492,7 @@ class BipsiPlayback extends EventTarget {
 
     async restart() {
         this.clear();
+        this.story.ResetState();
         await this.stateManager.copyFrom(this.stateBackup);
         this.start();
     }
