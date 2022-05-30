@@ -2453,9 +2453,14 @@ class BipsiEditor extends EventTarget {
 
     async importProject() {
         // ask the browser to provide a file
-        const [file] = await maker.pickFiles("text/html");
+        const [file] = await maker.pickFiles(".html,.json");
         // read the file and turn it into an html page
         const text = await maker.textFromFile(file);
+
+        if (file.name.endsWith(".json")) {
+            return await this.loadBundle(JSON.parse(text));
+        }
+
         const html = await maker.htmlFromText(text);
         // extract the bundle from the imported page
         const bundle = maker.bundleFromHTML(html);
