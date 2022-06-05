@@ -14,14 +14,12 @@
             | import ink story
         button(name="reset" title="reset project to default")
             include /icons/delete.svg
-            | reset project
-    h3 publish project
+            | clear project
+    h3 export project
     .info-action-list
         button(name="export" title="export as webpage") 
             include /icons/package.svg
             | export playable
-    h3 extra
-    .info-action-list
         button(name="export-gamedata" title="export data") 
             include /icons/binary.svg
             | bipsi bundle

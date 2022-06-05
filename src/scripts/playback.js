@@ -221,23 +221,23 @@ if (color) {
 `;
 
 const BEHAVIOUR_IMAGES = `
-let background = FIELD_OR_LIBRARY("background");
-if (background) {
-    SHOW_IMAGE("BACKGROUND", background, 1, 0, 0);
+let backgrounds = FIELDS_OR_LIBRARY("background");
+if (backgrounds) {
+    SHOW_IMAGE("BACKGROUND", backgrounds, 1, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-background")) {
     HIDE_IMAGE("BACKGROUND");
 }
 
-let foreground = FIELD_OR_LIBRARY("foreground");
-if (foreground) {
-    SHOW_IMAGE("FOREGROUND", foreground, 2, 0, 0);
+let foregrounds = FIELD_OR_LIBRARY("foreground");
+if (foregrounds) {
+    SHOW_IMAGE("FOREGROUND", foregrounds, 2, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-foreground")) {
     HIDE_IMAGE("FOREGROUND");
 }
 
-let overlay = FIELD_OR_LIBRARY("overlay");
-if (overlay) {
-    SHOW_IMAGE("OVERLAY", overlay, 3, 0, 0);
+let overlays = FIELD_OR_LIBRARY("overlay");
+if (overlays) {
+    SHOW_IMAGE("OVERLAY", overlays, 3, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-overlay")) {
     HIDE_IMAGE("OVERLAY");
 }
@@ -684,7 +684,7 @@ class BipsiPlayback extends EventTarget {
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
-        frame = frame ?? this.frameCount % 2;
+        frame = frame ?? this.frameCount;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
         // sort images
@@ -697,11 +697,11 @@ class BipsiPlayback extends EventTarget {
 
         fillRendering2D(this.rendering);
         // fillRendering2D(TEMP_ROOM, background);
-        images_below_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        images_below_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
         drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
-        images_below_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        images_below_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
         drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
-        images_above_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        images_above_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
 
         // upscale tilemaps to display area
         this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
@@ -718,7 +718,7 @@ class BipsiPlayback extends EventTarget {
         }
         
         fillRendering2D(TEMP_ROOM);
-        images_above_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image, x, y));
+        images_above_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
         this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
 
         if (this.ended) {
@@ -922,9 +922,13 @@ class BipsiPlayback extends EventTarget {
         this.background = image;
     }
     
-    async showImage(imageID, fileID, layer, x, y) {
-        const image = this.getFileImageElement(fileID);
-        this.images.set(imageID, { image, layer, x, y });
+    async showImage(imageID, fileIDs, layer, x, y) {
+        if (typeof fileIDs === "string") {
+            fileIDs = [fileIDs];
+        }
+
+        const images = fileIDs.map((fileID) => this.getFileImageElement(fileID));
+        this.images.set(imageID, { image: images, layer, x, y });
     }
 
     hideImage(imageID) {
@@ -1168,6 +1172,19 @@ const SCRIPTING_FUNCTIONS = {
         return file;
     },
 
+    FIELDS_OR_LIBRARY(field, event=this.EVENT) {
+        let files = FIELDS(event, field, "file");
+        let names = FIELDS(event, field, "text");
+
+        if (!files && names && this.LIBRARY) {
+            files = names.map((name) => FIELD(this.LIBRARY, name, "file"));
+        } else if (!files && this.LIBRARY) {
+            files = FIELDS(this.LIBRARY, field, "file");
+        }
+
+        return files;
+    },
+
     DO_STANDARD() { 
         return standardEventTouch(this.PLAYBACK, this.EVENT); 
     },
@@ -1232,8 +1249,8 @@ const SCRIPTING_FUNCTIONS = {
             } else {
                 let [x, y] = event.position;
                 const [dx, dy] = WALK_DIRECTIONS[dir];
-                x = Math.max(0, Math.min(15, x + dx));
-                y = Math.max(0, Math.min(15, y + dy));
+                x = Math.max(0, Math.min(ROOM_SIZE - 1, x + dx));
+                y = Math.max(0, Math.min(ROOM_SIZE - 1, y + dy));
                 event.position = [x, y];
                 await sleep(delay * 1000);
             }
