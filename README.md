@@ -8,7 +8,7 @@ Push your bipsi games further by driving the narration with the powerful ink eng
 
 [Go the online editor](https://smwhr.github.io/binksi/) !
 
-### How to use
+### Use offline
 
 * Install with `yarn install`
 * Run the editor `yarn editor`
