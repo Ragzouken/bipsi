@@ -222,21 +222,21 @@ if (color) {
 
 const BEHAVIOUR_IMAGES = `
 let backgrounds = FIELDS_OR_LIBRARY("background");
-if (backgrounds) {
+if (backgrounds.length > 0) {
     SHOW_IMAGE("BACKGROUND", backgrounds, 1, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-background")) {
     HIDE_IMAGE("BACKGROUND");
 }
 
-let foregrounds = FIELD_OR_LIBRARY("foreground");
-if (foregrounds) {
+let foregrounds = FIELDS_OR_LIBRARY("foreground");
+if (foregrounds.length > 0) {
     SHOW_IMAGE("FOREGROUND", foregrounds, 2, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-foreground")) {
     HIDE_IMAGE("FOREGROUND");
 }
 
-let overlays = FIELD_OR_LIBRARY("overlay");
-if (overlays) {
+let overlays = FIELDS_OR_LIBRARY("overlay");
+if (overlays.length > 0) {
     SHOW_IMAGE("OVERLAY", overlays, 3, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-overlay")) {
     HIDE_IMAGE("OVERLAY");
@@ -926,8 +926,13 @@ class BipsiPlayback extends EventTarget {
         if (typeof fileIDs === "string") {
             fileIDs = [fileIDs];
         }
-        const images = fileIDs.map((fileID) => this.getFileImageElement(fileID));
-        this.images.set(imageID, { image: images, layer, x, y });
+
+        if (fileIDs.length === 0) {
+            this.hideImage(imageID);
+        } else {
+            const images = fileIDs.map((fileID) => this.getFileImageElement(fileID));
+            this.images.set(imageID, { image: images, layer, x, y });
+        }
     }
 
     hideImage(imageID) {
@@ -1147,8 +1152,8 @@ const SCRIPTING_FUNCTIONS = {
         this.PLAYBACK.stopMusic();
     },
 
-    SHOW_IMAGE(id, file, layer, x, y) {
-        this.PLAYBACK.showImage(id, file, layer, x, y);
+    SHOW_IMAGE(id, files, layer, x, y) {
+        this.PLAYBACK.showImage(id, files, layer, x, y);
     },
     HIDE_IMAGE(id) {
         this.PLAYBACK.hideImage(id);
@@ -1180,7 +1185,7 @@ const SCRIPTING_FUNCTIONS = {
         } else if (!files && this.LIBRARY) {
             files = FIELDS(this.LIBRARY, field, "file");
         }
-        return files.length > 0 ? files : null;
+        return files;
     },
 
     DO_STANDARD() { 
