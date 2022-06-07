@@ -2412,6 +2412,15 @@ class BipsiEditor extends EventTarget {
         // insert plugins
         ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript();
 
+        // replace loading screen
+        try {
+            const { data } = this.getSelections();
+            const player = findEventByTag(data, "is-player");
+            const splash = FIELD(player, "loading-splash", "file");
+            const file = this.stateManager.resources.get(splash);
+            ONE("#loading-splash", clone).src = await maker.dataURIFromFile(file);
+        } catch (e) {};
+
         // track how many remixes this is (remixes have soft-limits to encourage finding updates)
         const generation = parseInt(clone.getAttribute("data-remix-generation"));
         clone.setAttribute("data-remix-generation", `${generation + 1}`);
