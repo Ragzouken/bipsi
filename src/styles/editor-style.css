@@ -1378,8 +1378,12 @@ p {
     height: 100%;
     display: flex;
 }
+#field-story-editor textarea {
+    font-size: small;
+}
 
 #story-container{
+    font-family: monospace;
     overflow: scroll;
     max-height: 100%;
     height: 100%;

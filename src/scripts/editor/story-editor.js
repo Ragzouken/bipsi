@@ -7,46 +7,100 @@ class StoryEditor {
         this.inkEditor = ONE("#field-story-editor textarea");
         this.inkPlayerContainer = ONE("#story-container");
 
-        this.inkEditor.value = editor.inkSource;
+        this.inkEditor.value = "Loading or source unavailable";
+        this.inkEditor.setAttribute("disabled", "disabled");
         this.story = null;
 
-        this.compile();
+        this.choiceHistory = [];
 
         this.inkEditor.addEventListener("input", () => {
+            editor.inkSource = this.inkEditor.value;
             this.compile()
 
             if(this.story){
                 const jsonBytecode = this.story.ToJson();
                 ONE("#story-embed").innerHTML = jsonBytecode;
-                this.playtest()
+                this.playtest(this.choiceHistory)
             }
         })
     }
 
+    loadSource(inkSource){
+        this.inkEditor.value = inkSource;
+        this.inkEditor.removeAttribute("disabled");
+        this.compile();
+    }
+
     compile(){
+
+        const errors = []
+        const errorHandler = (message, type) =>{
+            var issueRegex = /^(ERROR|WARNING|RUNTIME ERROR|RUNTIME WARNING|TODO): ('([^']+)' )?line (\d+): (.*)/;
+            let issueMatches = message.match(issueRegex);
+    
+            if(issueMatches){
+                errors.push(message)
+            }
+        }
+        const compilerOptions = new inkjs.CompilerOptions(null,[],false, errorHandler);
+
         try{
-            this.story = new inkjs.Compiler(this.inkEditor.value).Compile();
+            this.editor.logTextElement.replaceChildren("> RESTARTING COMPILATION\n");
+            this.story = new inkjs.Compiler(this.inkEditor.value, compilerOptions).Compile();
+            window.postMessage({ type: "log", data: "> COMPILATION SUCCESSFUL" })
         }catch(e){
-            console.error(e)
+            errors.forEach((message) => {
+                console.error(message);
+                window.postMessage({ type: "log", data: message })
+            })
+            this.editor.logWindow.hidden = false;
+            this.editor.showLog.checked = true;
         }
     }
 
-    playtest(){
+    reset(){
+        this.choiceHistory = [];
         if(!this.story) return;
+        this.story.ResetState();
+        
+    }
+
+    playtest(withChoices){
+        if(!this.story) return;
+        if(withChoices === undefined){
+            withChoices = [];
+        }
+
         const story = this.story;
         this.inkPlayerContainer.innerHTML = "";
         story.ResetState();
-        this.continueStory(story);
-
+        this.continueStory(story, withChoices);
     }
 
-    continueStory(story){
+    undo(){
+        if(!this.story) return;
+        const story = this.story;
+        this.choiceHistory.pop();
+        
+        this.inkPlayerContainer.innerHTML = "";
+        story.ResetState();
+        this.continueStory(story, this.choiceHistory);
+    }
+
+    continueStory(story, withChoices){
         const self = this;
+
         while(story.canContinue) {
             var paragraphText = story.Continue();
             var paragraphElement = document.createElement('p');
             paragraphElement.innerHTML = paragraphText;
             self.inkPlayerContainer.appendChild(paragraphElement);
+        }
+
+        if(withChoices && withChoices.length > 0){
+            const choice = withChoices[0];
+            story.ChooseChoiceIndex(choice);
+            return this.continueStory(story, withChoices.slice(1));
         }
 
         story.currentChoices.forEach(function(choice) {
@@ -71,6 +125,7 @@ class StoryEditor {
 
                 // Tell the story where to go next
                 story.ChooseChoiceIndex(choice.index);
+                self.choiceHistory.push(choice.index)
 
                 // Aaand loop
                 self.continueStory(story);

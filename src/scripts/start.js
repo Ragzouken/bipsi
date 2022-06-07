@@ -1,5 +1,5 @@
-async function startEditor(font, inkSource) {
-    const editor = new BipsiEditor(font, inkSource);
+async function startEditor(font) {
+    const editor = new BipsiEditor(font);
     await editor.init();
 
     // used to show/hide elements in css
@@ -12,6 +12,11 @@ async function startEditor(font, inkSource) {
     
     // load bundle and enter editor mode
     await editor.loadBundle(bundle);
+
+    const savedInkSource = await storage.load(`${SAVE_SLOT}-story`).catch(() => undefined);
+    const inkSource = savedInkSource || maker.storyFromHTML(document, "#story-source");
+
+    editor.loadInkSource(inkSource)
 
     // unsaved changes warning
     window.addEventListener("beforeunload", (event) => {
@@ -226,15 +231,13 @@ async function start() {
     const bundle = maker.bundleFromHTML(document);
 
     const storyContent = maker.bundleFromHTML(document, "#story-embed");
-    const inkSource = maker.storyFromHTML(document, "#story-source");
-    
 
     if (bundle) {
         const story = new inkjs.Story(storyContent);
         PLAYBACK = await makePlayback(font, bundle, story);
         window.PLAYBACK = PLAYBACK;
     } else {
-        EDITOR = await startEditor(font, inkSource);
+        EDITOR = await startEditor(font);
         window.EDITOR = EDITOR;
     }
 }

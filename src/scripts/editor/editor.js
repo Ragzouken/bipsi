@@ -1022,7 +1022,7 @@ class BipsiEditor extends EventTarget {
      * HTML UI so it doesn't really make sense to construct this more than once
      * but a class is easy syntax for wrapping functions and state together 🤷‍♀️
      */
-    constructor(font, inkSource) {
+    constructor(font) {
         super();
 
         // are there changes to warn about losing?
@@ -1179,9 +1179,6 @@ class BipsiEditor extends EventTarget {
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
 
-
-        this.loadInkSource(inkSource);
-
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
         this.eventEditor = new EventEditor(this);
@@ -1191,10 +1188,6 @@ class BipsiEditor extends EventTarget {
         this.font = font;
         this.dialoguePreviewPlayer = new DialoguePlayback(256, 256);
         this.dialoguePreviewPlayer.options.font = font;
-
-        
-        
-        
 
         this.time = 0;
         let prev;
@@ -1342,6 +1335,7 @@ class BipsiEditor extends EventTarget {
 
             //ink
             restartInk: ui.action("restart-ink", () => this.storyEditor.playtest()),
+            undoInk: ui.action("undo-ink", () => this.storyEditor.undo()),
         };
 
         // can't undo/redo/paste yet
@@ -2382,8 +2376,7 @@ class BipsiEditor extends EventTarget {
 
     async loadInkSource(inkSource) {
         this.inkSource = inkSource;
-        //this.inkPlayer = new InkPlayer(); //@todo
-        //await this.playtestInk()
+        this.storyEditor.loadSource(inkSource);
     }
 
     async loadStory(story) {
@@ -2568,6 +2561,9 @@ class BipsiEditor extends EventTarget {
         const bundle = await this.stateManager.makeBundle();
         await storage.save(bundle, SAVE_SLOT);
         
+        const inkSource = this.inkSource;
+        await storage.save(inkSource, `${SAVE_SLOT}-story`);
+
         // successful save, no unsaved changes
         this.unsavedChanges = false;
 

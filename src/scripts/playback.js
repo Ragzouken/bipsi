@@ -692,7 +692,6 @@ class BipsiPlayback extends EventTarget {
         images.sort((a, b) => a.layer - b.layer);
         const images_below_all    = images.filter((image) => image.layer < 1);
         const images_below_events = images.filter((image) => image.layer >= 1 && image.layer < 2);
-        //debugger;
         const images_above_events = images.filter((image) => image.layer >= 2 && image.layer < 3);
         const images_above_all    = images.filter((image) => image.layer >= 3);
 
@@ -927,7 +926,6 @@ class BipsiPlayback extends EventTarget {
         if (typeof fileIDs === "string") {
             fileIDs = [fileIDs];
         }
-        debugger;
         const images = fileIDs.map((fileID) => this.getFileImageElement(fileID));
         this.images.set(imageID, { image: images, layer, x, y });
     }
