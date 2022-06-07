@@ -4,12 +4,13 @@
 
 The usage of the editor should be transparent if you're already familiar with bipsi. You can check the [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf) if you're lost.
 
-To take better advantage of binksi, you will need to load an Ink Story via the *import > ink story* button on the play page. If you need help, you can follow the documentation at [Writing With Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).  
-*Note* : you'll need to upload a _compiled_ ink story (in JSON format).
+To take better advantage of binksi, you will need to write an Ink story in the ink tab. If you need help, you can follow the documentation at [Writing With Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md). 
 
 The editor comes preloaded with an example story. You can find [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink).
 
 ## Additional Bipsi functions and variables
+
+Theses variables and functions are available in all javascript fields of events.  
 
 * `STORY` : the `Story` object as provided by `inkjs`.
 * `SET_INK_VAR(varname, value)` : save the variable `varname` inside of ink with value `value`.
@@ -22,20 +23,23 @@ The editor comes preloaded with an example story. You can find [the example file
 
 ## Custom ink syntax
 
-### Choices
+These custom snippets are to be written in your ink story.  
+They extend ink syntax and will be interpreted by the binksi engine at runtime.
+
+### Tagged choices
 
 * `* [tag: mytagname]` or `+[tag: mytagname]` :  
     Tag a choice inside of your story if you want it to be actionned by an event in your bipsi scene.  
     Add an event inside of you bipsi scene and add a tag with the same name.  
-    If your avatar touches an event that has the same tagname as a choice, this choice is triggered in ink and the story continues.  
+    If your avatar touches an event that has the same `tagname` as a choice, this choice is triggered in ink and the story continues.  
     _Note_: tagged choices do not prevent your avatar from moving in the scene.
 * `* [auto: invisible action]` or `+[auto: invisible action]` :  
     When the bipsi players encouters an `auto` choice, it will automatically use it.  
     It is very useful if you want to hide some choices during play while keeping them around in your ink file.  
-    When encoutered, the story continue.  
+    When encoutered, the story continues.  
 * `Classic choices` :  
     When the bipsi players encounters a non-tagged choice, it will stop everything happening in the bipsi scene.  
-    The avatar won't be able to move until an option has bee chosen.  
+    The avatar won't be able to move until an option has been chosen.  
     A maximum of 4 choices will be displayed, each a recommended maximum of 38 characters (this is not enforced but adding longer text can lead to unforseen consequences).  
     The player will be able to chose an option using arrow or swipes in the 4 directions.
 
@@ -45,7 +49,7 @@ The editor comes preloaded with an example story. You can find [the example file
 * `#TITLE` :  
     If a text is tagged with `#TITLE`, it will be displayed in bipsi's `TITLE` format (text only in the middle of the bipsi game area).
 
-* `#character-sentiment` :
+* `#character` or `#character-sentiment` : Portrait mode :  
     If a text is tagged with `#character-sentiment`, it will try to find an event tagged `character` and look for a file field named `sentiment` (sentiment will default to `"neutral"` if given sentiment file is not found.). It will display the dialog using "portrait mode" :
 
     ![portrait mode](portrait-mode.png)  
