@@ -1277,7 +1277,6 @@ class BipsiEditor extends EventTarget {
             exportGamedata: ui.action("export-gamedata", () => this.exportGamedata()),
             import_: ui.action("import_html", () => this.importProject()),
             import_json: ui.action("import_bipsi", () => this.importBundle()),
-            import_story: ui.action("import_story", () => this.importStory()),
             exportTileset: ui.action("export-tileset", () => this.exportTileset()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
@@ -2458,6 +2457,8 @@ class BipsiEditor extends EventTarget {
             clone.setAttribute("data-debug", "true");
         }
 
+        ONE("#story-source", clone).innerHTML = this.inkSource;
+
         return clone.outerHTML;
     }
         
@@ -2517,6 +2518,9 @@ class BipsiEditor extends EventTarget {
         const story = maker.bundleFromHTML(html, "#story-embed");
         await this.loadStory(story);
 
+        const inkSource = maker.storyFromHTML(html, "#story-source");
+        await this.loadInkSource(inkSource);
+
     } 
 
     async importBundle() {
@@ -2526,20 +2530,12 @@ class BipsiEditor extends EventTarget {
         const json = await maker.textFromFile(file);
         const bundle = JSON.parse(json);
         await this.loadBundle(bundle);
-    } 
-
-    async importStory() {
-        // ask the browser to provide a file
-        const [file] = await maker.pickFiles("application/json");
-        // read the file and turn it into an html page
-        const json = await maker.textFromFile(file);
-        const story = JSON.parse(json.charCodeAt(0) == 123 ? json : json.substring(1))
-        await this.loadStory(story);
-    } 
+    }
 
     async resetProject() {
         // load a blank project
         await this.loadBundle(makeBlankBundle());
+        this.loadInkSource(`Empty ==binksi== game #TITLE`)
     }
     
     /**

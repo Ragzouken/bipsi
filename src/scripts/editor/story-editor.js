@@ -18,8 +18,6 @@ class StoryEditor {
             this.compile()
 
             if(this.story){
-                const jsonBytecode = this.story.ToJson();
-                ONE("#story-embed").innerHTML = jsonBytecode;
                 this.playtest(this.choiceHistory)
             }
         })
@@ -48,6 +46,10 @@ class StoryEditor {
             this.editor.logTextElement.replaceChildren("> RESTARTING COMPILATION\n");
             this.story = new inkjs.Compiler(this.inkEditor.value, compilerOptions).Compile();
             window.postMessage({ type: "log", data: "> COMPILATION SUCCESSFUL" })
+
+            const jsonBytecode = this.story.ToJson();
+            ONE("#story-embed").innerHTML = jsonBytecode;
+            
         }catch(e){
             errors.forEach((message) => {
                 console.error(message);
