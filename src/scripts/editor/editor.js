@@ -1339,6 +1339,9 @@ class BipsiEditor extends EventTarget {
             deleteEvent: ui.action("delete-event", () => this.deleteSelectedEvent()),
 
             randomiseColor: ui.action("randomise-color", () => this.randomiseSelectedColor()),
+
+            //ink
+            restartInk: ui.action("restart-ink", () => this.storyEditor.playtest()),
         };
 
         // can't undo/redo/paste yet
@@ -1412,7 +1415,7 @@ class BipsiEditor extends EventTarget {
         // changes in mode select bar
         this.modeSelect.addEventListener("change", async () => {
             this.redrawTileBrowser();
-            
+
             if (this.modeSelect.value === "playtest") {
                 this.playtest();
             } else if (this.modeSelect.value === "write-ink"){
