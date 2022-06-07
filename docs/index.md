@@ -36,7 +36,7 @@ They extend ink syntax and will be interpreted by the binksi engine at runtime.
 * `* [auto: invisible action]` or `+[auto: invisible action]` :  
     When the bipsi players encouters an `auto` choice, it will automatically use it.  
     It is very useful if you want to hide some choices during play while keeping them around in your ink file.  
-    When encoutered, the story continues.  
+    When encountered, the story continues.  
 * `Classic choices` :  
     When the bipsi players encounters a non-tagged choice, it will stop everything happening in the bipsi scene.  
     The avatar won't be able to move until an option has been chosen.  
