@@ -50,12 +50,16 @@ They extend ink syntax and will be interpreted by the binksi engine at runtime.
     If a text is tagged with `#TITLE`, it will be displayed in bipsi's `TITLE` format (text only in the middle of the bipsi game area).
 
 * `#character` or `#character-sentiment` : Portrait mode :  
-    If a text is tagged with `#character-sentiment`, it will try to find an event tagged `character` and look for a file field named `sentiment` (sentiment will default to `"neutral"` if given sentiment file is not found.). It will display the dialog using "portrait mode" :
+    If a text is tagged with `#character-sentiment`, it will try to find an event tagged `character` and look for a file field named `sentiment` (sentiment will default to `"neutral"` if given sentiment file is not found.). It will display the dialog using "portrait mode" : 
 
-    ![portrait mode](portrait-mode.png)  
+    | Neutral                               |  Happy                               |
+    | -------------                         | -----                                |
+    | ![portrait mode](portrait-neutral.gif)| ![portrait mode](portrait-happy.gif) |
 
-    _Example 1_: You cannot go there ! # guard-angry  
-    _Example 2_: Thank you for the chocolate, please come in ! # guard-happy  
+
+    _Example 1_: Hi there, fellow binksi user. #rosalia-neutral 
+    _Example 2_: I hope you enjoy using this tool! #rosalia-happy 
+
 
 ### Custom syntax in ink
 Just write those in your ink script as if it were text.  
