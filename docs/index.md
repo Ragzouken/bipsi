@@ -58,6 +58,7 @@ They extend ink syntax and will be interpreted by the binksi engine at runtime.
 
 
     _Example 1_: Hi there, fellow binksi user. #rosalia-neutral 
+    
     _Example 2_: I hope you enjoy using this tool! #rosalia-happy 
 
 
