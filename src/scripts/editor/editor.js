@@ -1022,7 +1022,7 @@ class BipsiEditor extends EventTarget {
      * HTML UI so it doesn't really make sense to construct this more than once
      * but a class is easy syntax for wrapping functions and state together 🤷‍♀️
      */
-    constructor(font) {
+    constructor(font, inkSource) {
         super();
 
         // are there changes to warn about losing?
@@ -1179,15 +1179,22 @@ class BipsiEditor extends EventTarget {
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
 
+
+        this.loadInkSource(inkSource);
+
         this.tileEditor = new TileEditor(this);
         this.paletteEditor = new PaletteEditor(this);
         this.eventEditor = new EventEditor(this);
-
+        this.storyEditor = new StoryEditor(this);
         //this.palettePicker = new PalettePicker();
 
         this.font = font;
         this.dialoguePreviewPlayer = new DialoguePlayback(256, 256);
         this.dialoguePreviewPlayer.options.font = font;
+
+        
+        
+        
 
         this.time = 0;
         let prev;
@@ -1237,6 +1244,9 @@ class BipsiEditor extends EventTarget {
 
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
+
+        this.modeSelect.tab(ONE("#write-ink-tab-controls"), "write-ink");
+        this.modeSelect.tab(ONE("#ink-tab-view"), "write-ink");
 
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.requestRedraw());
@@ -1402,9 +1412,11 @@ class BipsiEditor extends EventTarget {
         // changes in mode select bar
         this.modeSelect.addEventListener("change", async () => {
             this.redrawTileBrowser();
-
+            
             if (this.modeSelect.value === "playtest") {
                 this.playtest();
+            } else if (this.modeSelect.value === "write-ink"){
+                this.storyEditor.playtest()
             } else {
                 this.playtestIframe.src = "";
             }
@@ -2362,6 +2374,13 @@ class BipsiEditor extends EventTarget {
         resizeTileset(tileset, data.tiles);
 
         this.modeSelect.dispatchEvent(new Event("change"));
+    }
+
+
+    async loadInkSource(inkSource) {
+        this.inkSource = inkSource;
+        //this.inkPlayer = new InkPlayer(); //@todo
+        //await this.playtestInk()
     }
 
     async loadStory(story) {

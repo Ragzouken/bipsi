@@ -6,7 +6,7 @@
   "author": "Ju / Smwhr <ju@smwhr.net>",
   "license": "MIT",
   "dependencies": {
-    "inkjs": "^2.0.0",
+    "inkjs": "^2.1.0",
     "node-html-parser": "^5.1.0",
     "pug": "^3.0.2"
   },

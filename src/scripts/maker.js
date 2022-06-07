@@ -450,6 +450,16 @@ maker.bundleFromHTML = function(html, query="#bundle-embed") {
     return bundle;
 }
 
+/**
+ * 
+ * @param {ParentNode} html 
+ */
+ maker.storyFromHTML = function(html, query="#story-source") {
+    let inktext = ONE(query, html)?.textContent;
+
+    return inktext;
+}
+
 class RadioGroupWrapper extends EventTarget {
     /** @param {HTMLInputElement[]} inputs */
     constructor(inputs) {

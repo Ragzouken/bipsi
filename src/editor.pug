@@ -3,6 +3,7 @@
     include /pages/log-window.pug
     include /pages/variables-window.pug
 
+    include /pages/ink/viewport.pug
     include /pages/playtest/viewport.pug
     #info-tab-viewport.viewport-tab-body
         include /pages/info/viewport.pug
@@ -42,6 +43,9 @@
                 input(type="radio" name="mode-select" value="draw-room" title="edit rooms")
                 include /icons/pencil.svg
             label
+                input(type="radio" name="mode-select" value="write-ink" title="edit story")
+                include /icons/ink.svg
+            label
                 input(type="radio" name="mode-select" value="playtest" title="playtest")
                 include /icons/play.svg
         #undo-row.button-row
@@ -54,3 +58,4 @@
     include /pages/info/controls.pug
     include /pages/playtest/controls.pug
     include /pages/rooms/controls.pug
+    include /pages/ink/ink-editor.pug

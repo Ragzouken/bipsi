@@ -1,5 +1,5 @@
-async function startEditor(font) {
-    const editor = new BipsiEditor(font);
+async function startEditor(font, inkSource) {
+    const editor = new BipsiEditor(font, inkSource);
     await editor.init();
 
     // used to show/hide elements in css
@@ -226,13 +226,15 @@ async function start() {
     const bundle = maker.bundleFromHTML(document);
 
     const storyContent = maker.bundleFromHTML(document, "#story-embed");
-    const story = new inkjs.Story(storyContent);
+    const inkSource = maker.storyFromHTML(document, "#story-source");
+    
 
     if (bundle) {
+        const story = new inkjs.Story(storyContent);
         PLAYBACK = await makePlayback(font, bundle, story);
         window.PLAYBACK = PLAYBACK;
     } else {
-        EDITOR = await startEditor(font);
+        EDITOR = await startEditor(font, inkSource);
         window.EDITOR = EDITOR;
     }
 }
