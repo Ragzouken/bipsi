@@ -58,7 +58,6 @@ They extend ink syntax and will be interpreted by the binksi engine at runtime.
 
 
     _Example 1_: Hi there, fellow binksi user. #rosalia-neutral 
-    
     _Example 2_: I hope you enjoy using this tool! #rosalia-happy 
 
 
@@ -86,3 +85,17 @@ They should be written alone on a single line.
     The field identified by `field_name` _must_ be a javascript field. In the context of the javascript field, all usual variables can be used. The `EVENT` variable references the event named in the first argument.  
     If the event target or the field do not exist, nothing happens and the story continues. 
     _Example_: See [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink).
+
+# Quick Tutorial
+
+
+## Setting up a room
+
+
+
+### Creating an exit
+
+## Creating a character
+
+### Adding portraits
+
