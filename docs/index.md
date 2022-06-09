@@ -81,3 +81,11 @@ They should be written alone on a single line.
     The field identified by `field_name` _must_ be a javascript field. In the context of the javascript field, all usual variables can be used. The `EVENT` variable references the event named in the first argument.  
     If the event target or the field do not exist, nothing happens and the story continues. 
     _Example_: See [the example file in the repository](https://github.com/smwhr/binksi/blob/main/data/story.ink).
+
+
+## Rules of touch
+
+* if multiple events are on the same square, they are all touched (this behaviour differs from bipsi)
+* if a `touch` script field is defined, only it will be triggered
+* if the touch matches a tagged choice (see above) then the `before` script will be triggered before sending the choice to ink ; standard events and then `after` script will be triggered right after the first paragraph sent by ink.
+* otherwise standard bipsi touch rules apply.
