@@ -872,9 +872,11 @@ class BipsiPlayback extends EventTarget {
         if (touch !== undefined) {
             await this.runJS(event, touch);
         }else if(taggedChoice !== undefined){
+            await this.runJS(event, BEHAVIOUR_BEFORE);
             this.story.ChooseChoiceIndex(taggedChoice.index)
             await this.continueStory(event);
             await standardEventTouch(this, event);
+            await this.runJS(event, BEHAVIOUR_AFTER);
             this.proceed();
         } else {
             await this.runJS(event, BEHAVIOUR_BEFORE);

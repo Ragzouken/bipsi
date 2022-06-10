@@ -452,7 +452,7 @@ const EVENT_TEMPLATES = {
         { key: "graphic", type: "tile", data: 0 },
         { key: "colors", type: "colors", data: { bg: 1, fg: 3 } },
         { key: "solid", type: "tag", data: true },
-        { key: "say", type: "dialogue", data: "hello" },
+        { key: "character-tagname", type: "tag", data: true },
     ],
     ending: [
         { key: "ending", type: "dialogue", data: "goodbye"},
@@ -461,7 +461,6 @@ const EVENT_TEMPLATES = {
         { key: "is-player", type: "tag", data: true },
         { key: "graphic", type: "tile", data: 0 },
         { key: "colors", type: "colors", data: { bg: 1, fg: 3 } },
-        { key: "title", type: "dialogue", data: "your game title" },
         { key: "page-color", type: "text", data: "black" },
     ],
     code: [
