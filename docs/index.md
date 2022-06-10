@@ -33,5 +33,5 @@ Many thanks to [PRINCESS INTERNET CAFé](https://princessinternetcafe.itch.io/) 
 
 * [Cien años después](https://princessinternetcafe.itch.io/cien-anos-despues) (spanish)
 * La ligne oubliée (french)
-* Crystal Binksi (english) : tutorial game
+* [Crystal Binksi](tutorial-binksi.html) (english) : tutorial game
 

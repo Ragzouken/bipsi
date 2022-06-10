@@ -251,3 +251,5 @@ tutorial ==binksi== game #TITLE
 ```
 
 Congratulations! You now have a fully working binksi game!
+
+<iframe src="./tutorial-binksi.html" frameBorder="0"></iframe>
