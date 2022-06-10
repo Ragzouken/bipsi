@@ -26,7 +26,7 @@ If you do not need a complex narrative or dialog based component in your game, I
 
 I am [smwhr](https://smwhr.itch.io/) and you can read about me on my [personal website](https://smwhr.net).
 
-Many thanks to [PRINCESS INTERNET CAFé](https://princessinternetcafe.itch.io/) who wrote the tutorial and thoroughly tested binksi and suggested many thanks.
+Many thanks to [PRINCESS INTERNET CAFé](https://princessinternetcafe.itch.io/) who wrote the tutorial and thoroughly tested binksi and suggested many changes.
 
 
 ## Made with binksi
