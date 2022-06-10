@@ -1,5 +1,5 @@
 ---
-title: Binksi syntax and add shortcuts
+title: Binksi syntax and shortcuts
 ---
 
 Binksi comes preloaded with additional syntax and shortcuts to help you take advantage of all bipsi functionalities on the ink side and, expose all ink functionnalities on the bipsi side.
