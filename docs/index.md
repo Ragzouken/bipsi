@@ -297,7 +297,7 @@ We're almost done! Now the last thing to do is to ensure the game has an end tri
 
 ![Set up the ending of the game](binksi-end.png)
 
-In this case we've also added graphics and colours to the event by adding the `graphic`/tile and `colors`/colors fields. And for a nice effect, we've placed the event in a "warehouse" room that is inaccesible to the player, so we can keep it hidden from view there. We will make it so once you speak to Pixel for the first time, the ending event will teleport to the space the where the avatar appear once the game starts: a tag event named `game-start`.
+In this case we've also added graphics and colours to the event by adding the `graphic`/tile and `colors`/colors fields. And for a nice effect, we've placed the event in a "warehouse" room that is inaccesible to the player, so we can keep it hidden from view there. We will make it so once you speak to Pixel for the first time, the ending event will teleport to the space where the avatar appear once the game starts: a tag event named `game-start`.
 
 And thus, this is the full script for the game:
 
