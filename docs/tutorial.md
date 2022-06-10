@@ -1,5 +1,5 @@
 ---
-title: # Quick Tutorial
+title: Quick Tutorial
 ---
 
 Here's a very quick tutorial to get you started!
