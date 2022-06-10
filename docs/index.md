@@ -1,4 +1,4 @@
-# Binski Guide
+# Binksi Guide
 
 
 ## Getting started
