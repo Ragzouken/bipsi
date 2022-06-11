@@ -63,19 +63,9 @@ jobs:
         working-directory: ./app
         run: npm install
 
-
       # insures that the index.html has been built
-      - uses: engineerd/configurator@v0.0.8
-        with:
-          name: "inklecate"
-          fromGitHubReleases: "true"
-          repo: "inkle/ink"
-          urlTemplate: "https://github.com/inkle/ink/releases/download/{{version}}/inklecate_linux.zip"
-          version: "latest"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pathInArchive: "inklecate"
-      - name: install, build ink, build website
-        run: yarn && yarn ink && yarn build
+      - name: install, build website
+        run: yarn && yarn build
       
       - name: move webapp into Electron folder
         run: |
