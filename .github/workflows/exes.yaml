@@ -69,8 +69,8 @@ jobs:
 
       - name: setup windows size to 1080x600
         run: |
-          sed -i'' 's/1024/1080/g' app/src/index.js
-          sed -i'' 's/768/600/g' app/src/index.js
+          sed -i'.bak' 's/1024/1080/g' app/src/index.js
+          sed -i'.bak' 's/768/600/g' app/src/index.js
       
       - name: move webapp into Electron folder
         run: |
