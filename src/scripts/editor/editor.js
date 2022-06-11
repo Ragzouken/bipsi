@@ -1277,6 +1277,7 @@ class BipsiEditor extends EventTarget {
             import_: ui.action("import_html", () => this.importProject()),
             import_json: ui.action("import_bipsi", () => this.importBundle()),
             exportTileset: ui.action("export-tileset", () => this.exportTileset()),
+            clear: ui.action("clear", () => this.emptyProject()),
             reset: ui.action("reset", () => this.resetProject()),
             update: ui.action("update", () => this.updateEditor()),
 
@@ -2532,6 +2533,13 @@ class BipsiEditor extends EventTarget {
     }
 
     async resetProject() {
+        // clear SAVE_SLOT
+        await storage.delete(SAVE_SLOT)
+        await storage.delete(`${SAVE_SLOT}-story`)
+        document.location.reload()
+    }
+
+    async emptyProject() {
         // load a blank project
         await this.loadBundle(makeBlankBundle());
         this.loadInkSource(`Empty ==binksi== game #TITLE`)

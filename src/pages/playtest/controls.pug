@@ -9,9 +9,12 @@
             include /icons/upload.svg
             | import bipsi
     .info-action-list
-        button(name="reset" title="reset project to default")
+        button(name="clear" title="clear project to default")
             include /icons/delete.svg
             | clear project
+        button(name="reset" title="reset project to default")
+            include /icons/refresh.svg
+            | reset to default project
     h3 export project
     .info-action-list
         button(name="export" title="export as webpage") 
