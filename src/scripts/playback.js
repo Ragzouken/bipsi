@@ -317,10 +317,14 @@ ADD_BEHAVIOURS(...FIELDS(EVENT, "add-behaviour", "javascript"));
 ADD_BEHAVIOURS(...FIELDS(EVENT, "add-behavior", "javascript"));
 `;
 
-const STANDARD_SCRIPTS = [
-    BEHAVIOUR_PAGE_COLOR,
+const START_SCRIPTS = [
     BEHAVIOUR_IMAGES,
     BEHAVIOUR_MUSIC,
+]
+
+const STANDARD_SCRIPTS = [
+    BEHAVIOUR_PAGE_COLOR,
+    ...START_SCRIPTS,
     BEHAVIOUR_TITLE,
     BEHAVIOUR_DIALOGUE,
     BEHAVIOUR_EXIT,
@@ -518,6 +522,9 @@ class BipsiPlayback extends EventTarget {
 
         // game starts by running the touch behaviour of the player avatar
         //await this.touch(avatar);
+        for (let script of START_SCRIPTS) {
+            await this.runJS(avatar, script);
+        }
         await this.continueStory(avatar);
     }
 
@@ -1182,9 +1189,11 @@ const SCRIPTING_FUNCTIONS = {
         let files = FIELDS(event, field, "file");
         let names = FIELDS(event, field, "text");
 
-        if (!files && names && this.LIBRARY) {
-            files = names.map((name) => FIELD(this.LIBRARY, name, "file"));
-        } else if (!files && this.LIBRARY) {
+        if(files.length > 0) return files;
+
+        if (names && this.LIBRARY) {
+            files = names.map((name) => FIELD(this.LIBRARY, name, "file"))//.filter(Boolean);
+        } else if (this.LIBRARY) {
             files = FIELDS(this.LIBRARY, field, "file");
         }
         return files;
