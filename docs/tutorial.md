@@ -4,7 +4,7 @@ title: Quick Tutorial
 
 # New to bipsi/ink? 
 
-This tutorial __will assume a basic understanding of ink__. If you are not familiar with it, we'd highly recommend you first learn about its basics. On top of this, as binksi is a fork of bipsi, __we encourage you to review the bipsi documentation__ to learn about how to use the editor interface and gain a general understanding of the tool. _Links for both things can be found in the _"How to use the editor"__ section on the [binksi documentation](https://smwhr.github.io/binksi/docs/).
+This tutorial __will assume a basic understanding of ink__. If you are not familiar with it, we'd highly recommend you first learn about its basics. On top of this, as binksi is a fork of bipsi, __we encourage you to review the bipsi documentation__ to learn about how to use the editor interface and gain a general understanding of the tool. _Links for both things can be found in the _"How to use the editor"__ section on the [binksi documentation](index.md).
 
 ## Binksi as a concept 
 
@@ -24,7 +24,7 @@ In this quick tutorial we will create __a very simple binksi game__, making emph
     - Collectible Items
     - Endings
 
-__It will not cover basic bipsi concepts__ such as how to paint tiles, how the events and fields work, how to use custom scripting for cutscenes, variables, etc. __For that, please refer to the linked documentation on _"How to use the editor"___ section on the [binksi documentation](https://smwhr.github.io/binksi/docs/).
+__It will not cover basic bipsi concepts__ such as how to paint tiles, how the events and fields work, how to use custom scripting for cutscenes, variables, etc. __For that, please refer to the linked documentation on _"How to use the editor"___ section on the [binksi documentation](index.md).
 
 That said, let's get started!
 
