@@ -4,7 +4,7 @@ title: Quick Tutorial
 
 # New to bipsi/ink? 
 
-This tutorial __will assume a basic understanding of ink__. If you are not familiar with it, we'd highly recommend you first learn about its basics. On top of this, as binksi is a fork of bipsi, __we encourage you to review the bipsi documentation__ to learn about how to use the editor interface and gain a general understanding of the tool. _Links for both things can be found in the _"How to use the editor"__ section on the [binksi documentation](index.md).
+This tutorial __will assume a basic understanding of ink__. If you are not familiar with it, we'd highly recommend you first learn about its basics. On top of this, as binksi is a fork of bipsi, __we encourage you to review the bipsi documentation__ to learn about how to use the editor interface and gain a general understanding of the tool. Links for both things can be found in the _"How to use the editor"_ section on the [binksi documentation](index.md).
 
 ## Binksi as a concept 
 
