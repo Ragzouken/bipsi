@@ -2,13 +2,29 @@
 title: Quick Tutorial
 ---
 
-Here's a very quick tutorial to get you started!
+# New to bipsi/ink? 
 
-Binksi works in a slightly different way than bipsi. While bipsi is self-contained, in binksi the game is comprised of two different dimensions: the world (bipsi) and the script (ink).
+This tutorial __will assume a basic understanding of ink__. If you are not familiar with it, we'd highly recommend you first learn about its basics. On top of this, as binksi is a fork of bipsi, __we encourage you to review the bipsi documentation__ to learn about how to use the editor interface and gain a general understanding of the tool. _Links for both things can be found in the _"How to use the editor"__ section on the [binksi documentation](index.md).
 
-A good metaphor is that all the rooms, the player avatar, characters and items, are like a theatrical play. The characters and your avatar are puppets, the items are props and the rooms are different stage decorations. However, you can't have a play without a script! And this is where ink comes in: Using the ink script, you tell your little puppet avatar what it can or can't interact with, what a character says or what happens next.
+## Binksi as a concept 
 
-This tutorial will assume a basic understanding of ink.
+Binksi works in a slightly different way than bipsi. While bipsi is self-contained, a binksi game is comprised of two different dimensions: __the world__ (bipsi) and the __script__ (ink).
+
+A good metaphor is that all the rooms, the player avatar, characters and items, are like __a theatrical play__. __The characters__ and your avatar __are puppets__, the items are props and the rooms are different stage decorations. However, you can't have a play without a script! And this is where ink comes in: __Using the ink script__, __you tell your__ little __puppet__ avatar __what it can interact with__, what a character says or what happens next.
+
+## What does this tutorial cover?
+
+In this quick tutorial we will create __a very simple binksi game__, making emphasis on the binksi way of doing things for the below:
+
+- Creating rooms
+- Painting walls
+- Creating events: 
+    - Player Avatar
+    - NPCs
+    - Collectible Items
+    - Endings
+
+__It will not cover basic bipsi concepts__ such as how to paint tiles, how the events and fields work, how to use custom scripting for cutscenes, variables, etc. __For that, please refer to the linked documentation on _"How to use the editor"___ section on the [binksi documentation](index.md).
 
 That said, let's get started!
 
@@ -162,7 +178,7 @@ You can of course mix it up using variables! You can have a first dialogue where
 
 ```
 === right_room
-...
+[...]
 
 * [tag: pixel-the-cat]
   Did you enjoy your \~\~crystal binksi\~\~?
