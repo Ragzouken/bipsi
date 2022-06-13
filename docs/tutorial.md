@@ -85,7 +85,7 @@ Go to the "edit events" mode, select the space where you want to place the event
 
 Change the name of the tag from `tagname` to something a bit more descriptive, like `left-room-exit`.
 
-In ink we now create an option in each room so we can interact with the exit tags, and teleport the avatar to another room:
+In ink we now create a tagged choice (more info [here](binksi-syntax.md)) in each room so we can interact with the exit tags, and teleport the avatar to another room:
 
 ```
 === left_room
