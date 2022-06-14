@@ -85,7 +85,7 @@ Go to the "edit events" mode, select the space where you want to place the event
 
 Change the name of the tag from `tagname` to something a bit more descriptive, like `left-room-exit`.
 
-In ink we now create an option in each room so we can interact with the exit tags, and teleport the avatar to another room:
+In ink we now create a tagged choice (more info [here](binksi-syntax.md)) in each room so we can interact with the exit tags, and teleport the avatar to another room:
 
 ```
 === left_room
@@ -107,7 +107,7 @@ In ink we now create an option in each room so we can interact with the exit tag
 -> right_room
 ```
 
-As you can see, we are not only using the binksi `SPAWN_AT()` function, but you also need to divert the flow of the ink to the new room. If you forget to do this, the avatar will quite literally be unable to interact with the world, as it'll have lost the flow of the script!
+As you can see, we are not only using the binksi-exclusive `SPAWN_AT()` function (more information about it [here](binksi-syntax.md)), but you also need to divert the flow of the ink to the new room. If you forget to do this, the avatar will quite literally be unable to interact with the world, as it'll have lost the flow of the script!
 
 By the way, this story has to start somewhere, let's add this code at the top to let the ink script know that the player starts in the left room. It will also display a title at the beginning.
 
