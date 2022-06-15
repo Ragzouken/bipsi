@@ -1333,7 +1333,7 @@ class BipsiEditor extends EventTarget {
             randomiseColor: ui.action("randomise-color", () => this.randomiseSelectedColor()),
 
             //ink
-            restartInk: ui.action("restart-ink", () => this.storyEditor.playtest()),
+            restartInk: ui.action("restart-ink", () => this.storyEditor.reset()),
             undoInk: ui.action("undo-ink", () => this.storyEditor.undo()),
         };
 

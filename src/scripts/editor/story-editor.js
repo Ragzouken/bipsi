@@ -1,3 +1,25 @@
+function debounce(func, wait, immediate) {
+    var timeout;
+  
+    return function executedFunction() {
+      var context = this;
+      var args = arguments;
+          
+      var later = function() {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+  
+      var callNow = immediate && !timeout;
+      
+      clearTimeout(timeout);
+  
+      timeout = setTimeout(later, wait);
+      
+      if (callNow) func.apply(context, args);
+    };
+  };
+
 class StoryEditor {
     /**
      * @param {BipsiEditor} editor 
@@ -13,13 +35,19 @@ class StoryEditor {
 
         this.choiceHistory = [];
 
-        this.inkEditor.addEventListener("input", () => {
-            editor.inkSource = this.inkEditor.value;
-            this.compile()
+        const self = this;
 
-            if(this.story){
-                this.playtest(this.choiceHistory)
+        var compile = debounce(function() {
+            editor.inkSource = self.inkEditor.value;
+            self.compile()
+
+            if(self.story){
+                self.playtest(self.choiceHistory)
             }
+        }, 250);
+
+        this.inkEditor.addEventListener("input", () => {
+            compile()
         })
     }
 
@@ -64,7 +92,7 @@ class StoryEditor {
         this.choiceHistory = [];
         if(!this.story) return;
         this.story.ResetState();
-        
+        this.playtest();
     }
 
     playtest(withChoices){
