@@ -634,7 +634,7 @@ class BipsiPlayback extends EventTarget {
             const choiceEvents = new Map();
             
             dialogChoices.forEach(function(choice) {
-                const [arrowEvent, glyph] = availableArrows.shift();
+                const [arrowEvent, glyph] = availableArrows.shift() || [];
                 if(arrowEvent){
                     dialogChoicesTexts.push(`${glyph} ${choice.text}`);
                     choiceEvents.set(arrowEvent,  () => {
