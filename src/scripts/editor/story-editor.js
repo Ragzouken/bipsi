@@ -26,11 +26,16 @@ class StoryEditor {
      */
     constructor(editor) {
         this.editor = editor;
-        this.inkEditor = ONE("#field-story-editor textarea");
         this.inkPlayerContainer = ONE("#story-container");
 
-        this.inkEditor.value = "Loading or source unavailable";
-        this.inkEditor.setAttribute("disabled", "disabled");
+        this.inkEditor = ace.edit("field-story-editor");
+        this.inkEditor.setTheme("ace/theme/monokai");
+        this.inkEditor.session.setMode("ace/mode/ink");
+        this.inkEditor.session.setUseWrapMode(true);
+        
+        this.inkEditor.setReadOnly(true);
+
+        this.inkEditor.setValue("Loading or source unavailable");
         this.story = null;
 
         this.choiceHistory = [];
@@ -38,22 +43,22 @@ class StoryEditor {
         const self = this;
 
         var compile = debounce(function() {
-            editor.inkSource = self.inkEditor.value;
+            editor.inkSource = self.inkEditor.getValue();
             self.compile()
 
             if(self.story){
                 self.playtest(self.choiceHistory)
             }
-        }, 250);
+        }, 100);
 
-        this.inkEditor.addEventListener("input", () => {
+        this.inkEditor.session.on('change', function(delta) {
             compile()
-        })
+        });
     }
 
     loadSource(inkSource){
-        this.inkEditor.value = inkSource;
-        this.inkEditor.removeAttribute("disabled");
+        this.inkEditor.setValue(inkSource, -1);
+        this.inkEditor.setReadOnly(false);
         this.compile();
     }
 
@@ -72,7 +77,7 @@ class StoryEditor {
 
         try{
             this.editor.logTextElement.replaceChildren("> RESTARTING COMPILATION\n");
-            this.story = new inkjs.Compiler(this.inkEditor.value, compilerOptions).Compile();
+            this.story = new inkjs.Compiler(this.inkEditor.getValue(), compilerOptions).Compile();
             window.postMessage({ type: "log", data: "> COMPILATION SUCCESSFUL" })
 
             const jsonBytecode = this.story.ToJson();

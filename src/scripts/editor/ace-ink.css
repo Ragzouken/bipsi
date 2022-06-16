@@ -1,0 +1,38 @@
+.ace_editor span.ace_flow.ace_declaration,
+.ace_editor span.ace_divert,
+.ace_editor span.ace_choice.ace_label,
+.ace_editor span.ace_gather.ace_label,
+.ace_editor span.ace_glue,
+.ace_editor span.ace_include,
+.ace_editor span.ace_external {
+    color:#6d9e8e;
+}
+
+.ace_editor span.ace_choice.ace_bullets,
+.ace_editor span.ace_choice.ace_weaveBracket,
+.ace_editor span.ace_gather.ace_bullets {
+    color: #ec3c2f;
+}
+
+.ace_editor span.ace_var-decl,
+.ace_editor span.ace_list-decl {
+    color: #ec3c2f;
+}
+.window.dark .ace_editor span.ace_logic:not(.ace_innerContent) {
+    color:#8eb865;
+}
+
+/* Comments */
+.ace-tm .ace_comment {
+    color: #84756c;
+}
+
+/* Tags */
+.ace_editor span.ace_tag {
+    color: #AAA;
+}
+
+/* Custom instructions, e.g. >>> */
+.ace_editor span.ace_customInstruction {
+    color: #c36f6f;
+}

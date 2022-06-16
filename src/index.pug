@@ -29,6 +29,12 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://smwhr.github.
         script(data-editor-only)
             include scripts/editor/utility.js
         script(data-editor-only)
+            include scripts/lib/ace.min.js
+        script(data-editor-only)
+            include scripts/editor/ace-monokai.js
+        script(data-editor-only)
+            include scripts/editor/ace-ink.js
+        script(data-editor-only)
             include scripts/editor/story-editor.js
         script(data-editor-only)
             include scripts/editor/editor.js
@@ -51,6 +57,8 @@ html(lang="en" data-remix-generation="0" data-editor-live="https://smwhr.github.
             include styles/playback-style.css
         style(data-editor-only)
             include styles/editor-style.css
+        style(data-editor-only)
+            include scripts/editor/ace-ink.css
     body(onload="start()").no-select
         #player(hidden)
             canvas#player-canvas(width=256 height=256)
