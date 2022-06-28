@@ -1992,7 +1992,12 @@ class BipsiEditor extends EventTarget {
 
             this.dialoguePreviewPlayer.options.anchorY = top ? 0 : 1;
             this.dialoguePreviewPlayer.render();
-            this.renderings.tileMapPaint.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 0, 0);
+            this.renderings.tileMapPaint.drawImage(
+                this.dialoguePreviewPlayer.dialogueRendering.canvas, 
+                0, 0,
+                this.renderings.tileMapPaint.canvas.width,    
+                this.renderings.tileMapPaint.canvas.height,
+            );
         }
     }
 
