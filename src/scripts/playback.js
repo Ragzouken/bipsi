@@ -728,10 +728,9 @@ class BipsiPlayback extends EventTarget {
     }
 
     playMusic(src) {
-        const playing = !this.music.paused;
         this.music.src = src;
         this.autoplay = true;
-        if (playing) this.music.play();
+        this.music.play();
     }
 
     stopMusic() {
