@@ -73,10 +73,10 @@ function generateGrid(width, height, gap) {
 }
 
 const TILE_ZOOM = 20;
-const ROOM_ZOOM = 16;
+const ROOM_ZOOM = 2;
 
 const TILE_GRID = generateGrid(TILE_ZOOM * TILE_PX, TILE_ZOOM * TILE_PX, TILE_ZOOM);
-const ROOM_GRID = generateGrid(ROOM_ZOOM * ROOM_SIZE, ROOM_ZOOM * ROOM_SIZE, ROOM_ZOOM);
+const ROOM_GRID = generateGrid(ROOM_PX * ROOM_ZOOM, ROOM_PX * ROOM_ZOOM, TILE_PX * ROOM_ZOOM);
 
 const TILE_SELECT_ZOOM = 5;
 
@@ -2006,7 +2006,12 @@ class BipsiEditor extends EventTarget {
 
             this.dialoguePreviewPlayer.options.anchorY = top ? 0 : 1;
             this.dialoguePreviewPlayer.render();
-            this.renderings.tileMapPaint.drawImage(this.dialoguePreviewPlayer.dialogueRendering.canvas, 0, 0);
+            this.renderings.tileMapPaint.drawImage(
+                this.dialoguePreviewPlayer.dialogueRendering.canvas, 
+                0, 0,
+                this.renderings.tileMapPaint.canvas.width,    
+                this.renderings.tileMapPaint.canvas.height,
+            );
         }
     }
 
