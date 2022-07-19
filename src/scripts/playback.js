@@ -556,10 +556,20 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
+    getSayStyle(character, style){
+        const characterEvent = findEventByTag(this.data, character);
+        if(characterEvent){
+            return  oneField(characterEvent, style, "json")?.data
+                     || {}
+            
+        }
+        return {}
+    }
+
     async continueStory(EVENT){
         const story = this.story;
         const AVATAR = findEventByTag(this.data, "is-player");
-        const sayStyle = oneField(EVENT, "say-style", "json")?.data 
+        let sayStyle = oneField(EVENT, "say-style", "json")?.data 
                         || oneField(AVATAR, "say-style", "json")?.data 
                         || {};
 
@@ -589,6 +599,13 @@ class BipsiPlayback extends EventTarget {
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
+                    const adhocSayStyle = tags.find(t => t.match(/say-style\s*:\s*[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
+                    if(adhocSayStyle){
+                        const matchSayStyle = adhocSayStyle.match(/say-style\s*:\s*([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
+                        const character = matchSayStyle[1];
+                        const sentiment = matchSayStyle[2];
+                        sayStyle = this.getSayStyle(character, sentiment)
+                    }
                     
                     const portrait = tags.find(t => t.match(/[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
                     if(portrait){
