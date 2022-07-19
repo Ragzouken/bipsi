@@ -569,9 +569,9 @@ class BipsiPlayback extends EventTarget {
     async continueStory(EVENT){
         const story = this.story;
         const AVATAR = findEventByTag(this.data, "is-player");
-        let sayStyle = oneField(EVENT, "say-style", "json")?.data 
-                        || oneField(AVATAR, "say-style", "json")?.data 
-                        || {};
+        const defaultSayStyle = oneField(EVENT, "say-style", "json")?.data 
+                             || oneField(AVATAR, "say-style", "json")?.data 
+                             || {};
 
         while(story.canContinue) {
             // Get ink to generate the next paragraph
@@ -599,6 +599,8 @@ class BipsiPlayback extends EventTarget {
                 }else if(tags.includes("TITLE")){
                     await this.title(paragraphText);
                 }else{
+                    let sayStyle = defaultSayStyle;
+
                     const adhocSayStyle = tags.find(t => t.match(/say-style\s*:\s*[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
                     if(adhocSayStyle){
                         const matchSayStyle = adhocSayStyle.match(/say-style\s*:\s*([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
