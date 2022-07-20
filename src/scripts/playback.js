@@ -663,7 +663,7 @@ class BipsiPlayback extends EventTarget {
             });
             //always display choices at the bottom
             this.say(dialogChoicesTexts.join("\n"), {
-                ...sayStyle, 
+                ...defaultSayStyle, 
                 ...{"noMargin": true,
                     "anchorX": 0, "anchorY": 1, lineWidth: 40*6,
                     "lines": dialogChoicesTexts.length,
