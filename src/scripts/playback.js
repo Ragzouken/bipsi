@@ -222,7 +222,7 @@ if (color) {
 
 const BEHAVIOUR_IMAGES = `
 let backdrops = FIELD_OR_LIBRARY("backdrop");
-if (backdrops.length > 0) {
+if (backdrops) {
     SHOW_IMAGE("BACKDROP", backdrops, 0, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-backdrop")) {
     HIDE_IMAGE("BACKDROP");
