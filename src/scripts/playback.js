@@ -221,6 +221,13 @@ if (color) {
 `;
 
 const BEHAVIOUR_IMAGES = `
+let backdrops = FIELD_OR_LIBRARY("backdrop");
+if (backdrops.length > 0) {
+    SHOW_IMAGE("BACKDROP", backdrops, 0, 0, 0);
+} else if (IS_TAGGED(EVENT, "clear-backdrop")) {
+    HIDE_IMAGE("BACKDROP");
+}
+
 let backgrounds = FIELDS_OR_LIBRARY("background");
 if (backgrounds.length > 0) {
     SHOW_IMAGE("BACKGROUND", backgrounds, 1, 0, 0);
