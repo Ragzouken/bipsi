@@ -221,8 +221,8 @@ if (color) {
 `;
 
 const BEHAVIOUR_IMAGES = `
-let backdrops = FIELD_OR_LIBRARY("backdrop");
-if (backdrops) {
+let backdrops = FIELDS_OR_LIBRARY("backdrop");
+if (backdrops.length) {
     SHOW_IMAGE("BACKDROP", backdrops, 0, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-backdrop")) {
     HIDE_IMAGE("BACKDROP");
