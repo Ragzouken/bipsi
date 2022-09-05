@@ -553,7 +553,7 @@ class BipsiPlayback extends EventTarget {
             const sentimentImageId =  oneField(characterEvent, sentiment, "file")?.data
                                    || oneField(characterEvent, "neutral", "file")?.data
             if(sentimentImageId){
-                await this.showImage("portrait", sentimentImageId, 3, 104, 102);
+                await this.showImage("portrait", sentimentImageId, 3, options.portraitX || 104, options.portraitY || 102);
                 portraitShown = true;
             }
         }

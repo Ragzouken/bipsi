@@ -17,6 +17,8 @@
  * @property {string} backgroundColor
  * @property {string} panelColor
  * @property {string} textColor
+ * @property {string} portraitX
+ * @property {string} portraitY
  */
 
 const DIALOGUE_DEFAULTS = {
