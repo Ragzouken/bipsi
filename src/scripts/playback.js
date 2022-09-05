@@ -621,7 +621,7 @@ class BipsiPlayback extends EventTarget {
                         sayStyle = this.getSayStyle(character, sentiment)
                     }
                     
-                    const portrait = tags.find(t => t.match(/[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
+                    const portrait = tags.find(t => t.match(/^[a-zA-Z0-9]*-[a-zA-Z0-9]*$/))
                     if(portrait){
                         const matchPortrait = portrait.match(/([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
                         const character = matchPortrait[1];
