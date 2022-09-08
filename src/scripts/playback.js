@@ -735,6 +735,7 @@ class BipsiPlayback extends EventTarget {
 
     stopMusic() {
         this.music.pause();
+        this.music.removeAttribute("src");
         this.autoplay = false;
     }
 
@@ -743,6 +744,8 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileIDs, layer, x, y) {
+        console.log(imageID, fileIDs, layer, x, y)
+
         if (typeof fileIDs === "string") {
             fileIDs = [fileIDs];
         }
@@ -1000,9 +1003,9 @@ const SCRIPTING_FUNCTIONS = {
         let files = FIELDS(event, field, "file");
         let names = FIELDS(event, field, "text");
 
-        if (!files && names && this.LIBRARY) {
+        if (files.length === 0 && names && this.LIBRARY) {
             files = names.map((name) => FIELD(this.LIBRARY, name, "file"));
-        } else if (!files && this.LIBRARY) {
+        } else if (files.length === 0 && this.LIBRARY) {
             files = FIELDS(this.LIBRARY, field, "file");
         }
 
