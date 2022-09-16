@@ -34,4 +34,11 @@ Many thanks to [PRINCESS INTERNET CAFé](https://princessinternetcafe.itch.io/) 
 * [Cien años después](https://princessinternetcafe.itch.io/cien-anos-despues) (spanish)
 * La ligne oubliée (french)
 * [Crystal Binksi](tutorial-binksi.html) (english) : tutorial game
+* [Crime scene](https://smwhr.itch.io/crime-scene) (english) : port of the the [crime scene example from the ink documentation](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md#7-long-example-crime-scene)
+* [Meurtre en eau profonde](https://narkhos.itch.io/meurtres-en-eau-profonde) (french)
+* [A brief visit to the gallery](https://daniel-herczeg.itch.io/a-brief-visit-to-the-gallery) (english) : made for inkjam 2022
+* [Deepest sea](https://mothshaped.itch.io/deepest-sea) (english) : made for inkjam 2022
+* [Matter](https://princessinternetcafe.itch.io/matter) (english) : made for inkjam 2022
+* [Lieutenant Bokit](https://smwhr.itch.io/lieutenant-bokit) (english) : made for inkjam 2022
+* [Left at home](https://rodfireproductions.itch.io/left-at-home) (english) : interlude in a larger game
 
