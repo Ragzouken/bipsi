@@ -557,7 +557,7 @@ class BipsiPlayback extends EventTarget {
                         "portrait", 
                         sentimentImageId, 3, 
                         isNaN(options.portraitX) ? 104 : options.portraitX, 
-                        isNaN(options.portraitY) ? 124 : options.portraitY
+                        isNaN(options.portraitY) ? 102 : options.portraitY
                 )
                 portraitShown = true;
             }
