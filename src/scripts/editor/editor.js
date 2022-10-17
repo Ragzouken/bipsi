@@ -2008,7 +2008,7 @@ class BipsiEditor extends EventTarget {
 
         // draw tileset frame
         const cols = 16;
-        const rows = Math.ceil(data.tiles.length / cols);
+        const rows = Math.max(1, Math.ceil(data.tiles.length / cols));
         const width = cols * TILE_PX;
         const height = rows * TILE_PX;
 
@@ -2181,6 +2181,10 @@ class BipsiEditor extends EventTarget {
     }
 
     async deleteTile() {
+        // prevent deleting last tile
+        const { data } = this.getSelections();
+        if (data.tiles.length <= 1) return;
+
         return this.stateManager.makeChange(async (data) => {
             const { tile } = this.getSelections(data);
             arrayDiscard(data.tiles, tile);
