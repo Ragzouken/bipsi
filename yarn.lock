@@ -774,10 +774,10 @@ inherits@2.0.3:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
   integrity sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==
 
-inkjs@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/inkjs/-/inkjs-2.1.0.tgz#2e6d501e7477dcafdf200ec4d790e2d01d88a076"
-  integrity sha512-M4b2mHZYWxlcft9zaGbGh0t4Bi3M8no/O86N8uwLA6UzP8M1pNGmcyqyfxUmNqyDTQ4/caMx2EqwvNTv/N10SQ==
+inkjs@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/inkjs/-/inkjs-2.2.0.tgz#28e5c7cd2458bfa2cca7fae79c012892c5e695ab"
+  integrity sha512-aac46NA8D5L16qmld3kKZ413Q3GLvhV4C9yFDkp2FSvsx7rgqUDRYgkSLDc9oHHGHiG2Dj9FDNYdegu7plI8CQ==
 
 invert-kv@^1.0.0:
   version "1.0.0"

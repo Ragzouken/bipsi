@@ -546,6 +546,25 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
+    async showPortrait(character, sentiment, options){
+        const characterEvent = findEventByTag(this.data, character);
+        let portraitShown = false;
+        if(characterEvent){
+            const sentimentImageId =  oneField(characterEvent, sentiment, "file")?.data
+                                   || oneField(characterEvent, "neutral", "file")?.data
+            if(sentimentImageId){
+                await this.showImage(
+                        "portrait", 
+                        sentimentImageId, 3, 
+                        isNaN(options.portraitX) ? 104 : options.portraitX, 
+                        isNaN(options.portraitY) ? 102 : options.portraitY
+                )
+                return true;
+            }
+        }
+        return false;
+    }
+
     async sayWithPortrait(text, character, sentiment, options){
         const characterEvent = findEventByTag(this.data, character);
         let portraitShown = false;
@@ -664,6 +683,7 @@ class BipsiPlayback extends EventTarget {
 
             const choiceEvents = new Map();
             
+            let choiceTags = []
             dialogChoices.forEach(function(choice) {
                 const [arrowEvent, glyph] = availableArrows.shift() || [];
                 if(arrowEvent){
@@ -671,16 +691,41 @@ class BipsiPlayback extends EventTarget {
                     choiceEvents.set(arrowEvent,  () => {
                         story.ChooseChoiceIndex(choice.index);
                     });
+                    choiceTags.push(choice.tags);
                 }
             });
+
+            let sayStyle = {};
+
+            const adhocSayStyle = choiceTags.find(t => t.match(/say-style\s*:\s*[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
+            if(adhocSayStyle){
+                const matchSayStyle = adhocSayStyle.match(/say-style\s*:\s*([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
+                const character = matchSayStyle[1];
+                const sentiment = matchSayStyle[2];
+                sayStyle = this.getSayStyle(character, sentiment)
+            }
+            
+            const portrait = choiceTags.find(t => t.match(/^[a-zA-Z0-9]*-[a-zA-Z0-9]*$/))
+            let portraitShown = false;
+            if(portrait){
+                const matchPortrait = portrait.match(/([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
+                const character = matchPortrait[1];
+                const sentiment = matchPortrait[2];
+                portraitShown = await this.showPortrait(character, sentiment, sayStyle)
+            }
+
             //always display choices at the bottom
-            this.say(dialogChoicesTexts.join("\n"), {
-                ...defaultSayStyle, 
+            await this.say(dialogChoicesTexts.join("\n"), {
+                ...defaultSayStyle,
                 ...{"noMargin": true,
                     "anchorX": 0, "anchorY": 1, lineWidth: 40*6,
                     "lines": dialogChoicesTexts.length,
-                    }
+                    },
+                ...sayStyle, 
                 })
+            if(portraitShown){
+                await this.hideImage("portrait");
+            }
             const listenToChoice = (event) =>{
                 const choiceAction = choiceEvents.get(event.detail)
                 if(choiceAction){
