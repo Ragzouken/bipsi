@@ -141,7 +141,9 @@ class StoryEditor {
         story.currentChoices.forEach(function(choice) {
             var choiceParagraphElement = document.createElement('p');
             choiceParagraphElement.classList.add("choice");
-            choiceParagraphElement.innerHTML = `<a href='#'>${choice.text}</a>`
+            const choiceA = `<a href='#'>${choice.text}</a>`;
+            const choiceTags = choice.tags && choice.tags.length ? `<span> # ${choice.tags.join(", ")}</span>` : '';
+            choiceParagraphElement.innerHTML = choiceA + choiceTags;
             self.inkPlayerContainer.appendChild(choiceParagraphElement);
 
             var choiceAnchorEl = choiceParagraphElement.querySelectorAll("a")[0];
