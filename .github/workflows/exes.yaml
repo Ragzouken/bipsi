@@ -22,7 +22,7 @@ jobs:
           DESCRIPTION: bipsi plus ink equals less than three
 
           # This must be of the format "N.N.N", where the N's are all numbers
-          VERSION: 0.9.2
+          VERSION: 0.10.0
 
           # By default, the author will be your name on GitHub. You can manually change this.
           AUTHOR: ${{ github.repository_owner }}
