@@ -548,7 +548,6 @@ class BipsiPlayback extends EventTarget {
 
     async showPortrait(character, sentiment, options){
         const characterEvent = findEventByTag(this.data, character);
-        let portraitShown = false;
         if(characterEvent){
             const sentimentImageId =  oneField(characterEvent, sentiment, "file")?.data
                                    || oneField(characterEvent, "neutral", "file")?.data
@@ -691,52 +690,67 @@ class BipsiPlayback extends EventTarget {
                     choiceEvents.set(arrowEvent,  () => {
                         story.ChooseChoiceIndex(choice.index);
                     });
-                    choiceTags.push(choice.tags);
+                    choiceTags = [...choiceTags, ...choice.tags];
                 }
             });
 
-            let sayStyle = {};
+            let choiceSayStyle = {};
+
+            const portrait = choiceTags.find(t => t.match(/^[a-zA-Z0-9]*-[a-zA-Z0-9]*$/))
+
+            // by default, if there is a portrait, show it above the choices
+            if(portrait){
+                const height = DIALOGUE_DEFAULTS.padding * 2 
+                    + (10 + DIALOGUE_DEFAULTS.lineGap) * dialogChoicesTexts.length;
+                choiceSayStyle = {
+                    ...choiceSayStyle,
+                    portraitY: 102 - height/2 + dialogChoicesTexts.length,
+                }
+            }
 
             const adhocSayStyle = choiceTags.find(t => t.match(/say-style\s*:\s*[a-zA-Z0-9]*-[a-zA-Z0-9]*/))
             if(adhocSayStyle){
                 const matchSayStyle = adhocSayStyle.match(/say-style\s*:\s*([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
                 const character = matchSayStyle[1];
                 const sentiment = matchSayStyle[2];
-                sayStyle = this.getSayStyle(character, sentiment)
+                choiceSayStyle = this.getSayStyle(character, sentiment)   
             }
-            
-            const portrait = choiceTags.find(t => t.match(/^[a-zA-Z0-9]*-[a-zA-Z0-9]*$/))
+
             let portraitShown = false;
             if(portrait){
                 const matchPortrait = portrait.match(/([a-zA-Z0-9]*)-([a-zA-Z0-9]*)/);
                 const character = matchPortrait[1];
                 const sentiment = matchPortrait[2];
-                portraitShown = await this.showPortrait(character, sentiment, sayStyle)
-            }
+                portraitShown = await this.showPortrait(character, sentiment, choiceSayStyle)
+            }  
 
             //always display choices at the bottom
-            await this.say(dialogChoicesTexts.join("\n"), {
+            this.say(dialogChoicesTexts.join("\n"), {
                 ...defaultSayStyle,
                 ...{"noMargin": true,
                     "anchorX": 0, "anchorY": 1, lineWidth: 40*6,
                     "lines": dialogChoicesTexts.length,
                     },
-                ...sayStyle, 
+                ...choiceSayStyle, 
                 })
-            if(portraitShown){
-                await this.hideImage("portrait");
-            }
-            const listenToChoice = (event) =>{
-                const choiceAction = choiceEvents.get(event.detail)
-                if(choiceAction){
-                    choiceAction();
-                    playback.proceed();
-                    playback.removeEventListener('choice', listenToChoice);
-                    playback.choiceExpected = false;
-                    continueStory(EVENT);
+            
+            const listenToChoice = (portraitShown) => {
+                const listener = (event) =>{
+                    const choiceAction = choiceEvents.get(event.detail)
+                    if(choiceAction){
+                        if(portraitShown){
+                            this.hideImage("portrait");
+                        }
+                        choiceAction();
+                        playback.proceed();
+                        playback.removeEventListener('choice', listener);
+                        playback.choiceExpected = false;
+                        continueStory(EVENT);
+                    }
                 }
+                return listener;
             }
-            this.addEventListener("choice", listenToChoice);
+            this.addEventListener("choice", listenToChoice(portraitShown));
         }else{
             this.choiceExpected = false
         }
