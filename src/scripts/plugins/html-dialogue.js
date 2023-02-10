@@ -272,6 +272,10 @@ class DialoguePlaybackDOM extends EventTarget {
         }
     }
 
+    completed() {
+        return this.showGlyphCount === this.pageGlyphCount;
+    }
+
     moveToNextPage() {
         const nextPage = this.queuedPages.shift();
         this.pagesSeen += 1;

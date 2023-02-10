@@ -98,7 +98,8 @@ async function makePlayback(font, bundle, story) {
 
     function down(key, code) {
         if (!playback.canMove) {
-            if(playback.choiceExpected && playback.dialoguePlayback.completed()){
+            const dialog_is_completed = playback.dialoguePlayback.showGlyphCount === playback.dialoguePlayback.pageGlyphCount;
+            if(playback.choiceExpected && dialog_is_completed){
                 return doChoice(key);
             };
             playback.proceed();
@@ -152,7 +153,8 @@ async function makePlayback(font, bundle, story) {
             const nextKey = turnToKey[turns];
 
             if (dist >= threshold) {
-                if(playback.choiceExpected && playback.dialoguePlayback.completed()){
+                const dialog_is_completed = playback.dialoguePlayback.showGlyphCount === playback.dialoguePlayback.pageGlyphCount;
+                if(playback.choiceExpected && dialog_is_completed){
                     return doChoice(nextKey);
                 }else{
                     doMove(nextKey);

@@ -1392,3 +1392,7 @@ p {
     padding: 1em;
     border: solid 1em var(--button-color);
 }
+
+#story-container .tag{
+    color:darkgray;
+}

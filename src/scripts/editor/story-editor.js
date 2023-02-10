@@ -109,6 +109,9 @@ class StoryEditor {
         const story = this.story;
         this.inkPlayerContainer.innerHTML = "";
         story.ResetState();
+        if(story.globalTags){
+            this.inkPlayerContainer.innerHTML += story.globalTags.map(t => `<span class="tag>#${t}</span>`).join()
+        }
         this.continueStory(story, withChoices);
     }
 
@@ -129,6 +132,17 @@ class StoryEditor {
             var paragraphText = story.Continue();
             var paragraphElement = document.createElement('p');
             paragraphElement.innerHTML = paragraphText;
+            
+            var tags = story.currentTags;
+            if(tags){
+                tags.forEach(t => {
+                    var tagElement = document.createElement('span');
+                    tagElement.innerHTML = `# ${t}`
+                    tagElement.className = "tag"
+                    paragraphElement.appendChild(tagElement)
+                });
+            }
+            
             self.inkPlayerContainer.appendChild(paragraphElement);
         }
 
@@ -142,7 +156,7 @@ class StoryEditor {
             var choiceParagraphElement = document.createElement('p');
             choiceParagraphElement.classList.add("choice");
             const choiceA = `<a href='#'>${choice.text}</a>`;
-            const choiceTags = choice.tags && choice.tags.length ? `<span> # ${choice.tags.join(", ")}</span>` : '';
+            const choiceTags = choice.tags && choice.tags.length ? `<span class="tag"> # ${choice.tags.join(", ")}</span>` : '';
             choiceParagraphElement.innerHTML = choiceA + choiceTags;
             self.inkPlayerContainer.appendChild(choiceParagraphElement);
 
