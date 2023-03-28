@@ -66,10 +66,10 @@ function recordFrames(playback) {
 
     playback.render(0);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
-    frames.push([temp.canvas.toDataURL(), 400]);
+    frames.push([temp.canvas.toDataURL(), playback.frameDelay]);
     playback.render(1);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
-    frames.push([temp.canvas.toDataURL(), 400]);
+    frames.push([temp.canvas.toDataURL(), playback.frameDelay]);
 
     return frames;
 }
