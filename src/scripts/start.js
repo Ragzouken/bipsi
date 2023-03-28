@@ -143,13 +143,13 @@ async function makePlayback(font, bundle) {
         });
     });
 
-    function captureGif() {
-        const frames = recordFrames(playback);
+    async function captureGif() {
         const giffer = window.open(
             "https://kool.tools/tools/gif/",
             "gif maker",
             "left=10,top=10,width=512,height=512,resizable=no,location=no",
         );
+        const frames = await recordFrames(playback);
         sleep(500).then(() => giffer.postMessage({ name: "bipsi", frames }, "https://kool.tools"));
     }
 
