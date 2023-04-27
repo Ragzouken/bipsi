@@ -1426,7 +1426,7 @@ const SCRIPTING_FUNCTIONS = {
         this.STORY.variablesState.$(field, value);
     },
     GET_INK_VAR(field) {
-        this.STORY.variablesState.$(field);
+        return this.STORY.variablesState.$(field);
     },
     DIVERT_TO(knot_name) {
         this.STORY.ChoosePathString(knot_name);
