@@ -66,10 +66,10 @@ async function recordFrames(playback) {
 
     await playback.render(0);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
-    frames.push([temp.canvas.toDataURL(), playback.frameDelay]);
+    frames.push([temp.canvas.toDataURL(), Math.floor(playback.frameDelay * 1000)]);
     await playback.render(1);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
-    frames.push([temp.canvas.toDataURL(), playback.frameDelay]);
+    frames.push([temp.canvas.toDataURL(), Math.floor(playback.frameDelay * 1000)]);
 
     return frames;
 }
