@@ -1359,9 +1359,9 @@ class BipsiEditor extends EventTarget {
             const textedit = isElementTextInput(event.target);
 
             if (event.ctrlKey || event.metaKey) {
-                if (event.key === "z" && !textedit) this.actions.undo.invoke();
-                if (event.key === "y" && !textedit) this.actions.redo.invoke();
-                if (event.key === "s") {
+                if (event.key.toLowerCase() === "z" && !textedit) this.actions.undo.invoke();
+                if (event.key.toLowerCase() === "y" && !textedit) this.actions.redo.invoke();
+                if (event.key.toLowerCase() === "s") {
                     // make sure current text editing changes are registered
                     // before saving
                     if (textedit) {
