@@ -24,6 +24,7 @@
  * @typedef {Object} BlitsyFontCharacter
  * @property {number} codepoint
  * @property {CanvasImageSource} image
+ * @property {Rect} rect
  * @property {number} spacing
  */
 
@@ -37,6 +38,7 @@
 /**
  * @typedef {Object} BlitsyGlyph
  * @property {HTMLCanvasElement} image
+ * @property {Rect} rect
  * @property {Vector2} position
  * @property {Vector2} offset
  * @property {boolean} hidden
@@ -80,8 +82,7 @@ async function loadBasicFont(script) {
             height: charHeight,
         };
 
-        const image = copyImageRect(atlas, rect).canvas;
-        font.characters.set(codepoint, { codepoint, image, spacing: charWidth });
+        font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing: charWidth });
     });
 
     return font;
@@ -96,16 +97,6 @@ function parseRuns(data) {
     const indexes = [];
     runs.forEach(([min, max]) => indexes.push(...range(min, max)));
     return indexes;
-}
-
-/**
- * @param {CanvasImageSource} source 
- * @param {Rect} rect 
- */
-function copyImageRect(source, rect) {
-    const rendering = createRendering2D(rect.width, rect.height);
-    rendering.drawImage(source, rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height);
-    return rendering;
 }
 
 /**
@@ -137,12 +128,19 @@ function renderPage(page, width, height, ox = 0, oy = 0)
         const x = ox + glyph.position.x + glyph.offset.x;
         const y = oy + glyph.position.y + glyph.offset.y;
         
+        const {
+            x: glyphX,
+            y: glyphY,
+            width: glyphWidth,
+            height: glyphHeight,
+        } = glyph.rect;
+
         // draw tint layer
         result.fillStyle = glyph.fillStyle;
-        result.fillRect(x, y, glyph.image.width, glyph.image.height);
+        result.fillRect(x, y, glyphWidth, glyphHeight);
         
         // draw text layer
-        buffer.drawImage(glyph.image, x, y);
+        buffer.drawImage(glyph.image, glyphX, glyphY, glyphWidth, glyphHeight, x, y, glyphWidth, glyphHeight);
     }
 
     // draw text layer in tint color
@@ -298,6 +296,7 @@ function commandsToPages(commands, options, styleHandler) {
         const glyph = { 
             char: command.char,
             image: char.image,
+            rect: char.rect,
             position,
             offset: { x: 0, y: 0 },
             hidden: true,
