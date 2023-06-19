@@ -35,7 +35,7 @@
  * @property {number} charWidth
  * @property {number} charHeight
  * @property {number[][]} runs
- * @property {Map<string, { spacing: number }>} special
+ * @property {Map<number, { spacing: number, offset: Vector2, size: Vector2 }>} special
  * @property {string} atlas
  */
 
@@ -84,16 +84,19 @@ async function loadBipsiFont(data) {
     indexes.forEach((codepoint, i) => {
         const col = i % cols;
         const row = Math.floor(i / cols);
+        
+        const special = data.special?.[codepoint];
+        const size = special?.size;
 
         const rect = { 
             x: col * data.charWidth, 
             y: row * data.charHeight, 
-            width: data.charWidth, 
-            height: data.charHeight,
+            width: size?.x ?? data.charWidth, 
+            height: size?.y ?? data.charHeight,
         };
 
-        const spacing = data.special?.[codepoint]?.spacing ?? data.charWidth;
-        const offset = data.special?.[codepoint]?.offset;
+        const spacing = special?.spacing ?? size?.x ?? data.charWidth;
+        const offset = special?.offset;
 
         font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing, offset });
     });
