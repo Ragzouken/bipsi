@@ -26,6 +26,7 @@
  * @property {CanvasImageSource} image
  * @property {Rect} rect
  * @property {number} spacing
+ * @property {Vector2?} offset
  */
 
 /**
@@ -34,6 +35,7 @@
  * @property {number} charWidth
  * @property {number} charHeight
  * @property {number[][]} runs
+ * @property {Map<string, { spacing: number }>} special
  * @property {string} atlas
  */
 
@@ -90,7 +92,10 @@ async function loadBipsiFont(data) {
             height: data.charHeight,
         };
 
-        font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing: data.charWidth });
+        const spacing = data.special?.[codepoint]?.spacing ?? data.charWidth;
+        const offset = data.special?.[codepoint]?.offset;
+
+        font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing, offset });
     });
 
     return font;
@@ -123,7 +128,7 @@ async function loadBasicFont(script) {
             height: charHeight,
         };
 
-        font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing: charWidth });
+        font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing: charWidth, offset: { x: 0, y: 0 } });
     });
 
     return font;
@@ -333,12 +338,15 @@ function commandsToPages(commands, options, styleHandler) {
 
     function addGlyph(command, offset) {
         const char = getFontChar(options.font, command.char) ?? getFontChar(options.font, "?");
-        const position = { x: offset, y: currLine * (options.font.lineHeight + 4) };
+
+        const x = offset + (char.offset?.x ?? 0);
+        const y = currLine * (options.font.lineHeight + 4) + (char.offset?.y ?? 0);
+
         const glyph = { 
             char: command.char,
             image: char.image,
             rect: char.rect,
-            position,
+            position: { x, y },
             offset: { x: 0, y: 0 },
             hidden: true,
             fillStyle: "white",
