@@ -1,5 +1,5 @@
 
-/* prevent weird highlights https://stackoverflow.com/questions/21003535/ */
+/* prevent weird touch highlights https://stackoverflow.com/questions/21003535/ */
 .no-select {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;

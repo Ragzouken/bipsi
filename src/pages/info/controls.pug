@@ -2,13 +2,16 @@
 - var month = (now.getMonth()+1).toString().padStart(2, '0');
 - var day = now.getDate().toString().padStart(2, '0');
 - var date = `${now.getFullYear()}/${month}/${day}`;
-- var version = "0.5-alpha";
+- var version = "0.6";
 
 #info-tab-body.controls-tab-body(hidden)
+
     h2= `binksi -- ${version} (${date})`
     p propulse your <a href="https://kool.tools/bipsi/user-guide.pdf">bipsi</a> games with narration engine <a href="https://www.inklestudios.com/ink/">ink</a>
     p to get started, use <a href="https://github.com/smwhr/binksi">the binksi repo</a> as a template
     p many thanks and kudos to <a href="https://kool.tools/">candle</a> creator of bipsi !
+    p Support the development of bipsi on on <a href="https://www.patreon.com/kooltools">candle's patreon</a>
+
     h3 guides
     .info-action-list
         a.button(href="https://kool.tools/bipsi/user-guide.pdf" target="_blank" title="open user guide") 

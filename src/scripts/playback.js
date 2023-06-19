@@ -397,6 +397,7 @@ class BipsiPlayback extends EventTarget {
 
         this.time = 0;
         this.frameCount = 0;
+        this.frameDelay = .400;
         
         this.ready = false;
         this.busy = false;
@@ -458,6 +459,10 @@ class BipsiPlayback extends EventTarget {
     }
 
     clear() {
+        this.time = 0;
+        this.frameCount = 0;
+        this.frameDelay = .400;
+
         this.ready = false;
         this.error = false;
         this.ended = false;
@@ -664,9 +669,9 @@ class BipsiPlayback extends EventTarget {
 
         // tile animation
         this.time += dt;
-        while (this.time >= .400) {
+        while (this.time >= this.frameDelay) {
             this.frameCount += 1;
-            this.time -= .4;
+            this.time -= this.frameDelay;
         }
 
         // dialogue animation
@@ -907,14 +912,14 @@ class BipsiPlayback extends EventTarget {
     }
 
     playMusic(src) {
-        const playing = !this.music.paused;
         this.music.src = src;
         this.autoplay = true;
-        if (playing) this.music.play();
+        this.music.play();
     }
 
     stopMusic() {
         this.music.pause();
+        this.music.removeAttribute("src");
         this.autoplay = false;
     }
 
@@ -923,6 +928,8 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileIDs, layer, x, y) {
+        console.log(imageID, fileIDs, layer, x, y)
+
         if (typeof fileIDs === "string") {
             fileIDs = [fileIDs];
         }
@@ -1180,9 +1187,9 @@ const SCRIPTING_FUNCTIONS = {
         let files = FIELDS(event, field, "file");
         let names = FIELDS(event, field, "text");
 
-        if (!files && names && this.LIBRARY) {
+        if (files.length === 0 && names && this.LIBRARY) {
             files = names.map((name) => FIELD(this.LIBRARY, name, "file"));
-        } else if (!files && this.LIBRARY) {
+        } else if (files.length === 0 && this.LIBRARY) {
             files = FIELDS(this.LIBRARY, field, "file");
         }
         return files;

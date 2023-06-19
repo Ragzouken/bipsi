@@ -58,18 +58,18 @@ async function generateRoomPreviewURL(destination, playback, roomId) {
 
 /**
  * @param {BipsiPlayback} playback
- * @returns {[string, number][]}
+ * @returns {Promise<[string, number][]>}
  */
-function recordFrames(playback) {
+async function recordFrames(playback) {
     const frames = [];
     const temp = createRendering2D(512, 512);
 
-    playback.render(0);
+    await playback.render(0);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
-    frames.push([temp.canvas.toDataURL(), 400]);
-    playback.render(1);
+    frames.push([temp.canvas.toDataURL(), Math.floor(playback.frameDelay * 1000)]);
+    await playback.render(1);
     temp.drawImage(playback.rendering.canvas, 0, 0, 512, 512);
-    frames.push([temp.canvas.toDataURL(), 400]);
+    frames.push([temp.canvas.toDataURL(), Math.floor(playback.frameDelay * 1000)]);
 
     return frames;
 }
