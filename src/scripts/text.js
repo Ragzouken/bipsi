@@ -29,6 +29,15 @@
  */
 
 /**
+ * @typedef {Object} BipsiDataFont
+ * @property {string} name
+ * @property {number} charWidth
+ * @property {number} charHeight
+ * @property {number[][]} runs
+ * @property {string} atlas
+ */
+
+/**
  * @typedef {Object} BlitsyFont
  * @property {string} name
  * @property {number} lineHeight
@@ -54,6 +63,38 @@
  */
 
 /** @typedef {BlitsyGlyph[]} BlitsyPage */
+
+/**
+ * @param {BipsiDataFont} data
+ */
+async function loadBipsiFont(data) {
+    const font = {
+        name: data.name,
+        lineHeight: data.charHeight,
+        characters: new Map(),
+    }
+
+    const atlas = await loadImage(data.atlas);
+    const cols = atlas.naturalWidth / data.charWidth;
+
+    const indexes = data.runs.flatMap(([start, end]) => range(start, end ?? start));
+
+    indexes.forEach((codepoint, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+
+        const rect = { 
+            x: col * data.charWidth, 
+            y: row * data.charHeight, 
+            width: data.charWidth, 
+            height: data.charHeight,
+        };
+
+        font.characters.set(codepoint, { codepoint, image: atlas, rect, spacing: data.charWidth });
+    });
+
+    return font;
+}
 
 /** @param {HTMLScriptElement} script */
 async function loadBasicFont(script) {

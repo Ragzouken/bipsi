@@ -225,7 +225,7 @@ let PLAYBACK;
 let EDITOR;
 
 async function start() {
-    const font = await loadBasicFont(ONE("#font-embed"));
+    const font = await loadBipsiFont(JSON.parse(ONE("#font-embed").textContent));
 
     if (BIPSI_HD) document.documentElement.dataset.hd = "true";
 
