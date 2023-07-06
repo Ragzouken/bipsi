@@ -200,10 +200,6 @@ input[type="text"], textarea {
 .grid4 > *:nth-last-child(4) { border-bottom-left-radius: 1em; }
 .grid4 > *:nth-last-child(1) { border-bottom-right-radius: 1em; }
 
-body {
-    touch-action: none;
-}
-
 canvas {
     touch-action: none;
 }
