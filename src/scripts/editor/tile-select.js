@@ -56,7 +56,7 @@ class TileBrowser {
 
     set selectedTileIndex(value) { 
         this.select.setValueSilent(value);
-        this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "nearest" }); 
+        //this.select.inputs[this.select.selectedIndex]?.scrollIntoView({ block: "nearest" });
     }
 
     setFrame(frame) {
