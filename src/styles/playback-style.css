@@ -2,10 +2,6 @@ body {
     background: var(--page-color, black);
 }
 
-body, canvas {
-    touch-action: none;
-}
-
 #player {
     width: 256px;
     height: 256px;

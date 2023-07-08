@@ -35,6 +35,9 @@ async function makePlayback(font, bundle, story) {
     const playCanvas = /** @type {HTMLCanvasElement} */ (ONE("#player-canvas"));
     const playRendering = /** @type {CanvasRenderingContext2D} */ (playCanvas.getContext("2d"));
 
+    // need to override touch events for mobile
+    document.body.style.touchAction = "none";
+
     // update the canvas size every render just in case..
     playback.addEventListener("render", () => {
         fillRendering2D(playRendering);
