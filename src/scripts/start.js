@@ -218,5 +218,9 @@ async function start() {
     } else {
         EDITOR = await startEditor(font);
         window.EDITOR = EDITOR;
+
+        // Run EDITOR code for all plugins
+        const editorCode = EDITOR.gatherPluginsJavascript([ "EDITOR" ]);
+        (new Function(editorCode))();
     }
 }
