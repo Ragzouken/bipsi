@@ -561,10 +561,9 @@ class ButtonAction extends EventTarget {
         super();
         this.buttons = buttons;
         this.disabled = false;
-
-        buttons.forEach((button) => {
-            button.addEventListener("click", () => this.invoke());
-        });
+        this.buttons = buttons;
+        this.clickListener = () => this.invoke();
+        this.buttons.forEach((button) => { button.addEventListener("click", this.clickListener); });
     }
 
     get disabled() {
@@ -579,6 +578,10 @@ class ButtonAction extends EventTarget {
     invoke(force = false) {
         if (!force && this.disabled) return;
         this.dispatchEvent(new CustomEvent("invoke"));
+    }
+
+    detatch() {
+        this.buttons.forEach((button) => { button.removeEventListener("click", this.clickListener); });
     }
 }
 
