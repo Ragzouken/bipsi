@@ -562,7 +562,9 @@ class ButtonAction extends EventTarget {
         this.buttons = buttons;
         this.disabled = false;
         this.clickListener = () => this.invoke();
-        this.buttons.forEach((button) => { button.addEventListener("click", this.clickListener); });
+        this.buttons.forEach((button) => {
+            button.addEventListener("click", this.clickListener);
+        });
     }
 
     get disabled() {
