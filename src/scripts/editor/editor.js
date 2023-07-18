@@ -186,6 +186,32 @@ function generateColorWheel(width, height) {
     return rendering;
 }
 
+function filterJavascriptByPurposes(sourceCode, purposes) {
+    // Prepend "CODE_RUNTIME" so it's default.  Split code into blocks by "CODE_..." lines.
+    let codeBlocks = `//! CODE_RUNTIME\n${sourceCode}`.split(/^\/\/! *CODE_/m);
+    // Filter out any code blocks that don't match the given purposes.
+    const purposesRegex = new RegExp(`^(?:${purposes.join("|")})(?:\n|\r\n)`);
+    const result = codeBlocks.
+        filter(block => block.match(purposesRegex)).
+    // Remove the start line for each code block (the remains of the "//! CODE_" line).
+        map(block => block.slice(block.indexOf('\n')+1)).
+    // Rejoin modified blocks into a whole
+        join("");
+    return result;
+}
+
+function getRunnableJavascriptForOnePlugin(event, purposes) {
+    const configFields = event.fields.filter((field) => field.key !== "plugin");
+    const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
+    let pluginJS = FIELD(event, "plugin", "javascript");
+    pluginJS = filterJavascriptByPurposes(pluginJS, purposes);
+    pluginJS = `// PLUGIN CODE"\n${pluginJS}\n`;
+    if (!pluginJS.replace(/\/\/[^\n]*\n|[\n\t ]/g, "")) {
+        return "";
+    }
+    return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
+}
+
 class PaletteEditor {
     /**
      * @param {BipsiEditor} editor 
@@ -563,6 +589,10 @@ class EventEditor {
             ];
 
             this.editor.createEvent(fields);
+
+            // Run EDITOR code for the new plugin
+            const editorCode = getRunnableJavascriptForOnePlugin({ fields: fields }, [ "EDITOR" ]);
+            new Function(editorCode)();
         });
 
         function parseOrNull(json) {
@@ -2380,7 +2410,7 @@ class BipsiEditor extends EventTarget {
         this.logTextElement.replaceChildren("> RESTARTING PLAYTEST\n");
     }
 
-    gatherPluginsJavascript() {
+    gatherPluginsJavascript(purposes) {
         const { data } = this.getSelections();
 
         const event = findEventByTag(data, "is-plugins");
@@ -2393,14 +2423,9 @@ class BipsiEditor extends EventTarget {
 
         events.sort((a, b) => getPluginPriority(a) - getPluginPriority(b));
 
-        const sections = events.map((event) => {
-            const configFields = event.fields.filter((field) => field.key !== "plugin");
-            const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
-            const pluginsJS = `// PLUGIN CODE"\n${FIELD(event, "plugin", "javascript")}\n`;
-            return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}\n})();\n`;
-        });
+        const sections = events.map((event) => getRunnableJavascriptForOnePlugin(event, purposes));
 
-        return sections.join("\n");
+        return sections.filter(Boolean).join("\n");
     }
 
     async makeExportHTML(debug=false) {
@@ -2419,7 +2444,7 @@ class BipsiEditor extends EventTarget {
         ONE("#player", clone).hidden = false;
 
         // insert plugins
-        ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript();
+        ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript(debug ? [ "RUNTIME", "RUNTIME_DEV" ] : [ "RUNTIME" ]);
 
         // replace loading screen
         try {
@@ -2484,6 +2509,10 @@ class BipsiEditor extends EventTarget {
         const bundle = maker.bundleFromHTML(html);
         // load the contents of the bundle into the editor
         await this.loadBundle(bundle);
+
+        // Run EDITOR code for all plugins
+        const editorCode = EDITOR.gatherPluginsJavascript([ "EDITOR" ]);
+        (new Function(editorCode))();
     } 
 
     async resetProject() {
