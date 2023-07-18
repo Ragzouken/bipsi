@@ -205,11 +205,11 @@ function getRunnableJavascriptForOnePlugin(event, purposes) {
     const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
     let pluginJS = FIELD(event, "plugin", "javascript");
     pluginJS = filterJavascriptByPurposes(pluginJS, purposes);
-    pluginsJS = `// PLUGIN CODE"\n${pluginJS}\n`;
-    if (!pluginsJS.replace(/\/\/[^\n]*\n|[\n\t ]/g, "")) {
+    pluginJS = `// PLUGIN CODE"\n${pluginJS}\n`;
+    if (!pluginJS.replace(/\/\/[^\n]*\n|[\n\t ]/g, "")) {
         return "";
     }
-    return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginsJS}\n})();\n`;
+    return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
 }
 
 class PaletteEditor {
