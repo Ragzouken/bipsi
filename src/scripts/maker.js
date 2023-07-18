@@ -585,7 +585,7 @@ class ButtonAction extends EventTarget {
         this.buttons.forEach((button) => {
             button.removeEventListener("click", this.clickListener);
         });
-        this.setDisabled(false);
+        this.disabled = false;
         this.buttons = [];
     }
 }
