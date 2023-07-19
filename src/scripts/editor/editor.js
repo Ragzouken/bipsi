@@ -219,7 +219,7 @@ function getRunnableJavascriptForOnePlugin(event, purposes) {
 }
 
 function refreshEditorPluginConfig(CONFIG) {
-    const event = window.findEventById(window.EDITOR.stateManager.present, CONFIG.id);
+    const event = window.findEventById(window.EDITOR.stateManager.present, CONFIG.id) || { fields: [] };
     Object.setPrototypeOf(CONFIG, event);
 }
 
