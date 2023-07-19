@@ -209,7 +209,7 @@ function getRunnableJavascriptForOnePlugin(event, purposes) {
     if (!pluginJS.replace(/\/\/[^\n]*\n|[\n\t ]/g, "")) {
         return "";
     }
-    return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
+    return `(function () {\nconst EVENT_ID = ${event.id};\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
 }
 
 class PaletteEditor {
