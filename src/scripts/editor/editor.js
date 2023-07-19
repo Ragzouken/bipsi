@@ -187,8 +187,8 @@ function generateColorWheel(width, height) {
 }
 
 function filterJavascriptByPurposes(sourceCode, purposes) {
-    // Prepend "CODE_RUNTIME" so it's default.  Split code into blocks by "CODE_..." lines.
-    let codeBlocks = `//! CODE_RUNTIME\n${sourceCode}`.split(/^\/\/! *CODE_/m);
+    // Prepend "CODE_PLAYBACK" so it's default.  Split code into blocks by "CODE_..." lines.
+    let codeBlocks = `//! CODE_PLAYBACK\n${sourceCode}`.split(/^\/\/! *CODE_/m);
     // Filter out any code blocks that don't match the given purposes.
     const purposesRegex = new RegExp(`^(?:${purposes.join("|")})(?:\n|\r\n)`);
     const result = codeBlocks.
@@ -2444,7 +2444,7 @@ class BipsiEditor extends EventTarget {
         ONE("#player", clone).hidden = false;
 
         // insert plugins
-        ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript(debug ? [ "RUNTIME", "RUNTIME_DEV" ] : [ "RUNTIME" ]);
+        ONE("#plugins", clone).innerHTML = this.gatherPluginsJavascript(debug ? [ "PLAYBACK", "PLAYBACK_DEV" ] : [ "PLAYBACK" ]);
 
         // replace loading screen
         try {
