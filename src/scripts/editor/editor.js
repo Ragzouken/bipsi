@@ -202,14 +202,14 @@ function filterJavascriptByPurposes(sourceCode, purposes) {
 
 function getRunnableJavascriptForOnePlugin(event, purposes) {
     const configFields = event.fields.filter((field) => field.key !== "plugin");
-    const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
+    const configsJS = `const CONFIG = { id: ${event.id}, fields: ${JSON.stringify(configFields)} };`;
     let pluginJS = FIELD(event, "plugin", "javascript");
     pluginJS = filterJavascriptByPurposes(pluginJS, purposes);
     pluginJS = `// PLUGIN CODE"\n${pluginJS}\n`;
     if (!pluginJS.replace(/\/\/[^\n]*\n|[\n\t ]/g, "")) {
         return "";
     }
-    return `(function () {\nconst EVENT_ID = ${event.id};\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
+    return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
 }
 
 class PaletteEditor {
