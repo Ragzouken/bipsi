@@ -587,12 +587,12 @@ class EventEditor {
                 { key: "plugin", type: "javascript", data: js },
                 ...fieldsFromPluginCode(js),
             ];
-            const newEventId = nextEventId(EDITOR.stateManager.present);
+            const id = nextEventId(EDITOR.stateManager.present);
 
             this.editor.createEvent(fields);
 
             // Run EDITOR code for the new plugin
-            const editorCode = getRunnableJavascriptForOnePlugin({ id: newEventId, fields: fields }, [ "EDITOR" ]);
+            const editorCode = getRunnableJavascriptForOnePlugin({ id, fields }, [ "EDITOR" ]);
             new Function(editorCode)();
         });
 
