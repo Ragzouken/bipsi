@@ -352,6 +352,7 @@ maker.StateManager = class extends EventTarget {
         if (!this.canUndo) return;
         this.index -= 1;
         this.changed();
+        refreshEditorPluginConfigs();
     }
 
     /**
@@ -361,6 +362,7 @@ maker.StateManager = class extends EventTarget {
         if (!this.canRedo) return;
         this.index += 1;
         this.changed();
+        refreshEditorPluginConfigs();
     }
 };
 

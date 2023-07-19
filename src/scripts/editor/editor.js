@@ -202,7 +202,13 @@ function filterJavascriptByPurposes(sourceCode, purposes) {
 
 function getRunnableJavascriptForOnePlugin(event, purposes) {
     const configFields = event.fields.filter((field) => field.key !== "plugin");
-    const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
+    let configsJS;
+    if (purposes.includes("EDITOR")) {
+        EDITOR.editorPluginConfigs ||= [];
+        configsJS = `const CONFIG = { id: ${event.id} };\nrefreshEditorPluginConfig(CONFIG);\nEDITOR.editorPluginConfigs.push(CONFIG);`;
+    } else {
+        configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
+    }
     let pluginJS = FIELD(event, "plugin", "javascript");
     pluginJS = filterJavascriptByPurposes(pluginJS, purposes);
     pluginJS = `// PLUGIN CODE"\n${pluginJS}\n`;
@@ -210,6 +216,15 @@ function getRunnableJavascriptForOnePlugin(event, purposes) {
         return "";
     }
     return `(function () {\n// PLUGINS CONFIG\n${configsJS}\n${pluginJS}\n})();\n`;
+}
+
+function refreshEditorPluginConfig(CONFIG) {
+    const event = window.findEventById(window.EDITOR.stateManager.present, CONFIG.id);
+    Object.setPrototypeOf(CONFIG, event);
+}
+
+function refreshEditorPluginConfigs() {
+    EDITOR.editorPluginConfigs?.forEach(refreshEditorPluginConfig);
 }
 
 class PaletteEditor {
@@ -587,11 +602,12 @@ class EventEditor {
                 { key: "plugin", type: "javascript", data: js },
                 ...fieldsFromPluginCode(js),
             ];
+            const id = nextEventId(EDITOR.stateManager.present);
 
             this.editor.createEvent(fields);
 
             // Run EDITOR code for the new plugin
-            const editorCode = getRunnableJavascriptForOnePlugin({ fields: fields }, [ "EDITOR" ]);
+            const editorCode = getRunnableJavascriptForOnePlugin({ id, fields }, [ "EDITOR" ]);
             new Function(editorCode)();
         });
 
