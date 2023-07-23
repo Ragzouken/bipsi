@@ -2563,25 +2563,25 @@ class BipsiEditor extends EventTarget {
         this.actions.save.disabled = false;
     }
 
-	createEditorPluginConfig(id) {
-		const result = { id };
-		this.editorPluginConfigs ||= [];
-		this.editorPluginConfigs.push(result);
-		this.refreshEditorPluginConfig(result);
-		return result;
-	}
+    createEditorPluginConfig(id) {
+        const result = { id };
+        this.editorPluginConfigs ||= [];
+        this.editorPluginConfigs.push(result);
+        this.refreshEditorPluginConfig(result);
+        return result;
+    }
 
-	refreshEditorPluginConfig(config) {
-		const event = window.findEventById(this.stateManager.present, config.id);
-		if (event) {
-			Object.setPrototypeOf(config, event);
-		}
-	}
+    refreshEditorPluginConfig(config) {
+        const event = window.findEventById(this.stateManager.present, config.id);
+        if (event) {
+            Object.setPrototypeOf(config, event);
+        }
+    }
 
-	refreshEditorPluginConfigs() {
-		if (!this.editorPluginConfigs) return;
-		for (const config of this.editorPluginConfigs) {
-			this.refreshEditorPluginConfig(config);
-		}
-	}
+    refreshEditorPluginConfigs() {
+        if (!this.editorPluginConfigs) return;
+        for (const config of this.editorPluginConfigs) {
+            this.refreshEditorPluginConfig(config);
+        }
+    }
 }
