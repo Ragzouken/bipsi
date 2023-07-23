@@ -202,7 +202,12 @@ function filterJavascriptByPurposes(sourceCode, purposes) {
 
 function getRunnableJavascriptForOnePlugin(event, purposes) {
     const configFields = event.fields.filter((field) => field.key !== "plugin");
-    const configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
+    let configsJS;
+    if (purposes.includes("EDITOR")) {
+        configsJS = `const CONFIG = EDITOR.createEditorPluginConfig(${event.id});`;
+    } else {
+        configsJS = `const CONFIG = { fields: ${JSON.stringify(configFields)} };`;
+    }
     let pluginJS = FIELD(event, "plugin", "javascript");
     pluginJS = filterJavascriptByPurposes(pluginJS, purposes);
     pluginJS = `// PLUGIN CODE"\n${pluginJS}\n`;
@@ -587,11 +592,12 @@ class EventEditor {
                 { key: "plugin", type: "javascript", data: js },
                 ...fieldsFromPluginCode(js),
             ];
+            const id = nextEventId(EDITOR.stateManager.present);
 
             this.editor.createEvent(fields);
 
             // Run EDITOR code for the new plugin
-            const editorCode = getRunnableJavascriptForOnePlugin({ fields: fields }, [ "EDITOR" ]);
+            const editorCode = getRunnableJavascriptForOnePlugin({ id, fields }, [ "EDITOR" ]);
             new Function(editorCode)();
         });
 
@@ -1534,6 +1540,7 @@ class BipsiEditor extends EventTarget {
 
             // events
             this.eventEditor.refresh();
+            this.refreshEditorPluginConfigs();
         });
 
         const onEventsPointer = async (event, canvas) => {
@@ -2555,4 +2562,26 @@ class BipsiEditor extends EventTarget {
         await timer;
         this.actions.save.disabled = false;
     }
+
+	createEditorPluginConfig(id) {
+		const result = { id };
+		this.editorPluginConfigs ||= [];
+		this.editorPluginConfigs.push(result);
+		this.refreshEditorPluginConfig(result);
+		return result;
+	}
+
+	refreshEditorPluginConfig(config) {
+		const event = window.findEventById(this.stateManager.present, config.id);
+		if (event) {
+			Object.setPrototypeOf(config, event);
+		}
+	}
+
+	refreshEditorPluginConfigs() {
+		if (!this.editorPluginConfigs) return;
+		for (const config of this.editorPluginConfigs) {
+			this.refreshEditorPluginConfig(config);
+		}
+	}
 }
