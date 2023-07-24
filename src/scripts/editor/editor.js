@@ -2508,14 +2508,14 @@ class BipsiEditor extends EventTarget {
         const text = await maker.textFromFile(file);
 
         if (file.name.endsWith(".json")) {
-            return await this.loadBundle(JSON.parse(text));
+            await this.loadBundle(JSON.parse(text));
+        } else {
+            const html = await maker.htmlFromText(text);
+            // extract the bundle from the imported page
+            const bundle = maker.bundleFromHTML(html);
+            // load the contents of the bundle into the editor
+            await this.loadBundle(bundle);
         }
-
-        const html = await maker.htmlFromText(text);
-        // extract the bundle from the imported page
-        const bundle = maker.bundleFromHTML(html);
-        // load the contents of the bundle into the editor
-        await this.loadBundle(bundle);
 
         // Run EDITOR code for all plugins
         const editorCode = EDITOR.gatherPluginsJavascript([ "EDITOR" ]);
@@ -2563,25 +2563,25 @@ class BipsiEditor extends EventTarget {
         this.actions.save.disabled = false;
     }
 
-	createEditorPluginConfig(id) {
-		const result = { id };
-		this.editorPluginConfigs ||= [];
-		this.editorPluginConfigs.push(result);
-		this.refreshEditorPluginConfig(result);
-		return result;
-	}
+    createEditorPluginConfig(id) {
+        const result = { id };
+        this.editorPluginConfigs ||= [];
+        this.editorPluginConfigs.push(result);
+        this.refreshEditorPluginConfig(result);
+        return result;
+    }
 
-	refreshEditorPluginConfig(config) {
-		const event = window.findEventById(this.stateManager.present, config.id);
-		if (event) {
-			Object.setPrototypeOf(config, event);
-		}
-	}
+    refreshEditorPluginConfig(config) {
+        const event = window.findEventById(this.stateManager.present, config.id);
+        if (event) {
+            Object.setPrototypeOf(config, event);
+        }
+    }
 
-	refreshEditorPluginConfigs() {
-		if (!this.editorPluginConfigs) return;
-		for (const config of this.editorPluginConfigs) {
-			this.refreshEditorPluginConfig(config);
-		}
-	}
+    refreshEditorPluginConfigs() {
+        if (!this.editorPluginConfigs) return;
+        for (const config of this.editorPluginConfigs) {
+            this.refreshEditorPluginConfig(config);
+        }
+    }
 }
