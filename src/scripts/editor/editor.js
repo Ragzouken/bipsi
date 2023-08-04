@@ -72,15 +72,15 @@ function generateGrid(width, height, gap) {
     return rendering;
 }
 
-const TILE_ZOOM = 20;
-const ROOM_ZOOM = 2;
+let TILE_ZOOM = 20;
+let ROOM_ZOOM = 2;
 
-const TILE_GRID = generateGrid(TILE_ZOOM * TILE_PX, TILE_ZOOM * TILE_PX, TILE_ZOOM);
-const ROOM_GRID = generateGrid(ROOM_PX * ROOM_ZOOM, ROOM_PX * ROOM_ZOOM, TILE_PX * ROOM_ZOOM);
+let TILE_GRID = generateGrid(TILE_ZOOM * TILE_PX, TILE_ZOOM * TILE_PX, TILE_ZOOM);
+let ROOM_GRID = generateGrid(ROOM_PX * ROOM_ZOOM, ROOM_PX * ROOM_ZOOM, TILE_PX * ROOM_ZOOM);
 
-const TILE_SELECT_ZOOM = 5;
+let TILE_SELECT_ZOOM = 5;
 
-const TILE_ICON_SCALE = Math.max(1, Math.floor(TILE_PX / 8));
+let TILE_ICON_SCALE = Math.max(1, Math.floor(TILE_PX / 8));
 
 /** 
  * Update the given bipsi project data so that it's valid for this current

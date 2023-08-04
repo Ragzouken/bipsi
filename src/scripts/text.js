@@ -199,7 +199,7 @@ function renderPage(page, width, height, ox = 0, oy = 0)
     return result;
 }
 
-const defaultStyleHandler = (styles, style) => {
+let defaultStyleHandler = (styles, style) => {
     if (style.substr(0, 1) === "+") {
         styles.set(style.substring(1), true);
     } else if (style.substr(0, 1) === "-") {

@@ -1,9 +1,9 @@
 const URL_PARAMS = new URLSearchParams(window.location.search);
 const BIPSI_HD = URL_PARAMS.get("hd") === "true" || document.documentElement.dataset.hd;
-const SAVE_SLOT = URL_PARAMS.get("save") ?? "slot0";
+let SAVE_SLOT = URL_PARAMS.get("save") ?? "slot0";
 
 // browser saves will be stored under the id "bipsi"
-const storage = new maker.ProjectStorage(BIPSI_HD ? "bipsi-hd" : "bipsi");
+let storage = new maker.ProjectStorage(BIPSI_HD ? "bipsi-hd" : "bipsi");
 
 // type definitions for the structure of bipsi project data. useful for the
 // code editor, ignored by the browser 
@@ -79,9 +79,9 @@ function getManifest(data) {
     return [data.tileset, ...files];
 }
 
-const TILE_PX = BIPSI_HD ? 16 : 8;
-const ROOM_SIZE = 16;
-const SCREEN_ZOOM = 2;
+let TILE_PX = BIPSI_HD ? 16 : 8;
+let ROOM_SIZE = 16;
+let SCREEN_ZOOM = 2;
 
 const ROOM_PX = TILE_PX * ROOM_SIZE;
 const SCREEN_PX = ROOM_PX * SCREEN_ZOOM;

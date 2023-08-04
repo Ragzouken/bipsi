@@ -323,9 +323,9 @@ const STANDARD_SCRIPTS = [
     BEHAVIOUR_ADD_BEHAVIOUR,
 ];
 
-const BACKG_PAGE = createRendering2D(ROOM_PX, ROOM_PX); 
-const COLOR_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
-const TILES_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
+let BACKG_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
+let COLOR_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
+let TILES_PAGE = createRendering2D(ROOM_PX, ROOM_PX);
 
 function drawRecolorLayer(destination, render) {
     fillRendering2D(BACKG_PAGE);
@@ -346,9 +346,9 @@ function drawRecolorLayer(destination, render) {
     destination.drawImage(COLOR_PAGE.canvas, 0, 0);
 }
 
-const BACKG_PAGE_D = createRendering2D(555, 555); 
-const COLOR_PAGE_D = createRendering2D(555, 555);
-const TILES_PAGE_D = createRendering2D(555, 555);
+let BACKG_PAGE_D = createRendering2D(555, 555);
+let COLOR_PAGE_D = createRendering2D(555, 555);
+let TILES_PAGE_D = createRendering2D(555, 555);
 
 function drawRecolorLayerDynamic(destination, render) {
     const { width, height } = destination.canvas;
@@ -935,9 +935,9 @@ function bindScriptingDefines(defines) {
     return bound;
 }
 
-const FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
-const FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
-const IS_TAGGED = (event, name) => eventIsTagged(event, name);
+let FIELD = (event, name, type=undefined) => oneField(event, name, type)?.data;
+let FIELDS = (event, name, type=undefined) => allFields(event, name, type).map((field) => field.data);
+let IS_TAGGED = (event, name) => eventIsTagged(event, name);
 
 const SCRIPTING_FUNCTIONS = {
     SAY(dialogue, options) {
