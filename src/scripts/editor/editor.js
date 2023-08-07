@@ -580,40 +580,7 @@ class EventEditor {
         ui.action("create-event-setup", () => createUniqueEvent("is-setup", EVENT_TEMPLATES.setup));
         ui.action("create-event-library", () => createUniqueEvent("is-library", EVENT_TEMPLATES.library));
         ui.action("create-event-plugin", () => this.editor.createEvent(EVENT_TEMPLATES.plugin));
-        
-        ui.action("create-event-plugin-file", async () => {
-            const [file] = await maker.pickFiles("application/javascript");
-            if (!file) return;
-
-            const js = await maker.textFromFile(file);
-            const fields = [
-                { key: "is-plugin", type: "tag", data: true },
-                { key: "plugin-order", type: "json", data: 0 },
-                { key: "plugin", type: "javascript", data: js },
-                ...fieldsFromPluginCode(js),
-            ];
-            const id = nextEventId(EDITOR.stateManager.present);
-
-            this.editor.createEvent(fields);
-
-            // Run EDITOR code for the new plugin
-            const editorCode = getRunnableJavascriptForOnePlugin({ id, fields }, [ "EDITOR" ]);
-            new Function(editorCode)();
-        });
-
-        function parseOrNull(json) {
-            try {
-                return JSON.parse(json);
-            } catch {
-                return null;
-            }
-        }
-
-        function fieldsFromPluginCode(code) {
-            const regex = /\/\/!CONFIG\s+([\w-]+)\s+\(([\w-]+)\)\s*(.*)/g;
-            const fields = Array.from(code.matchAll(regex)).map(([, key, type, json]) => ({ key, type, data: parseOrNull(json)}));
-            return fields;
-        }
+        ui.action("create-event-plugin-file", () => this.editor.createPluginEvent());
 
         this.actions = {
             add: ui.action("add-event-field", () => this.addField()),
@@ -2342,6 +2309,40 @@ class BipsiEditor extends EventTarget {
             room.events.push(event);
             this.selectedEventId = event.id;
         });
+    }
+
+    parseOrNull(json) {
+        try {
+            return JSON.parse(json);
+        } catch {
+            return null;
+        }
+    }
+
+    fieldsFromPluginCode(code) {
+        const regex = /\/\/!CONFIG\s+([\w-]+)\s+\(([\w-]+)\)\s*(.*)/g;
+        const fields = Array.from(code.matchAll(regex)).map(([, key, type, json]) => ({ key, type, data: this.parseOrNull(json)}));
+        return fields;
+    }
+
+    async createPluginEvent() {
+        const [file] = await maker.pickFiles("application/javascript");
+        if (!file) return;
+
+        const js = await maker.textFromFile(file);
+        const fields = [
+           { key: "is-plugin", type: "tag", data: true },
+           { key: "plugin-order", type: "json", data: 0 },
+           { key: "plugin", type: "javascript", data: js },
+            ...this.fieldsFromPluginCode(js),
+        ];
+        const id = nextEventId(EDITOR.stateManager.present);
+
+        this.createEvent(fields);
+
+        // Run EDITOR code for the new plugin
+        const editorCode = getRunnableJavascriptForOnePlugin({ id, fields }, [ "EDITOR" ]);
+        new Function(editorCode)();
     }
 
     copySelectedEvent() {
