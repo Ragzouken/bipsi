@@ -716,7 +716,7 @@ class BipsiPlayback extends EventTarget {
 
         try {
             const script = new AsyncFunction("", preamble + js);
-            await script.call(defines);
+            return await script.call(defines);
         } catch (e) {
             const long = `> SCRIPT ERROR "${e}"\n---\n${js}\n---`;
             this.log(long);
@@ -724,6 +724,7 @@ class BipsiPlayback extends EventTarget {
             const error = `SCRIPT ERROR:\n${e}`;
             this.showError(error);
         }
+        return undefined;
     }
 
     makeScriptingDefines(event) {
