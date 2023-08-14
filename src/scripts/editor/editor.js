@@ -192,7 +192,7 @@ function filterJavascriptByPurposes(sourceCode, purposes) {
     // Prepend "CODE_PLAYBACK" to the sourceCode so that it's the default block-type.
     sourceCode = `//! CODE_PLAYBACK\n${sourceCode}`;
     // Split code into blocks by "CODE_*" block-type headings.
-    const codeBlocks = sourceCode.split(/^\/\/! *CODE_/m);
+    const codeBlocks = sourceCode.split(/^[ \t]*\/\/![ \t]*CODE_/m);
     // Filter out any code blocks that don't match the given purposes.
     const purposesRegex = new RegExp(`^(?:${purposes.join("|")})(?:\n|\r\n)`);
     const result = codeBlocks.
