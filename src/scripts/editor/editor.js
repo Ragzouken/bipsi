@@ -2474,7 +2474,7 @@ class BipsiEditor extends EventTarget {
             clone.setAttribute("data-debug", "true");
         }
 
-        return clone.outerHTML;
+        return `<!DOCTYPE html>${clone.outerHTML}`;
     }
         
     async exportProject() {
