@@ -13,6 +13,9 @@ async function startEditor(font) {
     // load bundle and enter editor mode
     await editor.loadBundle(bundle);
 
+    // Auto-select the pointed-to event (upper-left corner)
+    editor.selectPointedEvent();
+
     // unsaved changes warning
     window.addEventListener("beforeunload", (event) => {
         if (!editor.unsavedChanges) return;
