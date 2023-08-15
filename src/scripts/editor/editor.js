@@ -188,7 +188,7 @@ function generateColorWheel(width, height) {
 
 function filterJavascriptByPurposes(sourceCode, purposes) {
     // Add the 'CODE_ALL_TYPES' block-type to the purposes so that it's included in EVERY filter.
-    purposes.push("ALL_TYPES");
+    purposes = purposes.concat("ALL_TYPES");
     // Prepend "CODE_PLAYBACK" to the sourceCode so that it's the default block-type.
     sourceCode = `//! CODE_PLAYBACK\n${sourceCode}`;
     // Split code into blocks by "CODE_*" block-type headings.
