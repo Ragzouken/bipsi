@@ -2068,6 +2068,11 @@ class BipsiEditor extends EventTarget {
         if (this.tileBrowser.select.selectedIndex === -1) {
             this.tileBrowser.select.selectedIndex = 0;
         }
+
+        if (this.pendingTileSelect) {
+            this.tileBrowser.selectedTileIndex = this.pendingTileSelect;
+            delete this.pendingTileSelect;
+        }
     }
 
     /**
@@ -2120,7 +2125,8 @@ class BipsiEditor extends EventTarget {
     }
 
     async newTile() {
-        await this.stateManager.makeChange(async (data) => {
+        this.pendingTileSelect = this.tileBrowser.selectedTileIndex + 1;
+        this.stateManager.makeChange(async (data) => {
             const { tileIndex, tileset } = this.getSelections(data);
             const id = nextTileId(data);
             const frames = [findFreeFrame(data.tiles)];
@@ -2130,11 +2136,11 @@ class BipsiEditor extends EventTarget {
             const { x, y, size } = getTileCoords(tileset.canvas, frames[0]);
             tileset.clearRect(x, y, size, size);
         });        
-        this.tileBrowser.selectedTileIndex += 1;
     }
 
     async duplicateTile() {
-        await this.stateManager.makeChange(async (data) => {
+        this.pendingTileSelect = this.tileBrowser.selectedTileIndex + 1;
+        this.stateManager.makeChange(async (data) => {
             const { tileIndex, tile, tileset } = this.getSelections(data);
             const id = nextTileId(data);
             const frames = [];
@@ -2147,7 +2153,6 @@ class BipsiEditor extends EventTarget {
                 drawTile(tileset, frames[i], frame);
             });
         });
-        this.tileBrowser.selectedTileIndex += 1;
     }
 
     async toggleTileAnimated() {
