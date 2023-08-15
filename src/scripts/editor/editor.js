@@ -1418,7 +1418,7 @@ class BipsiEditor extends EventTarget {
             const { data, room } = this.getSelections();
             this.paletteSelectWindow.select.selectedIndex = data.palettes.indexOf(getPaletteById(data, room.palette));
             
-            this.selectedEventId = undefined;
+            this.selectPointedEvent();
             this.requestRedraw();
             this.eventEditor.refresh();
         });
@@ -1810,6 +1810,12 @@ class BipsiEditor extends EventTarget {
 
     requestRedraw() {
         this.requestedRedraw = true;
+    }
+
+    selectPointedEvent() {
+        const {x, y} = this.selectedEventCell;
+        this.selectedEventId = getEventsAt(this.getSelections().room.events, x, y)[0]?.id;
+        this.eventEditor.refresh();
     }
 
     update(dt) {
