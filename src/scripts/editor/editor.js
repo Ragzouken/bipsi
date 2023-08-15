@@ -1247,6 +1247,13 @@ class BipsiEditor extends EventTarget {
         this.picker = ui.toggle("tile-picker");
 
         // initial selections
+        // NOTE - set radio inputs to 1, then 0.  This is for browsers (like firefox) which auto-set
+        // radio inputs to the value they held before the prior page refresh.  If we only set the
+        // radio input to 0, and the browser ALREADY set the radio to 0, then the change event isn't
+        // triggered.  This puts the ui into a bad state.
+        this.modeSelect.selectedIndex = 1;
+        this.roomPaintTool.selectedIndex = 1;
+        this.tilePaintFrameSelect.selectedIndex = 1;
         this.modeSelect.selectedIndex = 0;
         this.roomPaintTool.selectedIndex = 0; 
         this.tilePaintFrameSelect.selectedIndex = 0;
