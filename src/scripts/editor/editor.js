@@ -2207,6 +2207,7 @@ class BipsiEditor extends EventTarget {
         const { data } = this.getSelections();
         if (data.tiles.length <= 1) return;
 
+        this.pendingTileSelect = this.tileBrowser.selectedTileIndex - 1;
         return this.stateManager.makeChange(async (data) => {
             const { tile } = this.getSelections(data);
             arrayDiscard(data.tiles, tile);
