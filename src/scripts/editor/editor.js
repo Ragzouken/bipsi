@@ -187,11 +187,16 @@ function generateColorWheel(width, height) {
 }
 
 function filterJavascriptByPurposes(sourceCode, purposes) {
-    // Prepend "CODE_PLAYBACK" so it's default.  Split code into blocks by "CODE_..." lines.
-    let codeBlocks = `//! CODE_PLAYBACK\n${sourceCode}`.split(/^\/\/! *CODE_/m);
+    // Add the 'CODE_ALL_TYPES' block-type to the purposes so that it's included in EVERY filter.
+    purposes = purposes.concat("ALL_TYPES");
+    // Prepend "CODE_PLAYBACK" to the sourceCode so that it's the default block-type.
+    sourceCode = `//! CODE_PLAYBACK\n${sourceCode}`;
+    // Split code into blocks by "CODE_*" block-type headings.
+    const codeBlocks = sourceCode.split(/^[ \t]*\/\/![ \t]*CODE_/m);
     // Filter out any code blocks that don't match the given purposes.
     const purposesRegex = new RegExp(`^(?:${purposes.join("|")})(?:\n|\r\n)`);
     const result = codeBlocks.
+    // Run the function's namesake filter
         filter(block => block.match(purposesRegex)).
     // Remove the start line for each code block (the remains of the "//! CODE_" line).
         map(block => block.slice(block.indexOf('\n')+1)).
