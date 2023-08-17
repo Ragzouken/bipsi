@@ -472,8 +472,8 @@ class BipsiPlayback extends EventTarget {
         return url;
     } 
 
-    getFileImageElement(id) {
-        const image = this.imageElements.get(id) ?? loadImageLazy(this.getFileObjectURL(id));
+    async getFileImageElement(id, waitForLoaded) {
+        const image = this.imageElements.get(id) ?? await loadImageLazy(this.getFileObjectURL(id), waitForLoaded);
         this.imageElements.set(id, image);
         return image;
     }
@@ -749,9 +749,7 @@ class BipsiPlayback extends EventTarget {
         this.background = image;
     }
     
-    async showImage(imageID, fileIDs, layer, x, y) {
-        console.log(imageID, fileIDs, layer, x, y)
-
+    async showImage(imageID, fileIDs, layer, x, y, waitForLoaded=false) {
         if (typeof fileIDs === "string") {
             fileIDs = [fileIDs];
         }
@@ -759,7 +757,7 @@ class BipsiPlayback extends EventTarget {
         if (fileIDs.length === 0) {
             this.hideImage(imageID);
         } else {
-            const images = fileIDs.map((fileID) => this.getFileImageElement(fileID));
+            const images = await Promise.all(fileIDs.map((fileID) => this.getFileImageElement(fileID, waitForLoaded)));
             this.images.set(imageID, { image: images, layer, x, y });
         }
     }
@@ -981,8 +979,8 @@ const SCRIPTING_FUNCTIONS = {
         this.PLAYBACK.stopMusic();
     },
 
-    SHOW_IMAGE(id, files, layer, x, y) {
-        this.PLAYBACK.showImage(id, files, layer, x, y);
+    SHOW_IMAGE(id, files, layer, x, y, waitForLoaded=false) {
+        return this.PLAYBACK.showImage(id, files, layer, x, y, waitForLoaded);
     },
     HIDE_IMAGE(id) {
         this.PLAYBACK.hideImage(id);
