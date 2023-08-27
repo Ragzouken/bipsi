@@ -164,7 +164,7 @@ function shuffleArray(array) {
  * @param {number} roomId
  */
 function findRoomById(data, roomId) {
-    return data.rooms.find((event) => event.id === roomId);
+    return data.rooms.find((room) => room.id === roomId);
 }
 
 /**
