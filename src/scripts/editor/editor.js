@@ -1019,6 +1019,14 @@ class TileEditor {
     }
 }
 
+/**
+ * @param {HTMLElement} element
+ */
+function isElementTextInput(element) {
+    const tag = element.tagName.toLowerCase();
+    return tag === "textarea" || (tag === "input" && element.type === "text");
+}
+
 class BipsiEditor extends EventTarget {
     /**
      * Setup most of the stuff for the bipsi editor (the rest is in init
@@ -1346,14 +1354,6 @@ class BipsiEditor extends EventTarget {
         this.actions.pasteTileFrame.disabled = true;
         this.actions.pasteEvent.disabled = true;
         this.actions.save.disabled = !storage.available;
-
-        /**
-         * @param {HTMLElement} element 
-         */
-        function isElementTextInput(element) {
-            const tag = element.tagName.toLowerCase();
-            return tag === "textarea" || (tag === "input" && element.type === "text");
-        }
 
         // hotkeys
         document.addEventListener("keydown", (event) => {
