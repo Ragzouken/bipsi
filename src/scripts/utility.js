@@ -30,15 +30,13 @@ wrap.after = function(object, method, callback) {
 }
 
 wrap.replace = function(object, method, callback) {
-    object[method] = function (...args) {
-        return callback.call(this, ...args);
-    };
+    object[method] = callback;
 }
 
 wrap.splice = function(object, method, callback) {
     const original = object[method];
 
-    object[method] = async function (...args) {
+    object[method] = function (...args) {
         return callback.call(this, original, ...args);
     };
 }
