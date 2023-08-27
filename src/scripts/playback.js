@@ -101,7 +101,7 @@ function roomFromEvent(data, event) {
  * @returns {BipsiDataEvent?}
  */
 function getEventAtLocation(data, location) {
-    const room = data.rooms.find((room) => room.id === location.room);
+    const room = findRoomById(data, location.room);
     
     const [x, y] = location.position;
     const [event] = getEventsAt(room.events, x, y);
@@ -124,7 +124,7 @@ function getLocationOfEvent(data, event) {
  * @param {BipsiDataLocation} location
  */
 function moveEvent(data, event, location) {
-    const room = data.rooms.find((room) => room.id === location.room);
+    const room = findRoomById(data, location.room);
     
     if (!room) throw Error("NO ROOM WITH ID " + location.room);
     
@@ -157,6 +157,14 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+/**
+ * @param {BipsiDataProject} data
+ * @param {number} roomId
+ */
+function findRoomById(data, roomId) {
+    return data.rooms.find((event) => event.id === roomId);
 }
 
 /**
