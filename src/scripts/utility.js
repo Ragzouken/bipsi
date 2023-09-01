@@ -1,35 +1,42 @@
 const wrap = {};
 
+/** 
+ * @param {Function} first
+ * @param {Function} second
+ */
+wrap.sequenced = function(first, second) {
+    return function(...args) {
+        const intermediate = first.call(this, ...args);
+        
+        // if the first returned a promise, return promise of second chained
+        // after first. otherwise just return the result of second (which may
+        // or may not be a promise)
+        if (intermediate?.then) {
+            return intermediate.then(() => second.call(this, ...args));
+        } else {
+            return second.call(this, ...args);
+        }
+    }
+}
+
 wrap.before = function(object, method, callback) {
     const original = object[method];
-
-    object[method] = async function (...args) {
-        await callback.call(this, ...args);
-        const result = await original.call(this, ...args);
-        return result;
-    };
+    object[method] = wrap.sequenced(callback, original);
 }
 
 wrap.after = function(object, method, callback) {
     const original = object[method];
-
-    object[method] = async function (...args) {
-        const result = await original.call(this, ...args);
-        await callback.call(this, ...args);
-        return result;
-    };
+    object[method] = wrap.sequenced(original, callback);
 }
 
 wrap.replace = function(object, method, callback) {
-    object[method] = async function (...args) {
-        return callback.call(this, ...args);
-    };
+    object[method] = callback;
 }
 
 wrap.splice = function(object, method, callback) {
     const original = object[method];
 
-    object[method] = async function (...args) {
+    object[method] = function (...args) {
         return callback.call(this, original, ...args);
     };
 }
