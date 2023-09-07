@@ -109,6 +109,19 @@ function getEventAtLocation(data, location) {
 } 
 
 /**
+ * @param {BipsiDataProject} data
+ * @param {BipsiDataLocation} location
+ * @returns {BipsiDataEvents?}
+ */
+function getEventsAtLocation(data, location) {
+    const room = findRoomById(data, location.room);
+
+    const [x, y] = location.position;
+    const events = getEventsAt(room.events, x, y);
+    return events;
+}
+
+/**
  * @param {BipsiDataProject} data 
  * @param {BipsiDataEvent} event 
  * @returns {BipsiDataLocation}
@@ -306,8 +319,8 @@ if (graphic) {
 
 const BEHAVIOUR_TOUCH_LOCATION = `
 let location = FIELD(EVENT, "touch-location", "location");
-let event = location ? EVENT_AT(location) : undefined;
-if (event) {
+let events = location ? EVENTS_AT(location) : [];
+for (const event of events) {
     await TOUCH(event);
 }
 `;
@@ -971,6 +984,10 @@ const SCRIPTING_FUNCTIONS = {
 
     EVENT_AT(location) {
         return getEventAtLocation(this.PLAYBACK.data, location);
+    },
+
+    EVENTS_AT(location) {
+        return getEventsAtLocation(this.PLAYBACK.data, location);
     },
 
     LOCATION_OF(event) {
