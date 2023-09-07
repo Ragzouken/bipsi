@@ -680,19 +680,22 @@ class BipsiPlayback extends EventTarget {
         // if not, then update avatar position
         if (!blocked && !bounded) avatar.position = [tx, ty];
 
-        // find if there's an event that should be touched. prefer an event at
-        // the cell the avatar tried to move into but settle for the cell 
-        // they're already standing on otherwise
+        // find if there are events that should be touched. prefer events at
+        // the cell the avatar tried to move into but settle for events at
+        // the cell they're already standing on otherwise
         const [fx, fy] = avatar.position;
-        const [event0] = getEventsAt(room.events, tx, ty, avatar);
-        const [event1] = getEventsAt(room.events, fx, fy, avatar);
-        const event = event0 ?? event1;
+        const events0 = getEventsAt(room.events, tx, ty, avatar);
+        const events1 = getEventsAt(room.events, fx, fy, avatar);
+        const events = events0.length ? events0 : events1;
 
-        // if there was such an event, touch it
-        if (event) await this.touch(event);
+        // if there were such events, touch them
+        for (const event of events) {
+            await this.touch(event);
+        }
 
         this.busy = false;
     }
+
 
     eventDebugInfo(event) {
         const tags = allEventTags(event).join(", ");
