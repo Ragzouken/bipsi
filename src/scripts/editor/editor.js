@@ -466,7 +466,7 @@ class EventFieldEditor extends EventTarget {
         const { key, type } = this.getData();
         field.key = key;
         if (field.type !== type) {
-            field.data = FIELD_DEFAULTS[type];
+            field.data = COPY(FIELD_DEFAULTS[type]);
         }
         field.type = type;
     }
