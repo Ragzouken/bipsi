@@ -421,6 +421,7 @@ class BipsiPlayback extends EventTarget {
 
         this.objectURLs = new Map();
         this.imageElements = new Map();
+        this.visibleImagesLoadedWaiter = { then: (resolve, reject) => this.visibleImagesLoaded().then(resolve, reject) };
 
         this.music = document.createElement("audio");
         this.music.loop = true;
@@ -564,13 +565,17 @@ class BipsiPlayback extends EventTarget {
         const images_above_events = images.filter((image) => image.layer >= 2 && image.layer < 3);
         const images_above_all    = images.filter((image) => image.layer >= 3);
 
+        function drawImage({ image, x, y }) {
+            TEMP_ROOM.drawImage(image[frame % image.length], x, y);
+        }
+
         fillRendering2D(this.rendering);
         // fillRendering2D(TEMP_ROOM, background);
-        images_below_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
+        images_below_all.forEach(drawImage);
         drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
-        images_below_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
+        images_below_events.forEach(drawImage);
         drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
-        images_above_events.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
+        images_above_events.forEach(drawImage);
 
         // upscale tilemaps to display area
         this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
@@ -587,7 +592,7 @@ class BipsiPlayback extends EventTarget {
         }
         
         fillRendering2D(TEMP_ROOM);
-        images_above_all.forEach(({ image, x, y }) => TEMP_ROOM.drawImage(image[frame % image.length], x, y));
+        images_above_all.forEach(drawImage);
         this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
 
         if (this.ended) {
@@ -774,8 +779,6 @@ class BipsiPlayback extends EventTarget {
     }
     
     async showImage(imageID, fileIDs, layer, x, y) {
-        console.log(imageID, fileIDs, layer, x, y)
-
         if (typeof fileIDs === "string") {
             fileIDs = [fileIDs];
         }
@@ -785,11 +788,18 @@ class BipsiPlayback extends EventTarget {
         } else {
             const images = fileIDs.map((fileID) => this.getFileImageElement(fileID));
             this.images.set(imageID, { image: images, layer, x, y });
+            return Promise.all(images.map(imageLoadWaiter));
         }
     }
 
     hideImage(imageID) {
         this.images.delete(imageID);
+    }
+
+    async visibleImagesLoaded() {
+        for (const { image } of this.images.values())
+            for (const frame of image)
+                await imageLoadWaiter(frame);
     }
 
     showError(text) {
@@ -828,7 +838,7 @@ async function standardEventTouch(playback, event) {
 function sample(playback, id, type, values) {
     let iterator = playback.variables.get(id);
 
-    if (!iterator || !iterator.next) {
+    if (!iterator?.next) {
         iterator = ITERATOR_FUNCS[type](values);
         playback.variables.set(id, iterator);
     }
@@ -1010,7 +1020,7 @@ const SCRIPTING_FUNCTIONS = {
     },
 
     SHOW_IMAGE(id, files, layer, x, y) {
-        this.PLAYBACK.showImage(id, files, layer, x, y);
+        return this.PLAYBACK.showImage(id, files, layer, x, y);
     },
     HIDE_IMAGE(id) {
         this.PLAYBACK.hideImage(id);
@@ -1191,4 +1201,5 @@ function addScriptingConstants(defines, playback, event) {
 
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
+    defines.VISIBLE_IMAGES_LOADED = playback.visibleImagesLoadedWaiter;
 }
