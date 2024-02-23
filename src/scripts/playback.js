@@ -828,7 +828,7 @@ async function standardEventTouch(playback, event) {
 function sample(playback, id, type, values) {
     let iterator = playback.variables.get(id);
 
-    if (iterator === undefined) {
+    if (!iterator || !iterator.next) {
         iterator = ITERATOR_FUNCS[type](values);
         playback.variables.set(id, iterator);
     }
