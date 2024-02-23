@@ -477,18 +477,34 @@ function imageToRendering2D(image) {
  * @returns {Promise<HTMLImageElement>}
  */
 async function loadImage(src) {
-    return new Promise((resolve, reject) => {
-        const image = document.createElement("img");
-        image.addEventListener("load", () => resolve(image));
-        image.addEventListener("error", reject);
-        image.src = src;
-    });
+    return imageLoadWaiter(loadImageLazy(src));
 }
 
+/**
+ * Create an html image from a given src (probably a datauri).
+ * @param {string} src
+ * @returns {HTMLImageElement}
+ */
 function loadImageLazy(src) {
     const image = document.createElement("img");
     image.src = src;
     return image;
+}
+
+/**
+ * Await any pending loading of an html image.
+ * @param {HTMLImageElement} image
+ * @returns {Promise<HTMLImageElement>}
+ */
+async function imageLoadWaiter(image) {
+    if (image.complete) {
+        return Promise.resolve(image);
+    } else {
+        return new Promise((resolve, reject) => {
+            image.addEventListener("load", () => resolve(image));
+            image.addEventListener("error", reject);
+        });
+    }
 }
 
 /**
