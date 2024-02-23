@@ -485,10 +485,24 @@ async function loadImage(src) {
     });
 }
 
-function loadImageLazy(src) {
+function loadImageLazy(src, waitForLoaded) {
     const image = document.createElement("img");
+    let result = image;
+    let promiseResolve = null;
+    if (waitForLoaded) {
+        result = new Promise(resolve => {
+            promiseResolve = resolve;
+        });
+    }
+    image.onload = () => {
+        if (promiseResolve) promiseResolve(image);
+    };
+    image.onerror = image.onload;
     image.src = src;
-    return image;
+    if (image.complete) {
+        image.onload();
+    }
+    return result;
 }
 
 /**
