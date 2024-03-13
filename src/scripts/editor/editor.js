@@ -422,6 +422,7 @@ const FIELD_DEFAULTS = {
     javascript: "",
     json: "",
     text: "",
+    file: null,
 };
 
 class EventFieldEditor extends EventTarget {
