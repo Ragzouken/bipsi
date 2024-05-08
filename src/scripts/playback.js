@@ -1047,7 +1047,7 @@ const SCRIPTING_FUNCTIONS = {
         let files = FIELDS(event, field, "file");
         let names = FIELDS(event, field, "text");
 
-        if (files.length === 0 && names && this.LIBRARY) {
+        if (files.length === 0 && names.length > 0 && this.LIBRARY) {
             files = names.map((name) => FIELD(this.LIBRARY, name, "file"));
         } else if (files.length === 0 && this.LIBRARY) {
             files = FIELDS(this.LIBRARY, field, "file");
