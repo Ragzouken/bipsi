@@ -38,7 +38,7 @@
 | lines   | 2   | number of lines per dialogue page
 | lineGap | 4   | pixel spacing between lines of text 
 | padding | 8   | pixel spacing between panel edge and text
-| glyphRevealDelay | .05 | seconds between revealing each character
+| glyphRevealDelay | 0.05 | seconds between revealing each character
 | backgroundColor | null | html color filling screen behind dialogue panel
 | panelColor      | "#000000" | html color of dialogue panel
 | textColor       | "#FFFFFF" | html color of dialogue text  
