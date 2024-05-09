@@ -14,6 +14,7 @@ https://discord.gg/mnARVsgSkc
 
 * [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf)
 * [bipsi scripting guide](https://kool.tools/bipsi/scripting-guide.pdf)
+* [event touch behaviors in bipsi](./docs/styling-dialogue.md)
 * [styling dialogue in bipsi](./docs/styling-dialogue.md)
 * [custom fonts in bipsi](./docs/custom-fonts.md)
 

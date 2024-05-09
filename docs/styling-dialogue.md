@@ -2,7 +2,7 @@
 
 ## dialogue text
 
-| say | text | join the conversation with a nice \~~refreshing~~ glass of \_\_bipsi__ |
+| say | dialogue | join the conversation with a nice \~~refreshing~~ glass of \_\_bipsi__ |
 |-----------|------|-------|
 
 ### tags
