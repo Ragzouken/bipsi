@@ -15,5 +15,5 @@ https://discord.gg/mnARVsgSkc
 * [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf)
 * [bipsi scripting guide](https://kool.tools/bipsi/scripting-guide.pdf)
 * [bipsi plugins](https://github.com/seleb/bipsi-hacks)
-* [bitsy font to bipsi converter](https://kool.tools/bipsi/tools/bipsi-font)
+* [custom fonts in bipsi](./docs/custom-fonts.md)
 * [unofficial bipsi reference](https://docs.google.com/document/d/1TUSjVBhBeNe_ol7YikCxKx1nIBaurJhsGPSQAkPQKFk)
