@@ -22,3 +22,4 @@ https://discord.gg/mnARVsgSkc
 
 * [bipsi plugins](https://github.com/seleb/bipsi-hacks)
 * [unofficial bipsi reference](https://docs.google.com/document/d/1TUSjVBhBeNe_ol7YikCxKx1nIBaurJhsGPSQAkPQKFk)
+* [unofficial bipsi howto](https://docs.google.com/document/d/178A00zHzt_yY8GQn_-UthcYZ0V4WFZOWwtOs-DwIlqs)
