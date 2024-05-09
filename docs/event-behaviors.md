@@ -15,9 +15,11 @@
 
 | name | type | meaning
 |--|--|--
-| is-avatar | tag | mark this event to be the user controlled event
+| is-player | tag | mark this event as the single user controlled event
 | solid | tag | mark this event as impassable, like a wall
 | one-time | tag | mark this event to be removed after touching
+| is-setup | tag | mark this event as the single setup event (touched on startup before avatar)
+| is-library | tag | mark this event as the single library event (where named files are kept)
 
 ### general
 
@@ -33,9 +35,18 @@
 | name | type | meaning
 |--|--|--
 | title | dialogue | show a title dialogue
-| say | dialogue | show a normal dialogue
 | ending | dialogue | end the game with a ending dialogue
+| say | dialogue | show a normal dialogue
 | say-style | json | style the dialogue box ([more info](./styling-dialogue.md))
+| say-mode | text | how to choose which `say` field to use each touch
+| no-says | javascript | run javascript when sequence-once dialogue has run out
+
+#### say modes
+| name | meaning
+| sequence-once | use the `say` fields in order, then run `no-says` instead
+| sequence | use the `say` fields in order, then repeat the last
+| cycle | use the `say` fields in order, looping
+| shuffle | use the `say` fields in a random order, then reshuffle and repeat
 
 ### audio
 
@@ -60,3 +71,10 @@
 | clear-background | tag | clear image on background layer
 | clear-foreground | tag | clear image on foreground layer
 | clear-overlay | tag | clear image on overlay layer
+
+### plugins
+
+| name | type | meaning
+|--|--|--
+| is-plugin | tag | mark this event as a plugin
+| plugin-order | json | number for determining the order to run plugins at startup
