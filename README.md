@@ -10,10 +10,14 @@ mastodon at @candle@timetheft.social, or by email at  ragzouken@gmail.com
 you can also join the bipsi discord at with the following invite:
 https://discord.gg/mnARVsgSkc
 
-## links
+## docs
 
 * [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf)
 * [bipsi scripting guide](https://kool.tools/bipsi/scripting-guide.pdf)
-* [bipsi plugins](https://github.com/seleb/bipsi-hacks)
+* [styling dialogue in bipsi](./docs/styling-dialogue.md)
 * [custom fonts in bipsi](./docs/custom-fonts.md)
+
+## links
+
+* [bipsi plugins](https://github.com/seleb/bipsi-hacks)
 * [unofficial bipsi reference](https://docs.google.com/document/d/1TUSjVBhBeNe_ol7YikCxKx1nIBaurJhsGPSQAkPQKFk)
