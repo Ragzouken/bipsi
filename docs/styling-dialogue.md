@@ -39,7 +39,7 @@
 | lineGap | 4   | pixel spacing between lines of text 
 | padding | 8   | pixel spacing between screen and panel edge
 | glyphRevealDelay | 0.05 | seconds between revealing each character
-| backgroundColor | null | html color filling screen behind dialogue panel
+| backgroundColor | | html color filling screen behind dialogue panel
 | panelColor      | "#000000" | html color of dialogue panel
 | textColor       | "#FFFFFF" | html color of dialogue text  
 
@@ -47,7 +47,6 @@
 ```json
 {
     "anchorX": 0.5,
-    "anchorY": 0.5,
 
     "lines": 2,
     "lineGap": 4,
@@ -55,7 +54,6 @@
 
     "glyphRevealDelay": 0.05,
 
-    "backgroundColor": null,
     "panelColor": "#000000",
     "textColor": "#FFFFFF"
 }
