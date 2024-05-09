@@ -148,7 +148,8 @@ class DialoguePlayback extends EventTarget {
                      + (options.font.lineHeight + options.lineGap) * options.lines;
         const width = 208;
 
-        fillRendering2D(this.dialogueRendering, options.backgroundColor);
+        fillRendering2D(this.dialogueRendering);
+        fillRendering2D(this.dialogueRendering, options.backgroundColor || "transparent");
         
         const { width: displayWidth, height: displayHeight } = this.dialogueRendering.canvas;
         const spaceX = displayWidth - width;
