@@ -43,6 +43,7 @@
 
 #### say modes
 | name | meaning
+|--|--
 | sequence-once | use the `say` fields in order, then run `no-says` instead
 | sequence | use the `say` fields in order, then repeat the last
 | cycle | use the `say` fields in order, looping
