@@ -34,10 +34,10 @@
 | name | default | meaning
 |---|---|---
 | anchorX | 0.5 | horizontal alignment within screen
-| anchorY | 0.5 | vertical alignment within screen
+| anchorY | 0 or 1 | vertical alignment within screen
 | lines   | 2   | number of lines per dialogue page
 | lineGap | 4   | pixel spacing between lines of text 
-| padding | 8   | pixel spacing between panel edge and text
+| padding | 8   | pixel spacing between screen and panel edge
 | glyphRevealDelay | 0.05 | seconds between revealing each character
 | backgroundColor | null | html color filling screen behind dialogue panel
 | panelColor      | "#000000" | html color of dialogue panel
