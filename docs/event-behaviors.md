@@ -39,6 +39,7 @@
 | say | dialogue | show a normal dialogue
 | say-style | json | style the dialogue box ([more info](./styling-dialogue.md))
 | say-mode | text | how to choose which `say` field to use each touch
+| say-shared-id | text | events with the same id will share dialogue progress
 | no-says | javascript | run javascript when sequence-once dialogue has run out
 
 #### say modes

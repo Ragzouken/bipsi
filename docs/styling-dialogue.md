@@ -23,6 +23,7 @@
 | {+clr=#FF0000}colored text{-clr}
 | end line{br}new line
 | end page{pg}new page
+| display content of [[variable]]
 
 ## dialogue box
 
