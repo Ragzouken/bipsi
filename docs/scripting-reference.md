@@ -1,6 +1,12 @@
-# scripting reference for bipsi
+# touch scripting reference for bipsi
 
-## built-in variables
+here you will find a listing of almost every built-in function that's available in event touch scripts (or any other javascript code run for an event). these descriptions are cursory and may require experimentation and investigation to fully understand (at least until the documentation is improved)
+
+i'm also happy to answer any questions in [the bipsi discord](https://discord.gg/mnARVsgSkc), and this will help me find where the documentation needs improvement. i have also made a concerted effort to make the engine code in [playback.js](../src/scripts/playback.js) readable and understandable, so don't be afraid to look there and find your own answers
+
+this constants and functions will not necessarily be available when writing plugins and other non-event code. perhaps in the future i can improve that; let me know how it's making things inconvenient for you
+
+### constants
 
 | code | meaning
 |--|--
@@ -12,15 +18,13 @@
 | `await DIALOGUE` | await this to wait until dialogue has finished
 | `await VISIBLE_IMAGES_LOADED` | await this to wait until visible images are loaded and ready to display
 
-## built-in functions
-
 ### dialogue
 
 | code | meaning
 |--|--
-| `SAY("hello")` | show dialogue from text
-| `SAY_FIELD("fieldname")` | show dialogue from dialogue field on this event
-| `TITLE("game title")` | show title from text
+| `SAY(text)` | show dialogue from text
+| `SAY_FIELD(fieldname)` | show dialogue from dialogue field on this event
+| `TITLE(text)` | show title from text
 
 ### events
 
@@ -40,15 +44,15 @@
 | `TAG(event, name)` | add a tag to an event
 | `UNTAG(event, name)` | remove a tag from an event
 | `REMOVE(event)` | remove an event from the game
-| `GET(name)` | get the value of a variable
-| `SET(name, value)` | set the value of a variable
 
 ### other
 
 | code | meaning
 |--|--
-| `await DELAY(seconds)` | wait before continuing
+| `GET(name)` | get the value of a variable
+| `SET(name, value)` | set the value of a variable
 | `RESTART()` | restart the game
+| `await DELAY(seconds)` | wait before continuing
 
 ### files
 
