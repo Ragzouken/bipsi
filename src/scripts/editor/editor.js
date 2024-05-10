@@ -499,7 +499,7 @@ const EVENT_TEMPLATES = {
         { key: "page-color", type: "text", data: "black" },
     ],
     code: [
-        { key: "touch", type: "javascript", data: "await DO_STANDARD();" },
+        { key: "after", type: "javascript", data: `await SAY("testing!");` },
     ],
     setup: [
         { key: "is-setup", type: "tag", data: true },
