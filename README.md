@@ -1,3 +1,5 @@
+# bipsi
+
 bipsi is a tool for making small lo-fi games to play in the browser
 
 bipsi is inspired by and an imitation of adam ledoux's bitsy game maker
