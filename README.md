@@ -20,6 +20,7 @@ https://discord.gg/mnARVsgSkc
 * [event touch behaviors in bipsi](./docs/event-behaviors.md)
 * [styling dialogue in bipsi](./docs/styling-dialogue.md)
 * [custom fonts in bipsi](./docs/custom-fonts.md)
+* [hidden features in bipsi](./docs/hidden-features.md)
 * [bipsi engine code](https://github.com/Ragzouken/bipsi/blob/main/src/scripts/playback.js)
 
 ## links
