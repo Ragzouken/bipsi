@@ -5,13 +5,14 @@
 set an event's colors by palette index:
 
 ```
-SET_FIELDS(EVENT, "colors", "colors", { bg: 1, fg: 3 });
+let colors = { bg: 1, fg: 3 };
+SET_FIELDS(EVENT, "colors", "colors", colors);
 ```
 
 set an event's colors from another field:
 
 ```
-colors = FIELD(EVENT, "alt-colors", "colors");
+let colors = FIELD(EVENT, "alt-colors", "colors");
 SET_FIELDS(EVENT, "colors", "colors", colors);
 ```
 
