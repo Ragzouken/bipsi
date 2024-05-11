@@ -14,18 +14,16 @@ https://discord.gg/mnARVsgSkc
 
 ## docs
 
-* [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf)
-* [event touch behaviors in bipsi](./docs/event-behaviors.md)
-* [bipsi scripting reference](./docs/scripting-reference.md)
-* [styling dialogue in bipsi](./docs/styling-dialogue.md)
-* [custom fonts in bipsi](./docs/custom-fonts.md)
-* [scripting snippets for bipsi](./docs/scripting-snippets.md)
-* [hidden features in bipsi](./docs/hidden-features.md)
-* [bipsi engine code](https://github.com/Ragzouken/bipsi/blob/main/src/scripts/playback.js)
+* [user guide](https://kool.tools/bipsi/user-guide.pdf)
+* [event touch behaviors](./docs/event-behaviors.md)
+* [scripting reference](./docs/scripting-reference.md)
+* [styling dialogue](./docs/styling-dialogue.md)
+* [custom fonts](./docs/custom-fonts.md)
+* [scripting snippets](./docs/scripting-snippets.md)
+* [hidden features](./docs/hidden-features.md)
 
 ## links
 
 * [bipsi plugins](https://github.com/seleb/bipsi-hacks)
 * [more bipsi plugins](https://github.com/floriancargoet/bipsi-binksi-plugins/)
-* [unofficial bipsi howto](https://docs.google.com/document/d/178A00zHzt_yY8GQn_-UthcYZ0V4WFZOWwtOs-DwIlqs)
 * [binksi (bipsi + ink)](https://smwhr.github.io/binksi/)
