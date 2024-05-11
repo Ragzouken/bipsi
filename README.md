@@ -15,11 +15,11 @@ https://discord.gg/mnARVsgSkc
 ## docs
 
 * [bipsi user guide](https://kool.tools/bipsi/user-guide.pdf)
-* [bipsi scripting guide](https://kool.tools/bipsi/scripting-guide.pdf)
-* [bipsi scripting reference](./docs/scripting-reference.md)
 * [event touch behaviors in bipsi](./docs/event-behaviors.md)
+* [bipsi scripting reference](./docs/scripting-reference.md)
 * [styling dialogue in bipsi](./docs/styling-dialogue.md)
 * [custom fonts in bipsi](./docs/custom-fonts.md)
+* [scripting snippets for bipsi](./docs/scripting-snippets.md)
 * [hidden features in bipsi](./docs/hidden-features.md)
 * [bipsi engine code](https://github.com/Ragzouken/bipsi/blob/main/src/scripts/playback.js)
 
