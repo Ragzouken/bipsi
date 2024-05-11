@@ -564,7 +564,6 @@ class BipsiPlayback extends EventTarget {
         }
 
         fillRendering2D(this.rendering);
-        // fillRendering2D(TEMP_ROOM, background);
         images_below_all.forEach(drawImage);
         drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
         images_below_events.forEach(drawImage);

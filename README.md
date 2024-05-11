@@ -26,6 +26,6 @@ https://discord.gg/mnARVsgSkc
 ## links
 
 * [bipsi plugins](https://github.com/seleb/bipsi-hacks)
-* [unofficial bipsi reference](https://docs.google.com/document/d/1TUSjVBhBeNe_ol7YikCxKx1nIBaurJhsGPSQAkPQKFk)
+* [more bipsi plugins](https://github.com/floriancargoet/bipsi-binksi-plugins/)
 * [unofficial bipsi howto](https://docs.google.com/document/d/178A00zHzt_yY8GQn_-UthcYZ0V4WFZOWwtOs-DwIlqs)
 * [binksi (bipsi + ink)](https://smwhr.github.io/binksi/)
