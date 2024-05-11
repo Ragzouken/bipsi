@@ -4,14 +4,14 @@
 
 set an event's colors by palette index:
 
-```
+```javascript
 let colors = { bg: 1, fg: 3 };
 SET_FIELDS(EVENT, "colors", "colors", colors);
 ```
 
 set an event's colors from another field:
 
-```
+```javascript
 let colors = FIELD(EVENT, "alt-colors", "colors");
 SET_FIELDS(EVENT, "colors", "colors", colors);
 ```
@@ -25,7 +25,7 @@ moving there
 |--|--
 | add-behavior | javascript
 
-```
+```javascript
 let destination = FIELD(EVENT, "exit-touch", "location");
 if (destination) {
     MOVE(AVATAR, destination);
@@ -46,7 +46,7 @@ to the next room's palette after moving there
 |--|--
 | add-behavior | javascript
 
-```
+```javascript
 function hexlerp(prev, next, u) {
   prev_rgb = hexToRGB(prev);
   next_rgb = hexToRGB(next);
