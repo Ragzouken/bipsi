@@ -62,6 +62,7 @@
  * @property {BlitsyFont} font
  * @property {number} lineCount
  * @property {number} lineWidth
+ * @property {number} lineGap
  */
 
 /** @typedef {BlitsyGlyph[]} BlitsyPage */
@@ -343,7 +344,7 @@ function commandsToPages(commands, options, styleHandler) {
         const char = getFontChar(options.font, command.char) ?? getFontChar(options.font, "?");
 
         const x = offset + (char.offset?.x ?? 0);
-        const y = currLine * (options.font.lineHeight + 4) + (char.offset?.y ?? 0);
+        const y = currLine * (options.font.lineHeight + options.lineGap) + (char.offset?.y ?? 0);
 
         const glyph = { 
             char: command.char,

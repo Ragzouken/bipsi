@@ -38,7 +38,7 @@
 | anchorY | 0 or 1 | vertical alignment within screen
 | lines   | 2   | number of lines per dialogue page
 | lineGap | 4   | pixel spacing between lines of text 
-| padding | 8   | pixel spacing between screen and panel edge
+| padding | 8   | pixel spacing between text and panel edge
 | glyphRevealDelay | 0.05 | seconds between revealing each character
 | backgroundColor | null | html color filling screen behind dialogue panel
 | panelColor      | "#000000" | html color of dialogue panel

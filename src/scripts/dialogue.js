@@ -100,11 +100,11 @@ class DialoguePlayback extends EventTarget {
      * @returns {Promise}
      */
     async queue(script, options={}) {
-        const { font, lines } = this.getOptions(options);
+        const { font, lines, lineGap } = this.getOptions(options);
         const lineWidth = 192;
 
         script = parseFakedown(script);
-        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines });
+        const glyphPages = scriptToPages(script, { font, lineWidth, lineCount: lines, lineGap });
         const pages = glyphPages.map((glyphs) => ({ glyphs, options }));
         this.queuedPages.push(...pages);
         
