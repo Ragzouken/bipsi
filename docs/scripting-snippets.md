@@ -1,5 +1,9 @@
 # scripting snippets for bipsi
 
+## built-in behaviors
+
+you can find the implementations of all built-in behaviors in the [bipsi engine code](https://github.com/Ragzouken/bipsi/blob/main/src/scripts/playback.js#L215-L331)
+
 ## change an event's colors
 
 set an event's colors by palette index:
