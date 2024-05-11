@@ -111,7 +111,7 @@ function getEventAtLocation(data, location) {
 /**
  * @param {BipsiDataProject} data
  * @param {BipsiDataLocation} location
- * @returns {BipsiDataEvents?}
+ * @returns {BipsiDataEvent[]}
  */
 function getEventsAtLocation(data, location) {
     const room = findRoomById(data, location.room);
@@ -416,12 +416,10 @@ class BipsiPlayback extends EventTarget {
         this.busy = false;
         this.error = false;
 
-        this.inputWait = undefined;
-        this.inputWaitResolve = undefined;
-
         this.objectURLs = new Map();
         this.imageElements = new Map();
         this.visibleImagesLoadedWaiter = { then: (resolve, reject) => this.visibleImagesLoaded().then(resolve, reject) };
+        this.proceedWaiter = { then: (resolve) => this.addEventListener("proceed", resolve, { once: true }) };
 
         this.music = document.createElement("audio");
         this.music.loop = true;
@@ -473,10 +471,6 @@ class BipsiPlayback extends EventTarget {
         this.ended = false;
         this.dialoguePlayback.clear();
         this.variables.clear();
-
-        this.inputWaitResolve?.apply();
-        this.inputWaitResolve = undefined;
-        this.inputWait = undefined;
 
         this.music.removeAttribute("src");
         this.music.pause();
@@ -635,16 +629,7 @@ class BipsiPlayback extends EventTarget {
         return this.ready
             && this.dialoguePlayback.empty
             && !this.busy
-            && !this.ended
-            && !this.inputWait;
-    }
-
-    async waitInput() {
-        this.inputWait = this.inputWait ?? new Promise((resolve) => {
-            this.inputWaitResolve = resolve;
-        });
-
-        return this.inputWait;
+            && !this.ended;
     }
 
     async proceed() {
@@ -654,10 +639,7 @@ class BipsiPlayback extends EventTarget {
             this.restart();
         }
 
-        this.inputWaitResolve?.apply();
-        this.inputWaitResolve = undefined;
-        this.inputWait = undefined;
-
+        this.dispatchEvent(new CustomEvent("proceed"));        
         this.dialoguePlayback.skip();
 
         if (this.autoplay) {
@@ -738,7 +720,7 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async runJS(event, js, debug=false) {
+    async runJS(event, js) {
         const defines = this.makeScriptingDefines(event);
         const names = Object.keys(defines).join(", ");
         const preamble = `const { ${names} } = this;\n`;
@@ -1181,10 +1163,6 @@ const SCRIPTING_FUNCTIONS = {
     POST(message, origin="*") {
         postMessageParent(message, origin);
     },
-
-    async WAIT_INPUT() {
-        return this.PLAYBACK.waitInput();
-    }
 }
 
 /**
@@ -1201,5 +1179,9 @@ function addScriptingConstants(defines, playback, event) {
 
     defines.DIALOGUE = playback.dialoguePlayback.waiter;
     defines.DIALOG = defines.DIALOGUE;
+    defines.INPUT = playback.proceedWaiter;
     defines.VISIBLE_IMAGES_LOADED = playback.visibleImagesLoadedWaiter;
+
+    // don't use these. retained for backwards compatibility
+    defines.WAIT_INPUT = () => defines.INPUT;
 }

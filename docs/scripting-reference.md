@@ -15,8 +15,9 @@ this constants and functions will not necessarily be available when writing plug
 | `AVATAR` | the event controlled by the player
 | `LIBRARY` | the event used to lookup files by name
 | `PLAYBACK` | the playback context for bipsi
-| `await DIALOGUE` | await this to wait until dialogue has finished
-| `await VISIBLE_IMAGES_LOADED` | await this to wait until visible images are loaded and ready to display
+| `await INPUT` | wait until input from player
+| `await DIALOGUE` | wait until all dialogue closes
+| `await VISIBLE_IMAGES_LOADED` | wait until visible images are loaded and ready to display
 
 ### dialogue
 
