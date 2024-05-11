@@ -7,3 +7,9 @@ you can have multiple browser saves in bipsi, but there's no user interface. to 
 ## hd mode
 
 bipsi supports an hd mode where tiles are 16 x 16 pixels instead of the usual 8 x 8 pixels, but there's no user interface to switch into it. there is no mechanism to switch a project between hd and not hd. to switch the editor to hd mode, change the browser url to `https://kool.tools/bipsi/?hd=true`. hd mode uses independent save slots 
+
+## extra animation frames
+
+bipsi knows how to playback tiles with more than two animation frames, but the
+editor doesn't support them. you can manipulate the gamedata yourself to achieve
+this, just be aware the editor may accidentally remove extra frames

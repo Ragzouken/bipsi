@@ -1,5 +1,20 @@
 # scripting snippets for bipsi
 
+## change an event's colors
+
+set an event's colors by palette index:
+
+```
+SET_FIELDS(EVENT, "colors", "colors", { bg: 1, fg: 3 });
+```
+
+set an event's colors from another field:
+
+```
+colors = FIELD(EVENT, "alt-colors", "colors");
+SET_FIELDS(EVENT, "colors", "colors", colors);
+```
+
 ## exit behavior that touches destination
 
 add a new type of exit `exit-touch` that touches the destination cell after
@@ -12,12 +27,12 @@ moving there
 ```
 let destination = FIELD(EVENT, "exit-touch", "location");
 if (destination) {
-	MOVE(AVATAR, destination);
-	let events = destination? EVENTS_AT(destination) : [];
-	for (const event of events) {
-    	if (event === AVATAR) continue;
-    	await TOUCH(event);
-	}
+    MOVE(AVATAR, destination);
+    let events = destination ? EVENTS_AT(destination) : [];
+    for (const event of events) {
+        if (event === AVATAR) continue;
+        await TOUCH(event);
+    }
 }
 ```
 
