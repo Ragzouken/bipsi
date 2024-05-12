@@ -1,5 +1,7 @@
 # styling dialogue in bipsi
 
+
+
 ## dialogue text
 
 | say | dialogue | `join the conversation with a nice ~~refreshing~~ glass of __bipsi__` |
@@ -60,3 +62,7 @@
     "textColor": "#FFFFFF"
 }
 ```
+
+### titles
+
+there is no difference between `title` behavior and `TITLE` scripting function and the `say` behavior and `SAY` scripting function except that titles default instead to `anchorY` as `0.5` and `backgroundColor` as the background color of the current palette
