@@ -647,12 +647,6 @@ class BipsiPlayback extends EventTarget {
         }
     }
 
-    async title(script, options={}) {
-        const [, background] = this.getActivePalette().colors;
-        options = { anchorY: .5, backgroundColor: background, ...options };
-        return this.say(script, options);
-    }
-
     async say(script, options={}) {
         this.log(`> SAYING "${script}"`);
         script = replaceVariables(script, this.variables);
@@ -966,7 +960,9 @@ const SCRIPTING_FUNCTIONS = {
     },
 
     TITLE(dialogue, options) {
-        return this.PLAYBACK.title(dialogue, options);
+        const [, background] = this.PALETTE.colors;
+        options = { anchorY: .5, backgroundColor: background, ...options };
+        return this.PLAYBACK.say(dialogue, options);
     },
 
     TOUCH(event) {
