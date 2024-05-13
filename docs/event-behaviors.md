@@ -2,6 +2,15 @@
 
 ## built-in behaviors
 
+### event properties
+
+| name | type | meaning
+|--|--|--
+| graphic | tile | show a tile graphic for this event
+| colors | colors | use these colors for the event graphic if present
+| solid | tag | mark this event as impassable, like a wall
+| one-time | tag | mark this event to be removed after touching
+
 ### scripting
 
 | name | type | meaning
@@ -11,13 +20,11 @@
 | touch | javascript | run javascript instead of all other behaviors
 | add-behavior | javascript | define a new behavior type for all events
 
-### tags
+### setup
 
 | name | type | meaning
 |--|--|--
 | is-player | tag | mark this event as the single user controlled event
-| solid | tag | mark this event as impassable, like a wall
-| one-time | tag | mark this event to be removed after touching
 | is-setup | tag | mark this event as the single setup event (touched on startup before avatar)
 | is-library | tag | mark this event as the single library event (where named files are kept)
 
