@@ -799,6 +799,10 @@ label.toggle#tile-grid {
     padding-bottom: 0;
 }
 
+.event-line.preset > input {
+    color: var(--button-color);
+}
+
 .event-line:not(.active) > * {
     pointer-events: none;
 }

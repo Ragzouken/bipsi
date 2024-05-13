@@ -452,6 +452,10 @@ const EVENT_FIELD_PRESETS = [
     { name: "is-library", type: "tag", tooltip: "(one only) this event contains named files" },
 ];
 
+/** @type {Map<string, typeof EVENT_FIELD_PRESETS[number]>} */
+const eventPresetLookup = new Map();
+EVENT_FIELD_PRESETS.forEach((preset) => eventPresetLookup.set(preset.name, preset));
+
 class EventFieldEditor extends EventTarget {
     /**
      * @param {EventEditor} eventEditor 
@@ -473,8 +477,6 @@ class EventFieldEditor extends EventTarget {
         this.nameInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") this.usePresetType();
         });
-
-        this.fieldElement.addEventListener("mouseenter", () => this.tooltipHack());
     }
 
     changed() {
@@ -495,6 +497,7 @@ class EventFieldEditor extends EventTarget {
     pushData(field) {
         this.nameInput.value = field.key;
         this.typeSelect.value = field.type;
+        this.checkPreset();
     }
 
     pullData(field) {
@@ -506,18 +509,21 @@ class EventFieldEditor extends EventTarget {
         field.type = type;
     }
 
-    usePresetType() {
-        const preset = EVENT_FIELD_PRESETS.find((preset) => preset.name === this.nameInput.value);
-        if (preset) {
-            this.typeSelect.value = preset.type;
-        }
-    }
-
-    tooltipHack() {
-        const preset = EVENT_FIELD_PRESETS.find((preset) => preset.name === this.nameInput.value);
+    checkPreset() {
+        const preset = eventPresetLookup.get(this.nameInput.value);
         if (preset) {
             this.fieldElement.title = preset.tooltip;
         }
+
+        this.fieldElement.classList.toggle("preset", preset !== undefined);
+    }
+
+    usePresetType() {
+        const preset = eventPresetLookup.get(this.nameInput.value);
+        if (preset) {
+            this.typeSelect.value = preset.type;
+        }
+        this.checkPreset();
     }
 }
 
