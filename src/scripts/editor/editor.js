@@ -447,14 +447,28 @@ const EVENT_FIELD_PRESETS = [
     { name: "no-says", type: "javascript", tooltip: "advanced dialogue, see docs" },
     { name: "music", type: "text", tooltip: "play named music from library" },
     { name: "stop-music", type: "tag", tooltip: "stop playing music" },
+    
+    { name: "background", type: "text", tooltip: "show named image on background layer" },
+    { name: "foreground", type: "text", tooltip: "show named image on foreground layer" },
+    { name: "overlay", type: "text", tooltip: "show named image on overlay layer" },
+    { name: "clear-background", type: "tag", tooltip: "remove image on background layer" },
+    { name: "clear-foreground", type: "tag", tooltip: "remove image on foreground layer" },
+    { name: "clear-overlay", type: "tag", tooltip: "remove image on overlay layer" },
+    
     { name: "is-player", type: "tag", tooltip: "this event is the avatar" },
     { name: "is-setup", type: "tag", tooltip: "(one only) this event run on start" },
-    { name: "is-library", type: "tag", tooltip: "(one only) this event contains named files" },
+    { name: "is-library", type: "tag", tooltip: "(one only) this event contains named files" }, 
+    { name: "is-plugin", type: "tag", tooltip: "mark this event as a plugin" },
+    { name: "plugin-order", type: "text", tooltip: "number for determining the order to run plugins at startup" },
 ];
 
 /** @type {Map<string, typeof EVENT_FIELD_PRESETS[number]>} */
 const eventPresetLookup = new Map();
 EVENT_FIELD_PRESETS.forEach((preset) => eventPresetLookup.set(preset.name, preset));
+
+window.addEventListener("DOMContentLoaded", () => {
+    ONE("#field-names").replaceChildren(...EVENT_FIELD_PRESETS.map((preset) => html("option", { value: preset.name })));
+});
 
 class EventFieldEditor extends EventTarget {
     /**
