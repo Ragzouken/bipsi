@@ -426,30 +426,30 @@ const FIELD_DEFAULTS = {
 };
 
 const EVENT_FIELD_PRESETS = [
-    { name: "before", type: "javascript" },
-    { name: "after", type: "javascript" },
-    { name: "touch", type: "javascript" },
-    { name: "add-behavior", type: "javascript" },
-    { name: "solid", type: "tag" },
-    { name: "one-time", type: "tag" },
-    { name: "page-color", type: "text" },
-    { name: "exit", type: "location" },
-    { name: "set-avatar", type: "tile" },
-    { name: "graphic", type: "tile" },
-    { name: "colors", type: "colors" },
-    { name: "touch-location", type: "location" },
-    { name: "title", type: "dialogue" },
-    { name: "ending", type: "dialogue" },
-    { name: "say", type: "dialogue" },
-    { name: "say-style", type: "json" },
-    { name: "say-mode", type: "text" },
-    { name: "say-shared-id", type: "text" },
-    { name: "no-says", type: "javascript" },
-    { name: "music", type: "text" },
-    { name: "stop-music", type: "tag" },
-    { name: "is-player", type: "tag" },
-    { name: "is-setup", type: "tag" },
-    { name: "is-library", type: "tag" },
+    { name: "before", type: "javascript", tooltip: "run javascript before touch" },
+    { name: "after", type: "javascript", tooltip: "run javascript after touch" },
+    { name: "touch", type: "javascript", tooltip: "run javascript instead of touch" },
+    { name: "add-behavior", type: "javascript", tooltip: "add a new type of behavior" },
+    { name: "solid", type: "tag", tooltip: "this event blocks movement" },
+    { name: "one-time", type: "tag", tooltip: "this event removes itself after touch" },
+    { name: "page-color", type: "text", tooltip: "change web page background to html color" },
+    { name: "exit", type: "location", tooltip: "move avatar somewhere" },
+    { name: "set-avatar", type: "tile", tooltip: "change avatar graphic" },
+    { name: "graphic", type: "tile", tooltip: "tile to display for this event" },
+    { name: "colors", type: "colors", tooltip: "color of this event's graphic" },
+    { name: "touch-location", type: "location", tooltip: "touch another event" },
+    { name: "title", type: "dialogue", tooltip: "show a title style dialogue" },
+    { name: "ending", type: "dialogue", tooltip: "show a title style dialogue and end" },
+    { name: "say", type: "dialogue", tooltip: "show a dialogue" },
+    { name: "say-style", type: "json", tooltip: "change how dialogues look for this event" },
+    { name: "say-mode", type: "text", tooltip: "advanced dialogue, see docs" },
+    { name: "say-shared-id", type: "text", tooltip: "advanced dialogue, see docs" },
+    { name: "no-says", type: "javascript", tooltip: "advanced dialogue, see docs" },
+    { name: "music", type: "text", tooltip: "play named music from library" },
+    { name: "stop-music", type: "tag", tooltip: "stop playing music" },
+    { name: "is-player", type: "tag", tooltip: "this event is the avatar" },
+    { name: "is-setup", type: "tag", tooltip: "(one only) this event run on start" },
+    { name: "is-library", type: "tag", tooltip: "(one only) this event contains named files" },
 ];
 
 class EventFieldEditor extends EventTarget {
@@ -473,6 +473,8 @@ class EventFieldEditor extends EventTarget {
         this.nameInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") this.usePresetType();
         });
+
+        this.fieldElement.addEventListener("mouseenter", () => this.tooltipHack());
     }
 
     changed() {
@@ -506,7 +508,16 @@ class EventFieldEditor extends EventTarget {
 
     usePresetType() {
         const preset = EVENT_FIELD_PRESETS.find((preset) => preset.name === this.nameInput.value);
-        if (preset) this.typeSelect.value = preset.type;
+        if (preset) {
+            this.typeSelect.value = preset.type;
+        }
+    }
+
+    tooltipHack() {
+        const preset = EVENT_FIELD_PRESETS.find((preset) => preset.name === this.nameInput.value);
+        if (preset) {
+            this.fieldElement.title = preset.tooltip;
+        }
     }
 }
 
