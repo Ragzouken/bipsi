@@ -87,3 +87,4 @@
 |--|--|--
 | is-plugin | tag | mark this event as a plugin
 | plugin-order | json | number for determining the order to run plugins at startup
+| plugin | javascript | code run when the event is loaded as a plugin

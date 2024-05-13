@@ -460,6 +460,7 @@ const EVENT_FIELD_PRESETS = [
     { name: "is-library", type: "tag", tooltip: "(one only) this event contains named files" }, 
     { name: "is-plugin", type: "tag", tooltip: "mark this event as a plugin" },
     { name: "plugin-order", type: "text", tooltip: "number for determining the order to run plugins at startup" },
+    { name: "plugin", type: "javascript", tooltip: "code to run when this plugin loads" },
 ];
 
 /** @type {Map<string, typeof EVENT_FIELD_PRESETS[number]>} */
