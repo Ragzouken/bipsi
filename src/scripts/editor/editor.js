@@ -425,6 +425,33 @@ const FIELD_DEFAULTS = {
     file: null,
 };
 
+const EVENT_FIELD_PRESETS = [
+    { name: "before", type: "javascript" },
+    { name: "after", type: "javascript" },
+    { name: "touch", type: "javascript" },
+    { name: "add-behavior", type: "javascript" },
+    { name: "solid", type: "tag" },
+    { name: "one-time", type: "tag" },
+    { name: "page-color", type: "text" },
+    { name: "exit", type: "location" },
+    { name: "set-avatar", type: "tile" },
+    { name: "graphic", type: "tile" },
+    { name: "colors", type: "colors" },
+    { name: "touch-location", type: "location" },
+    { name: "title", type: "dialogue" },
+    { name: "ending", type: "dialogue" },
+    { name: "say", type: "dialogue" },
+    { name: "say-style", type: "json" },
+    { name: "say-mode", type: "text" },
+    { name: "say-shared-id", type: "text" },
+    { name: "no-says", type: "javascript" },
+    { name: "music", type: "text" },
+    { name: "stop-music", type: "tag" },
+    { name: "is-player", type: "tag" },
+    { name: "is-setup", type: "tag" },
+    { name: "is-library", type: "tag" },
+];
+
 class EventFieldEditor extends EventTarget {
     /**
      * @param {EventEditor} eventEditor 
@@ -441,6 +468,11 @@ class EventFieldEditor extends EventTarget {
 
         this.nameInput.onchange = () => this.changed();
         this.typeSelect.onchange = () => this.changed();
+
+        this.nameInput.addEventListener("change", () => this.usePresetType());
+        this.nameInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") this.usePresetType();
+        });
     }
 
     changed() {
@@ -470,6 +502,11 @@ class EventFieldEditor extends EventTarget {
             field.data = COPY(FIELD_DEFAULTS[type]);
         }
         field.type = type;
+    }
+
+    usePresetType() {
+        const preset = EVENT_FIELD_PRESETS.find((preset) => preset.name === this.nameInput.value);
+        if (preset) this.typeSelect.value = preset.type;
     }
 }
 
@@ -871,7 +908,7 @@ class EventEditor {
     async addField() {
         this.editor.stateManager.makeChange(async (data) => {
             const { event } = this.getSelections(data);
-            event.fields.push({ key: "new field", type: "text", data: "" });
+            event.fields.push({ key: "", type: "text", data: "" });
             this.setSelectedIndex(event.fields.length - 1);
         });
     }
