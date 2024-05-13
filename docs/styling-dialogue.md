@@ -22,7 +22,7 @@
 | `{+shk}shaking text{-shk}`
 | `{+rbw}rainbow text{-rbw}`
 | `{+r}pre-revealed text{-r}`
-| `{+clr=#FF0000}colored text{-clr}`
+| `{clr=#FF0000}colored text{-clr}`
 | `end line{br}new line`
 | `end page{pg}new page`
 | `display content of [[variable]]`
