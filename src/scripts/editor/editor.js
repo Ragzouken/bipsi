@@ -520,8 +520,9 @@ class EventFieldEditor extends EventTarget {
 
     usePresetType() {
         const preset = eventPresetLookup.get(this.nameInput.value);
-        if (preset) {
+        if (preset && this.typeSelect.value !== preset.type) {
             this.typeSelect.value = preset.type;
+            this.changed();
         }
         this.checkPreset();
     }
