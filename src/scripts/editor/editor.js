@@ -445,12 +445,12 @@ const EVENT_FIELD_PRESETS = [
     { name: "say-mode", type: "text", tooltip: "advanced dialogue, see docs" },
     { name: "say-shared-id", type: "text", tooltip: "advanced dialogue, see docs" },
     { name: "no-says", type: "javascript", tooltip: "advanced dialogue, see docs" },
-    { name: "music", type: "text", tooltip: "play named music from library" },
+    { name: "music", type: "file", tooltip: "play named music from library" },
     { name: "stop-music", type: "tag", tooltip: "stop playing music" },
     
-    { name: "background", type: "text", tooltip: "show named image on background layer" },
-    { name: "foreground", type: "text", tooltip: "show named image on foreground layer" },
-    { name: "overlay", type: "text", tooltip: "show named image on overlay layer" },
+    { name: "background", type: "file", tooltip: "show named image on background layer" },
+    { name: "foreground", type: "file", tooltip: "show named image on foreground layer" },
+    { name: "overlay", type: "file", tooltip: "show named image on overlay layer" },
     { name: "clear-background", type: "tag", tooltip: "remove image on background layer" },
     { name: "clear-foreground", type: "tag", tooltip: "remove image on foreground layer" },
     { name: "clear-overlay", type: "tag", tooltip: "remove image on overlay layer" },
@@ -2421,7 +2421,7 @@ class BipsiEditor extends EventTarget {
     }
 
     async createPluginEvent() {
-        const [file] = await maker.pickFiles("application/javascript");
+        const [file] = await maker.pickFiles(".js");
         if (!file) return;
 
         const js = await maker.textFromFile(file);

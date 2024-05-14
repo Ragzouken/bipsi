@@ -387,8 +387,16 @@ maker.saveAs = function(blob, name) {
  */
  maker.pickFiles = async function(accept = "*", multiple = false) {
     return new Promise((resolve) => {
-        const fileInput = html("input", { type: "file", accept, multiple });
-        fileInput.addEventListener("change", () => resolve(Array.from(fileInput.files)));
+        const fileInput = html("input", { type: "file", accept, multiple, style: "visibility: collapse" });
+        
+        document.body.append(fileInput);
+        function done(files) {
+            fileInput.remove();
+            resolve(files);
+        } 
+
+        fileInput.addEventListener("change", () => done(Array.from(fileInput.files)));
+        fileInput.addEventListener("cancel", () => done([]));
         fileInput.click();
     });
 }
