@@ -2421,7 +2421,7 @@ class BipsiEditor extends EventTarget {
     }
 
     async createPluginEvent() {
-        const [file] = await maker.pickFiles(".js");
+        const [file] = await maker.pickFiles(".js,.txt");
         if (!file) return;
 
         const js = await maker.textFromFile(file);
