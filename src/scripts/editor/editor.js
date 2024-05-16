@@ -1062,13 +1062,26 @@ class TileEditor {
 
     redraw() {
         const { tileset, tile, bg, fg } = this.editor.getSelections();
-        if (!tile) return;
 
-        this.editor.tileEditor.animateToggle.setCheckedSilent(tile.frames.length > 1);
-        this.editor.actions.swapTileFrames.disabled = tile.frames.length === 1;
-        this.editor.renderings.tilePaint1.canvas.style.opacity = tile.frames.length === 1 ? "0%" : null;
+        if (tile === undefined) {
+            this.editor.tilePaintContainer.setAttribute("disabled", "");
+        } else {
+            this.editor.tilePaintContainer.removeAttribute("disabled");
+        }
+
+        this.animateToggle.disabled = tile === undefined;
+
+        this.editor.tileEditor.animateToggle.setCheckedSilent(tile && tile.frames.length > 1);
+        this.editor.actions.swapTileFrames.disabled = !tile || tile?.frames.length === 1;
+        this.editor.renderings.tilePaint1.canvas.style.opacity = tile?.frames.length === 1 ? "0%" : null;
 
         const tilesetC = recolorMask(tileset, fg);
+
+        if (!tile) {
+            fillRendering2D(this.editor.renderings.tilePaint0);
+            fillRendering2D(this.editor.renderings.tilePaint1);
+            return;
+        }
 
         [this.editor.renderings.tilePaint0, this.editor.renderings.tilePaint1].forEach((rendering, i) => {
             fillRendering2D(rendering, bg === "#000000" ? undefined : bg);
@@ -1260,6 +1273,7 @@ class BipsiEditor extends EventTarget {
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
+        this.tileBrowser.selectedTileIndex = -1;
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
 
         this.tileEditor = new TileEditor(this);
@@ -1288,6 +1302,7 @@ class BipsiEditor extends EventTarget {
         timer();
 
         // find all the ui already defined in the html
+        this.tilePaintContainer = ONE("#tile-paint-row");
         this.tilePaintFrameSelect = ui.radio("tile-paint-frame");
         this.modeSelect = ui.radio("mode-select");
         this.roomPaintTool = ui.radio("room-paint-tool");
@@ -1689,11 +1704,12 @@ class BipsiEditor extends EventTarget {
 
             const prevTile = room.tilemap[y][x];
 
-            const same = room.tilemap[y][x] === tile.id 
+            const same = tile
+                      && room.tilemap[y][x] === tile.id
                       && room.backmap[y][x] === bgIndex
                       && room.foremap[y][x] === fgIndex;
 
-            const nextTile = same ? 0 : tile.id;
+            const nextTile = same ? 0 : tile?.id;
             const nextWall = 1 - room.wallmap[y][x];
 
             if (tool === "pick" || forcePick || this.picker.checked) {
@@ -1712,7 +1728,7 @@ class BipsiEditor extends EventTarget {
 
                 const plots = {
                     tile: (x, y) => { 
-                        setIfWithin(room.tilemap, x, y, nextTile); 
+                        if (nextTile) setIfWithin(room.tilemap, x, y, nextTile); 
                         if (this.paintBackground.checked) setIfWithin(room.backmap, x, y, bgIndex); 
                         if (this.paintForeground.checked) setIfWithin(room.foremap, x, y, fgIndex); 
                     },
@@ -1919,6 +1935,7 @@ class BipsiEditor extends EventTarget {
         this.tileEditor.redraw();
 
         const { data, room, roomIndex, tileset, fgIndex, bgIndex } = this.getSelections();
+
         const palette = this.roomPaintTool.value === "color" 
                       ? this.paletteEditor.getPreviewPalette()  
                       : getPaletteById(data, room.palette);
@@ -2152,11 +2169,6 @@ class BipsiEditor extends EventTarget {
 
             prev.map(URL.revokeObjectURL);
         });
-
-
-        if (this.tileBrowser.select.selectedIndex === -1) {
-            this.tileBrowser.select.selectedIndex = 0;
-        }
 
         if (this.pendingTileSelect) {
             this.tileBrowser.selectedTileIndex = this.pendingTileSelect;

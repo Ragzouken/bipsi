@@ -58,6 +58,15 @@ button:disabled {
     cursor: not-allowed;
 }
 
+[disabled] {
+    opacity: .5;
+    cursor: not-allowed !important;
+}
+
+[disabled] * {
+    pointer-events: none;
+}
+
 .radio-select label {
     position: relative;
 
