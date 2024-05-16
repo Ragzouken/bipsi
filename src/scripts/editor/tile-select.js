@@ -78,6 +78,7 @@ class TileBrowser {
 
         this.editor.actions.reorderTileBefore.disabled = this.selectedTileIndex <= 0;
         this.editor.actions.reorderTileAfter.disabled = this.selectedTileIndex >= data.tiles.length - 1;
+        this.editor.actions.deleteTile.disabled = this.selectedTileIndex === -1 || data.tiles.length === 1;
     }
 
     async setURIs(uris, canvases) {
