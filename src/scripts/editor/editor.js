@@ -1334,6 +1334,7 @@ class BipsiEditor extends EventTarget {
 
         this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
         this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
+        this.roomPaintTool.tab(ONE("#place-tile-toggle"), "tile", "high", "pick")
 
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.requestRedraw());
