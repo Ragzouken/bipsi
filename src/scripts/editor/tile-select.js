@@ -66,6 +66,10 @@ class TileBrowser {
     }
 
     redraw() {
+        if (this.selectedTileIndex === -1) {
+            this.selectedTileIndex = 0;
+        }
+
         const { data, tile } = this.editor.getSelections();
 
         this.items.setCount(data.tiles.length);

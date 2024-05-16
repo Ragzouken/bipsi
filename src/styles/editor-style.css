@@ -311,7 +311,7 @@ select {
     max-width: 72px;
 }
 
-#highlight-toggle, #picker-toggle {
+#highlight-toggle, #picker-toggle, #place-tile-toggle {
     flex: 0;
     min-width: 64px;
 }

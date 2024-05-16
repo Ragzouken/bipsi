@@ -1273,7 +1273,6 @@ class BipsiEditor extends EventTarget {
         Object.values(this.renderings).forEach((rendering) => rendering.imageSmoothingEnabled = false);
 
         this.tileBrowser = new TileBrowser(this, "tile-select", ONE("#tile-select-template"));
-        this.tileBrowser.selectedTileIndex = -1;
         this.eventTileBrowser = new EventTileBrowser(this, "field-tile-select", ONE("#field-tile-select-template"));
 
         this.tileEditor = new TileEditor(this);
@@ -1343,7 +1342,10 @@ class BipsiEditor extends EventTarget {
         this.tileGrid.addEventListener("change", () => this.requestRedraw());
 
         this.highlight = ui.toggle("highlight");
+        this.placeTile = ui.toggle("place-tile");
         this.picker = ui.toggle("tile-picker");
+
+        this.placeTile.checked = true;
 
         // initial selections
         // NOTE - set radio inputs to 1, then 0.  This is for browsers (like firefox) which auto-set
@@ -1728,7 +1730,7 @@ class BipsiEditor extends EventTarget {
 
                 const plots = {
                     tile: (x, y) => { 
-                        if (nextTile) setIfWithin(room.tilemap, x, y, nextTile); 
+                        if (this.placeTile.checked && nextTile) setIfWithin(room.tilemap, x, y, nextTile); 
                         if (this.paintBackground.checked) setIfWithin(room.backmap, x, y, bgIndex); 
                         if (this.paintForeground.checked) setIfWithin(room.foremap, x, y, fgIndex); 
                     },
