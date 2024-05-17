@@ -293,8 +293,8 @@ transparent (tag) - draw the event on top of tiles instead of solid background
 
 say-mode (text) - specifies how to handle multiple say fields. each time the
 event is touched one dialogue is shown:
- * sequence (default) - step through the dialogues in order, repeating the last one when the list runs out
- * cycle - step through in order, starting from the beginning when the list runs out
+ * sequence - step through the dialogues in order, repeating the last one when the list runs out
+ * cycle (default) - step through in order, starting from the beginning when the list runs out
  * shuffle - randomize the order, then step through them, repeating the process when the list runs out
 
 page-color (text) - set the page's background color when touched (put this on the player avatar for initial color)
