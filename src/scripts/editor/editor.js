@@ -1732,7 +1732,7 @@ class BipsiEditor extends EventTarget {
 
                 const plots = {
                     tile: (x, y) => { 
-                        if (this.placeTile.checked && nextTile) setIfWithin(room.tilemap, x, y, nextTile); 
+                        if (this.placeTile.checked) setIfWithin(room.tilemap, x, y, nextTile); 
                         if (this.paintBackground.checked) setIfWithin(room.backmap, x, y, bgIndex); 
                         if (this.paintForeground.checked) setIfWithin(room.foremap, x, y, fgIndex); 
                     },
