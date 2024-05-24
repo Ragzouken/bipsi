@@ -1708,9 +1708,9 @@ class BipsiEditor extends EventTarget {
             const prevTile = room.tilemap[y][x];
 
             const same = tile
-                      && room.tilemap[y][x] === tile.id
-                      && room.backmap[y][x] === bgIndex
-                      && room.foremap[y][x] === fgIndex;
+                      && (room.tilemap[y][x] === tile.id || !this.placeTile.checked)
+                      && (room.backmap[y][x] === bgIndex || !this.paintBackground.checked)
+                      && (room.foremap[y][x] === fgIndex || !this.paintForeground.checked);
 
             const nextTile = same ? 0 : tile?.id;
             const nextWall = 1 - room.wallmap[y][x];
