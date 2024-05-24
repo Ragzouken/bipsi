@@ -1333,9 +1333,9 @@ class BipsiEditor extends EventTarget {
         
         this.roomPaintTool.tab(ONE("#color-select-window-toggle"), "tile");
 
-        this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile", "high", "pick");
-        this.roomPaintTool.tab(ONE("#picker-toggle"), "tile", "high", "pick");
-        this.roomPaintTool.tab(ONE("#place-tile-toggle"), "tile", "high", "pick")
+        this.roomPaintTool.tab(ONE("#draw-room-tile-controls"), "tile");
+        this.roomPaintTool.tab(ONE("#picker-toggle"), "tile");
+        this.roomPaintTool.tab(ONE("#placement-toggles"), "tile")
 
         this.roomGrid = ui.toggle("room-grid");
         this.roomGrid.addEventListener("change", () => this.requestRedraw());
@@ -2043,7 +2043,7 @@ class BipsiEditor extends EventTarget {
 
         const fg = fgIndex === 0 ? "transparent" : palette.colors[fgIndex];
         const bg = bgIndex === 0 ? "transparent" : palette.colors[bgIndex];
-        this.colorSelectPreview.style.background = `linear-gradient(135deg, ${fg} 0%, ${fg} 50%, ${bg} 50%, ${bg} 100%)`
+        this.colorSelectPreview.style.background = `radial-gradient(${fg} 0%, ${fg} 50%, ${bg} 50%, ${bg} 100%)`
 
         this.redrawDialoguePreview();
     } 

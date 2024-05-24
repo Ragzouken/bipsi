@@ -27,9 +27,16 @@
         label.toggle#highlight-toggle(hidden)
             input(type="checkbox" name="highlight" title="highlight")
             include /icons/sparkle.svg
-        label.toggle#place-tile-toggle
-            input(type="checkbox" name="place-tile" title="place tiles in room")
-            include /icons/pencil.svg
+        .horizontal-capsule#placement-toggles
+            label.toggle
+                input(type="checkbox" name="place-tile" title="paint tiles in room")
+                include /icons/cells.svg
+            label.toggle
+                input(type="checkbox" name="room-paint-foreground" title="paint foreground color")
+                include /icons/foreground.svg
+            label.toggle
+                input(type="checkbox" name="room-paint-background" title="paint background color")
+                include /icons/background.svg
         label.toggle#picker-toggle
             input(type="checkbox" name="tile-picker" title="pick tile")
             include /icons/picker.svg
