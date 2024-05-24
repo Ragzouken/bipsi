@@ -1552,7 +1552,6 @@ class BipsiEditor extends EventTarget {
             const cursors = {
                 "tile": "crosshair",
                 "high": "crosshair",
-                "pick": "crosshair",
                 "wall": "crosshair",
                 "events": "pointer",
                 "shift": "move"
@@ -1716,12 +1715,13 @@ class BipsiEditor extends EventTarget {
             const nextTile = same ? 0 : tile?.id;
             const nextWall = 1 - room.wallmap[y][x];
 
-            if (tool === "pick" || forcePick || this.picker.checked) {
+            if (forcePick || this.picker.checked) {
                 if (prevTile !== 0) {
                     const index = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
 
-                    setSelectedTile(index);
-                    setSelectedColors(room.backmap[y][x], room.foremap[y][x]);
+                    if (this.placeTile.checked) setSelectedTile(index);
+                    if (this.paintForeground.checked) this.fgIndex.selectedIndex = room.foremap[y][x];
+                    if (this.paintBackground.checked) this.bgIndex.selectedIndex = room.backmap[y][x];
                 }
             } else if (tool === "wall" || tool === "tile" || tool === "high" || tool === "color") {    
                 this.stateManager.makeCheckpoint();
