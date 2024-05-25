@@ -236,7 +236,7 @@ if (color) {
 const BEHAVIOUR_IMAGES = `
 let backgrounds = FIELDS_OR_LIBRARY("background");
 if (backgrounds.length > 0) {
-    SHOW_IMAGE("BACKGROUND", backgrounds, 1, 0, 0);
+    SHOW_IMAGE("BACKGROUND", backgrounds, 0, 0, 0);
 } else if (IS_TAGGED(EVENT, "clear-background")) {
     HIDE_IMAGE("BACKGROUND");
 }
