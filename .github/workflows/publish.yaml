@@ -1,6 +1,9 @@
 name: publish
 
-on: [push]
+on: 
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
