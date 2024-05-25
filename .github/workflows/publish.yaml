@@ -31,6 +31,14 @@ jobs:
           api_token: ${{ secrets.NEOCITIES_API_TOKEN }}
           cleanup: false
           dist_dir: ./site
+      - name: deploy to itch
+        uses: manleydev/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
+          CHANNEL: web
+          ITCH_GAME:  bipsi
+          ITCH_USER: candle
+          PACKAGE: ./site/bipsi
 
   deploy:
     environment:
