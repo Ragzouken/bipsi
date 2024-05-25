@@ -1,6 +1,9 @@
 name: publish
 
-on: [push]
+on: 
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,16 +16,32 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: install pug-cli & build
+      - name: install node
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm install pug-cli -g
-      - run: pug --pretty -o dist --basedir src -- src/index.pug
-      - name: Upload artifact
+      - name: install pug & build
+        run: |
+          npm install pug-cli -g
+          pug --pretty -o site/bipsi --basedir src -- src/index.pug
+      - name: upload github pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ./dist
+          path: ./site/bipsi
+      - name: deploy to neocities
+        uses: bcomnes/deploy-to-neocities@v2
+        with:
+          api_token: ${{ secrets.NEOCITIES_API_TOKEN }}
+          cleanup: false
+          dist_dir: ./site
+      - name: deploy to itch
+        uses: manleydev/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
+          CHANNEL: web
+          ITCH_GAME:  bipsi
+          ITCH_USER: candle
+          PACKAGE: ./site/bipsi
 
   deploy:
     environment:
