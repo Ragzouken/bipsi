@@ -17,15 +17,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm install pug-cli -g
-      - run: pug --pretty -o dist --basedir src -- src/index.pug
-      - name install ruby & neocities
+        run: npm install pug-cli -g
+        run: pug --pretty -o dist --basedir src -- src/index.pug
+      - name: install ruby & neocities
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3' # Not needed with a .ruby-version file
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - run: bundle exec rake
-      - run: gem install neocities
+        run: bundle exec rake
+        run: gem install neocities
       - name: upload github pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
