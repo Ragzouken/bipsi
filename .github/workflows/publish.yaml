@@ -25,12 +25,12 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           path: ./site/bipsi
-      - name: Deploy to neocities
+      - name: deploy to neocities
         uses: bcomnes/deploy-to-neocities@v2
         with:
           api_token: ${{ secrets.NEOCITIES_API_TOKEN }}
           cleanup: false
-          dist_dir: site
+          dist_dir: ./site
 
   deploy:
     environment:
