@@ -1551,7 +1551,6 @@ class BipsiEditor extends EventTarget {
 
             const cursors = {
                 "tile": "crosshair",
-                "high": "crosshair",
                 "wall": "crosshair",
                 "events": "pointer",
                 "shift": "move"
@@ -1560,18 +1559,6 @@ class BipsiEditor extends EventTarget {
             this.renderings.tileMapPaint.canvas.style.cursor = cursors[this.roomPaintTool.value];
         });
 
-        const setSelectedTile = (index) => {
-            this.tilePaintFrameSelect.selectedIndex = 0;
-
-            this.tileBrowser.select.setSelectedIndexSilent(index);
-            this.tileEditor.redraw();
-        }
-
-        const setSelectedColors = (bgIndex, fgIndex) => {
-            this.bgIndex.selectedIndex = bgIndex;
-            this.fgIndex.selectedIndex = fgIndex;
-        }
-
         this.tileBrowser.select.addEventListener("change", () => {
             if (this.roomPaintTool.selectedIndex > 1) {
                 this.roomPaintTool.selectedIndex = 0;
@@ -1579,7 +1566,7 @@ class BipsiEditor extends EventTarget {
 
             this.tilePaintFrameSelect.selectedIndex = 0;
 
-            setSelectedTile(this.tileBrowser.select.selectedIndex);
+            this.setSelectedTile(this.tileBrowser.select.selectedIndex);
         })
 
         // whenever the project data is changed
@@ -1611,186 +1598,7 @@ class BipsiEditor extends EventTarget {
             this.refreshEditorPluginConfigs();
         });
 
-        const onEventsPointer = async (event, canvas) => {
-            // hack bc race condition rn
-            const drag = ui.drag(event);
-            await sleep(1);
-
-            if (this.eventEditor.showDialoguePreview) {
-                this.dialoguePreviewPlayer.skip();
-                if (this.dialoguePreviewPlayer.empty) this.eventEditor.resetDialoguePreview();
-                this.requestRedraw();
-                return;
-            }
-
-            const { room } = this.getSelections();
-
-            const round = makeCanvasRounder(this.renderings.tileMapPaint.canvas, ROOM_SIZE);
-
-            const redraw = () => {
-                this.requestRedraw();
-            };
-
-            const positions = trackCanvasStroke(canvas, drag);
-            let started = false;
-
-            const { x, y } = round(positions[0]);
-
-            if (event.altKey) {
-                this.tileBrowser.selectedTileIndex = room.tilemap[y][x];
-                return;
-            }
-
-            this.selectedEventCell = { x, y };
-            redraw();
-
-            const events_ = getEventsAt(room.events, x, y);
-            const event_ = events_[events_.length - 1];
-            this.selectedEventId = event_?.id;
-            
-            this.eventEditor.refresh();
-
-            drag.addEventListener("move", (event) => {
-                const { x: x0, y: y0 } = round(positions[positions.length - 2]);
-                const { x: x1, y: y1 } = round(positions[positions.length - 1]);
-                const dx = x1 - x0;
-                const dy = y1 - y0;
-
-                const move = (dx !== 0 || dy !== 0);
-
-                if (!started && move) {
-                    started = true;
-                    this.stateManager.makeCheckpoint();
-                }
-
-                const x = Math.max(0, Math.min(x1, ROOM_SIZE - 1));
-                const y = Math.max(0, Math.min(y1, ROOM_SIZE - 1));
-                const existing = getEventsAt(room.events, x, y)[0];
-
-                if (event_ && !existing) {
-                    event_.position = [x, y];
-                    this.selectedEventCell = { x, y };
-
-                    if (move) {
-                        this.selectedEventId = getEventsAt(room.events, x, y)[0]?.id;
-                        this.stateManager.changed();
-                    }
-                }
-            });
-        };
-
-        const onRoomPointer = async (event, canvas, forcePick=false) => {
-            if (this.roomPaintTool.value === "events" && !forcePick) {
-                onEventsPointer(event, canvas);
-                return;
-            }
-
-            const { tile, room, data, bgIndex, fgIndex, colorIndex } = this.getSelections();
-
-            const factor = ROOM_SIZE / canvas.width;
-
-            const round = (position) => {
-                return {
-                    x: Math.floor(position.x * factor),
-                    y: Math.floor(position.y * factor),
-                };
-            };
-
-            const redraw = () => this.requestRedraw();
-
-            const drag = ui.drag(event);
-            const positions = trackCanvasStroke(canvas, drag);
-
-            const { x, y } = round(positions[0]);
-
-            const tool = this.roomPaintTool.value;
-
-            const prevTile = room.tilemap[y][x];
-
-            const same = tile
-                      && (room.tilemap[y][x] === tile.id || !this.placeTile.checked)
-                      && (room.backmap[y][x] === bgIndex || !this.paintBackground.checked)
-                      && (room.foremap[y][x] === fgIndex || !this.paintForeground.checked);
-
-            const nextTile = same ? 0 : tile?.id;
-            const nextWall = 1 - room.wallmap[y][x];
-
-            if (forcePick || this.picker.checked) {
-                if (prevTile !== 0) {
-                    const index = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
-
-                    if (this.placeTile.checked) setSelectedTile(index);
-                    if (this.paintForeground.checked) this.fgIndex.selectedIndex = room.foremap[y][x];
-                    if (this.paintBackground.checked) this.bgIndex.selectedIndex = room.backmap[y][x];
-                }
-            } else if (tool === "wall" || tool === "tile" || tool === "high" || tool === "color") {    
-                this.stateManager.makeCheckpoint();
-
-                const setIfWithin = (map, x, y, value) => {
-                    if (x >= 0 && x < ROOM_SIZE && y >= 0 && y < ROOM_SIZE) map[y][x] = value ?? 0;
-                } 
-
-                const plots = {
-                    tile: (x, y) => { 
-                        if (this.placeTile.checked) setIfWithin(room.tilemap, x, y, nextTile); 
-                        if (this.paintBackground.checked) setIfWithin(room.backmap, x, y, bgIndex); 
-                        if (this.paintForeground.checked) setIfWithin(room.foremap, x, y, fgIndex); 
-                    },
-                    wall: (x, y) => setIfWithin(room.wallmap, x, y, nextWall),
-                    color: (x, y) => setIfWithin(this.roomColorMode.value === "bg" ? room.backmap : room.foremap, x, y, colorIndex+1),
-                }
-
-                const plot = plots[tool];
-                plot(x, y);
-                redraw();
-
-                drag.addEventListener("move", (event) => {
-                    const { x: x0, y: y0 } = round(positions[positions.length - 2]);
-                    const { x: x1, y: y1 } = round(positions[positions.length - 1]);
-                    lineplot(x0, y0, x1, y1, plot);
-                    redraw();
-                });
-
-                drag.addEventListener("up", (event) => {
-                    const { x, y } = round(positions[positions.length - 1]);
-                    plot(x, y);
-                    redraw();
-                    this.stateManager.changed();
-                });
-
-                if (tool === "wall") {
-                    drag.addEventListener("click", (event) => {
-                        if (event.detail.shiftKey) {
-                            room.tilemap.forEach((row, y) => {
-                                row.forEach((tileIndex, x) => {
-                                    if (tileIndex === prevTile) {
-                                        room.wallmap[y][x] = nextWall;
-                                    }
-                                });
-                            });
-                        }
-                        redraw();
-                    });
-                }
-            } else if (tool === "shift") {    
-                this.stateManager.makeCheckpoint();
-
-                drag.addEventListener("move", (event) => {
-                    const { x: x0, y: y0 } = round(positions[positions.length - 2]);
-                    const { x: x1, y: y1 } = round(positions[positions.length - 1]);
-                    const dx = x0 - x1;
-                    const dy = y0 - y1;
-                    cycleMap(room.tilemap, dx, dy);
-                    cycleMap(room.wallmap, dx, dy);
-                    cycleMap(room.backmap, dx, dy);
-                    cycleMap(room.foremap, dx, dy);
-                    cycleEvents(room.events, -dx, -dy);
-                    redraw();
-                });
-            } 
-        };
-
-        this.renderings.tileMapPaint.canvas.addEventListener("pointerdown", (event) => onRoomPointer(event, this.renderings.tileMapPaint.canvas));
+        this.renderings.tileMapPaint.canvas.addEventListener("pointerdown", (event) => this.onRoomPointer(event, this.renderings.tileMapPaint.canvas));
 
         this.frame = 0;
 
@@ -1882,6 +1690,196 @@ class BipsiEditor extends EventTarget {
         this.stateManager.present.tileset = id;
         // return the instance of the image for editing
         return instance;
+    }
+
+    setSelectedTile(index) {
+        this.tilePaintFrameSelect.selectedIndex = 0;
+        this.tileBrowser.select.setSelectedIndexSilent(index);
+        this.tileEditor.redraw();
+    }
+
+    async onEventsPointer(event, canvas) {
+        // hack bc race condition rn
+        const drag = ui.drag(event);
+        await sleep(1);
+
+        if (this.eventEditor.showDialoguePreview) {
+            this.dialoguePreviewPlayer.skip();
+            if (this.dialoguePreviewPlayer.empty) this.eventEditor.resetDialoguePreview();
+            this.requestRedraw();
+            return;
+        }
+
+        const { room } = this.getSelections();
+
+        const round = makeCanvasRounder(this.renderings.tileMapPaint.canvas, ROOM_SIZE);
+
+        const positions = trackCanvasStroke(canvas, drag);
+        let started = false;
+
+        const { x, y } = round(positions[0]);
+
+        if (event.altKey) {
+            this.tileBrowser.selectedTileIndex = room.tilemap[y][x];
+            return;
+        }
+
+        this.selectedEventCell = { x, y };
+        this.requestRedraw();
+
+        const events_ = getEventsAt(room.events, x, y);
+        const event_ = events_[events_.length - 1];
+        this.selectedEventId = event_?.id;
+
+        this.eventEditor.refresh();
+
+        drag.addEventListener("move", () => {
+            const { x: x0, y: y0 } = round(positions[positions.length - 2]);
+            const { x: x1, y: y1 } = round(positions[positions.length - 1]);
+            const dx = x1 - x0;
+            const dy = y1 - y0;
+
+            const move = (dx !== 0 || dy !== 0);
+
+            if (!started && move) {
+                started = true;
+                this.stateManager.makeCheckpoint();
+            }
+
+            const x = Math.max(0, Math.min(x1, ROOM_SIZE - 1));
+            const y = Math.max(0, Math.min(y1, ROOM_SIZE - 1));
+            const existing = getEventsAt(room.events, x, y)[0];
+
+            if (event_ && !existing) {
+                event_.position = [x, y];
+                this.selectedEventCell = { x, y };
+
+                if (move) {
+                    this.selectedEventId = getEventsAt(room.events, x, y)[0]?.id;
+                    this.requestRedraw();
+                }
+            }
+        });
+        drag.addEventListener("up", () => this.stateManager.changed());
+    }
+
+    async onRoomPointer(event, canvas, forcePick=false) {
+        if (this.roomPaintTool.value === "events" && !forcePick) {
+            return this.onEventsPointer(event, canvas);
+        }
+
+        const { tile, room, data, bgIndex, fgIndex, colorIndex } = this.getSelections();
+
+        const factor = ROOM_SIZE / canvas.width;
+
+        const round = (position) => {
+            return {
+                x: Math.floor(position.x * factor),
+                y: Math.floor(position.y * factor),
+            };
+        };
+
+        const drag = ui.drag(event);
+        const positions = trackCanvasStroke(canvas, drag);
+
+        const { x, y } = round(positions[0]);
+
+        const tool = this.roomPaintTool.value;
+
+        const prevTile = room.tilemap[y][x];
+
+        const active = {
+            tile: this.placeTile.checked,
+            fore: this.paintForeground.checked,
+            back: this.paintBackground.checked,
+        }
+
+        const picking = forcePick || this.picker.checked;
+        const drawing = tool === "wall" || tool === "tile" || tool === "color";
+        const shifting = tool === "shift";
+
+        const same = tile
+                  && (room.tilemap[y][x] === tile.id || !active.tile)
+                  && (room.backmap[y][x] === bgIndex || !active.back)
+                  && (room.foremap[y][x] === fgIndex || !active.fore);
+
+        const nextTile = same ? 0 : tile?.id;
+        const nextWall = 1 - room.wallmap[y][x];
+
+        if (picking) {
+            if (prevTile !== 0) {
+                const index = Math.max(0, data.tiles.findIndex((tile) => tile.id === prevTile));
+
+                if (active.tile) this.setSelectedTile(index);
+                if (active.fore) this.fgIndex.selectedIndex = room.foremap[y][x];
+                if (active.back) this.bgIndex.selectedIndex = room.backmap[y][x];
+            }
+        } else if (drawing) {    
+            this.stateManager.makeCheckpoint();
+
+            const setIfWithin = (map, x, y, value) => {
+                if (x >= 0 && x < ROOM_SIZE && y >= 0 && y < ROOM_SIZE) map[y][x] = value ?? 0;
+            } 
+
+            const plots = {
+                tile: (x, y) => { 
+                    if (this.placeTile.checked) setIfWithin(room.tilemap, x, y, nextTile); 
+                    if (this.paintBackground.checked) setIfWithin(room.backmap, x, y, bgIndex); 
+                    if (this.paintForeground.checked) setIfWithin(room.foremap, x, y, fgIndex); 
+                },
+                wall: (x, y) => setIfWithin(room.wallmap, x, y, nextWall),
+                color: (x, y) => setIfWithin(this.roomColorMode.value === "bg" ? room.backmap : room.foremap, x, y, colorIndex+1),
+            }
+
+            const plot = plots[tool];
+            plot(x, y);
+            this.requestRedraw();
+
+            drag.addEventListener("move", () => {
+                const { x: x0, y: y0 } = round(positions[positions.length - 2]);
+                const { x: x1, y: y1 } = round(positions[positions.length - 1]);
+                lineplot(x0, y0, x1, y1, plot);
+                this.requestRedraw();
+            });
+
+            drag.addEventListener("up", () => {
+                const { x, y } = round(positions[positions.length - 1]);
+                plot(x, y);
+                this.requestRedraw();
+                this.stateManager.changed();
+            });
+
+            if (tool === "wall") {
+                drag.addEventListener("click", (event) => {
+                    if (event.detail.shiftKey) {
+                        room.tilemap.forEach((row, y) => {
+                            row.forEach((tileIndex, x) => {
+                                if (tileIndex === prevTile) {
+                                    room.wallmap[y][x] = nextWall;
+                                }
+                            });
+                        });
+                    }
+                    this.requestRedraw();
+                });
+            }
+        } else if (shifting) {    
+            this.stateManager.makeCheckpoint();
+
+            drag.addEventListener("move", () => {
+                const { x: x0, y: y0 } = round(positions[positions.length - 2]);
+                const { x: x1, y: y1 } = round(positions[positions.length - 1]);
+                const dx = x0 - x1;
+                const dy = y0 - y1;
+                cycleMap(room.tilemap, dx, dy);
+                cycleMap(room.wallmap, dx, dy);
+                cycleMap(room.backmap, dx, dy);
+                cycleMap(room.foremap, dx, dy);
+                cycleEvents(room.events, -dx, -dy);
+                this.requestRedraw();
+            });
+            drag.addEventListener("up", () => this.stateManager.changed());
+        }
     }
 
     /**
