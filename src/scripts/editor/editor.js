@@ -2355,6 +2355,13 @@ class BipsiEditor extends EventTarget {
         return this.stateManager.makeChange(async (data) => {
             const { room } = this.getSelections(data);
             arrayDiscard(data.rooms, room);
+ 
+            // replace location references to this room
+            const fallback = data.rooms[0].id;
+            allEvents(data)
+                .flatMap((event) => event.fields)
+                .filter((field) => field.type === "location" && field.data.room === room.id)
+                .forEach((field) => field.data.room = fallback);
         });
     }
 
