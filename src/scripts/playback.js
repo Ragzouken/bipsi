@@ -241,6 +241,13 @@ if (backgrounds.length > 0) {
     HIDE_IMAGE("BACKGROUND");
 }
 
+let midgrounds = FIELDS_OR_LIBRARY("midground");
+if (midgrounds.length > 0) {
+    SHOW_IMAGE("MIDGROUND", midgrounds, 1, 0, 0);
+} else if (IS_TAGGED(EVENT, "clear-midground")) {
+    HIDE_IMAGE("MIDGROUND");
+}
+
 let foregrounds = FIELDS_OR_LIBRARY("foreground");
 if (foregrounds.length > 0) {
     SHOW_IMAGE("FOREGROUND", foregrounds, 2, 0, 0);

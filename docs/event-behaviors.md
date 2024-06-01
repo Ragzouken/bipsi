@@ -69,15 +69,18 @@
 | image layer | meaning
 |--|--
 | background | below the room, events, and dialogue
+| midground | above the room, but below the events and dialogue
 | foreground | above the room and events, but below the dialogue
 | overlay | above the room, events, and dialogue
 
 | name | type | meaning
 |--|--|--
 | background | text | show named image on background layer
+| midground | text | show named image on midground layer
 | foreground | text | show named image on foreground layer
 | overlay | text | show named image on overlay layer
 | clear-background | tag | clear image on background layer
+| clear-midground | tag | clear image on midground layer
 | clear-foreground | tag | clear image on foreground layer
 | clear-overlay | tag | clear image on overlay layer
 
