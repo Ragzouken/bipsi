@@ -587,17 +587,21 @@ class BipsiPlayback extends EventTarget {
         scene.push({ layer: 3, func: () => dest.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0) });
     }
 
+    addLayersToScene(scene, dest, frame) {
+        if (!this.ended) {
+            this.addRoomToScene(scene, dest, frame);
+            this.addDialogueToScene(scene, dest, frame);
+            this.addImagesToScene(scene, dest, frame);
+        }
+    }
+
     render(frame=undefined) {
         frame = frame ?? this.frameCount;
 
         const scene = [];
         
         // add visual layers to scene
-        if (!this.ended) {
-            this.addImagesToScene(scene, this.rendering, frame);
-            this.addRoomToScene(scene, this.rendering, frame);
-            this.addDialogueToScene(scene, this.rendering, frame);
-        }
+        this.addLayersToScene(scene, this.rendering, frame);
 
         // sort visual layers
         scene.sort((a, b) => a.layer - b.layer);
