@@ -241,6 +241,13 @@ if (backgrounds.length > 0) {
     HIDE_IMAGE("BACKGROUND");
 }
 
+let midgrounds = FIELDS_OR_LIBRARY("midground");
+if (midgrounds.length > 0) {
+    SHOW_IMAGE("MIDGROUND", midgrounds, 1, 0, 0);
+} else if (IS_TAGGED(EVENT, "clear-midground")) {
+    HIDE_IMAGE("MIDGROUND");
+}
+
 let foregrounds = FIELDS_OR_LIBRARY("foreground");
 if (foregrounds.length > 0) {
     SHOW_IMAGE("FOREGROUND", foregrounds, 2, 0, 0);
@@ -540,7 +547,7 @@ class BipsiPlayback extends EventTarget {
         this.render();
     }
 
-    render(frame=undefined) {
+    addRoomToScene(scene, dest, frame) {
         // find avatar, current room, current palette
         const avatar = getEventById(this.data, this.avatarId);
         const room = roomFromEvent(this.data, avatar);
@@ -548,49 +555,67 @@ class BipsiPlayback extends EventTarget {
         const tileset = this.stateManager.resources.get(this.data.tileset);
 
         // find current animation frame for each tile
-        frame = frame ?? this.frameCount;
         const tileToFrame = makeTileToFrameMap(this.data.tiles, frame);
 
-        // sort images
-        const images = Array.from(this.images.values());
-        images.sort((a, b) => a.layer - b.layer);
-        const images_below_all    = images.filter((image) => image.layer < 1);
-        const images_below_events = images.filter((image) => image.layer >= 1 && image.layer < 2);
-        const images_above_events = images.filter((image) => image.layer >= 2 && image.layer < 3);
-        const images_above_all    = images.filter((image) => image.layer >= 3);
+        function upscaler(func) {
+            return () => {
+                fillRendering2D(TEMP_ROOM);
+                func();
+                dest.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
+            };
+        }
 
+        scene.push({ layer: 1, func: upscaler(() => drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room)) });
+        scene.push({ layer: 2, func: upscaler(() => drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events)) });
+    }
+
+    addImagesToScene(scene, dest, frame) {
         function drawImage({ image, x, y }) {
-            TEMP_ROOM.drawImage(image[frame % image.length], x, y);
+            dest.drawImage(image[frame % image.length], x, y);
         }
 
-        fillRendering2D(this.rendering);
-        images_below_all.forEach(drawImage);
-        drawTilemapLayer(TEMP_ROOM, tileset, tileToFrame, palette, room);
-        images_below_events.forEach(drawImage);
-        drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events);
-        images_above_events.forEach(drawImage);
+        const images = [...this.images.values()];
+        const draws = images.map((image) => ({ layer: image.layer, func: () => drawImage(image) }));
 
-        // upscale tilemaps to display area
-        this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
+        scene.push(...draws);
+    }
 
-        // render dialogue box if necessary
-        if (!this.dialoguePlayback.empty) {
-            // change default dialogue position based on avatar position
-            const top = avatar.position[1] >= 8;
-            this.dialoguePlayback.options.anchorY = top ? 0 : 1;
+    addDialogueToScene(scene, dest, frame) {
+        if (this.dialoguePlayback.empty)
+            return;
 
-            // redraw dialogue and copy to display area
-            this.dialoguePlayback.render();
-            this.rendering.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0);
+        // change default dialogue position based on avatar position
+        const avatar = getEventById(this.data, this.avatarId);
+        const top = avatar.position[1] >= 8;
+        this.dialoguePlayback.options.anchorY = top ? 0 : 1;
+
+        // redraw dialogue and copy to display area
+        this.dialoguePlayback.render();
+        scene.push({ layer: 3, func: () => dest.drawImage(this.dialoguePlayback.dialogueRendering.canvas, 0, 0) });
+    }
+
+    addLayersToScene(scene, dest, frame) {
+        if (!this.ended) {
+            this.addRoomToScene(scene, dest, frame);
+            this.addDialogueToScene(scene, dest, frame);
+            this.addImagesToScene(scene, dest, frame);
         }
+    }
+
+    render(frame=undefined) {
+        frame = frame ?? this.frameCount;
+
+        const scene = [];
         
-        fillRendering2D(TEMP_ROOM);
-        images_above_all.forEach(drawImage);
-        this.rendering.drawImage(TEMP_ROOM.canvas, 0, 0, 256, 256);
+        // add visual layers to scene
+        this.addLayersToScene(scene, this.rendering, frame);
 
-        if (this.ended) {
-            fillRendering2D(this.rendering);
-        }
+        // sort visual layers
+        scene.sort((a, b) => a.layer - b.layer);
+
+        // clear and draw layers
+        fillRendering2D(this.rendering);
+        scene.forEach(({ func }) => func());
 
         // signal, to anyone listening, that rendering happened
         this.dispatchEvent(new CustomEvent("render"));
