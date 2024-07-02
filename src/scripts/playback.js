@@ -569,9 +569,19 @@ class BipsiPlayback extends EventTarget {
         scene.push({ layer: 2, func: upscaler(() => drawEventLayer(TEMP_ROOM, tileset, tileToFrame, palette, room.events)) });
     }
 
+    /**
+     * 
+     * @param {*} scene 
+     * @param {CanvasRenderingContext2D} dest 
+     * @param {number} frame 
+     */
     addImagesToScene(scene, dest, frame) {
+        // 2x scale for images for non-hd
+        const scale = BIPSI_HD ? 1 : 2;
+
         function drawImage({ image, x, y }) {
-            dest.drawImage(image[frame % image.length], x, y);
+            const source = image[frame % image.length]
+            dest.drawImage(source, x, y, source.width * scale, source.height * scale);
         }
 
         const images = [...this.images.values()];
