@@ -1473,7 +1473,7 @@ class BipsiEditor extends EventTarget {
                     }
                 });
 
-                if (event.key.toLocaleLowerCase()) {
+                if (event.key.toLocaleLowerCase() == "x") {
                     event.preventDefault();
 
                     const prevFg = this.fgIndex.value;
