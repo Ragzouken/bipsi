@@ -1472,6 +1472,16 @@ class BipsiEditor extends EventTarget {
                         event.preventDefault();
                     }
                 });
+
+                if (event.key.toLocaleLowerCase()) {
+                    event.preventDefault();
+
+                    const prevFg = this.fgIndex.value;
+                    const prevBg = this.bgIndex.value;
+
+                    this.fgIndex.selectedIndex = prevBg;
+                    this.bgIndex.selectedIndex = prevFg;
+                }
             }
 
             // if (event.altKey && this.heldColorPick === undefined) {
