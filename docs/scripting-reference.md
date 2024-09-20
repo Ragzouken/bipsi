@@ -40,7 +40,7 @@ this constants and functions will not necessarily be available when writing plug
 | `MOVE(event, location)` | move an event to a location
 | `FIELD(event, name, type)` | get the first field of matching name and type from an event
 | `FIELDS(event, name, type)` | get all fields of matching name and type from an event
-| `SET_FIELDS(event, name, type, ...values)` | replace all fields (if any) of matching name and type with fields with the given values 
+| `SET_FIELDS(event, name, type, ...values)` | replace all fields (if any) of matching name and type with fields with the given values (or omit values to delete a field)
 | `IS_TAGGED(event, name)` | check if an event has a tag
 | `TAG(event, name)` | add a tag to an event
 | `UNTAG(event, name)` | remove a tag from an event
