@@ -73,6 +73,8 @@
 | foreground | above the room and events, but below the dialogue
 | overlay | above the room, events, and dialogue
 
+<img src="./image-layers.png" />
+
 | name | type | meaning
 |--|--|--
 | background | text | show named image on background layer
